@@ -26,14 +26,24 @@ class WebViewContainer(QStackedWidget):
         # webView: Q3DWebEngineView (INPROCESS) or Q3DWebViewProxy (EMBEDDED)
         assert self.count() == 1
 
-        self.webView = webView
         if isinstance(webView, QWidget):
             # INPROCESS
             self.addWidget(webView)
-            self.showPreview()
         else:
             # EMBEDDED
             self.previewStateWidget.buttonRestart.clicked.connect(webView.startPreview)
+
+        self.webView = webView
+
+    def previewStateChanged(self, state):
+        logger.debug(f"previewStateChanged: {state}")
+        if state == PreviewState.Active:
+            self.showPreview()
+        else:
+            self.showPreviewState(state)
+
+            if state == PreviewState.Disabled:
+                self.removeEmbeddedWnd()
 
     def showPreview(self):
         assert self.count() == 2
@@ -57,7 +67,8 @@ class WebViewContainer(QStackedWidget):
         self.setCurrentIndex(1)
 
         logger.info(f"External window ({winId}) embedded.")
-        self.previewStateWidget.setState(PreviewState.State_Idle)
+
+        self.previewStateChanged(PreviewState.Active)
 
     def removeEmbeddedWnd(self):
         if self.embeddedWnd:
@@ -106,28 +117,31 @@ class PreviewStateWidget(QWidget):
         self.timer.timeout.connect(self.timeout)
 
         self.currentMsg1 = self.currentMsg2 = ""
-        self.currentState = PreviewState.State_Idle
+        self.currentState = PreviewState.Idle
         self.dots = 0
 
     def setState(self, state):
+        if state == self.currentState:
+            return
+
         self.timer.stop()
         self.buttonRestart.hide()
         self.icon.hide()
 
         msg1 = msg2 = ""
         bgcolor = None
-        if state == PreviewState.State_Loading:
+        if state == PreviewState.Loading:
             msg1 = "PREPARING PREVIEW"
             bgcolor = Qt.GlobalColor.white
 
             self.dots = 0
             self.timer.start()
 
-        elif state == PreviewState.State_Error:
+        elif state == PreviewState.Error:
             msg1 = "PREVIEW STOPPED UNEXPECTEDLY.\nTHE CONNECTION WAS LOST."
             self.buttonRestart.show()
 
-        elif state == PreviewState.State_Disabled:
+        elif state == PreviewState.Disabled:
             self.icon.show()
 
         if bgcolor is None:

@@ -14,7 +14,7 @@ from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QD
 from qgis.core import Qgis, QgsProject, QgsApplication
 
 from .ipc.ipc_const import Event, Request
-from .webview.const import WebViewType, WebViewMode
+from .webview.const import PreviewState, WebViewType, WebViewMode
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
@@ -62,13 +62,18 @@ class Q3DWindow(QMainWindow):
 
         Q3DView = getWebViewClass(webViewType, webViewMode)
         if webViewType == WebViewType.NONE or webViewMode == WebViewMode.SEPARATE:
+            self.ui.webViewContainer = None
+
             webView = Q3DView(parent=self)
             self.setCentralWidget(None)
         else:       # webViewMode: INPROCESS or EMBEDDED
             self.ui.webViewContainer = WebViewContainer(self.ui.centralwidget)
+            self.ui.webViewContainer.showPreviewState(PreviewState.Loading if previewEnabled else PreviewState.Disabled)
             self.ui.verticalLayout.addWidget(self.ui.webViewContainer)
 
             webView = Q3DView(parent=self.ui.webViewContainer)
+            webView.previewStateChanged.connect(self.ui.webViewContainer.previewStateChanged)
+
             self.ui.webViewContainer.setWebView(webView)
 
         webView.setObjectName("webView")
@@ -108,7 +113,9 @@ class Q3DWindow(QMainWindow):
             self.previewEnabledChanged.connect(self.setPreviewEnabled)
         else:
             self.ui.checkBoxPreview.setEnabled(False)
-            self.previewStateChanged(False)
+
+        if not previewEnabled:
+            self.setPreviewEnabled(False)
 
         self.ui.animationPanel.setup(self, settings)
 
@@ -137,6 +144,14 @@ class Q3DWindow(QMainWindow):
     def requestReceived(self, id, method, params, payload):
         if method == Request.WND_GEOM:
             self.ui.webView.socketServer.respond(id, method, params={"geom": base64.b64encode(self._previewWndGeometry).decode("ascii")})
+            return
+
+        if method == Request.EMBED_WND:
+            self.ui.webViewContainer.embedWnd(int(params["winId"]))
+        else:
+            return
+
+        self.ui.webView.socketServer.respond(id, method)
 
     def closeEvent(self, event):
         try:
@@ -278,7 +293,7 @@ class Q3DWindow(QMainWindow):
         settings.beginGroup("Qgis2threejs/wnd")
         self.restoreGeometry(settings.value(f"geometry{suffix}", b""))
         self.restoreState(settings.value(f"state{suffix}", b""))
-        self._previewWndGeometry = settings.value("preview", b"")
+        self._previewWndGeometry = settings.value("preview") or b""
         settings.endGroup()
 
     def saveWindowState(self):
@@ -314,19 +329,14 @@ class Q3DWindow(QMainWindow):
         self.controller.enabled = enabled
 
         self.ui.webView.setPreviewEnabled(enabled)
-        self.previewStateChanged(enabled)
+
+        ui = self.ui
+        for obj in [ui.menuSaveAs, ui.actionReload, ui.actionResetCameraPosition,
+                    ui.actionDevTools, ui.actionUsage, ui.actionGraphicsInfo]:
+            obj.setEnabled(enabled)
 
     def previewClosed(self):
         self.ui.checkBoxPreview.setChecked(False)
-        self.previewStateChanged(False)
-
-    def previewStateChanged(self, enabled):
-        ui = self.ui
-        objs = [ui.menuSaveAs, ui.actionReload, ui.actionResetCameraPosition,
-                ui.actionDevTools, ui.actionUsage, ui.actionGraphicsInfo]
-
-        for obj in objs:
-            obj.setEnabled(enabled)
 
     def changeEvent(self, event):
         if event.type() == QEvent.Type.WindowStateChange:

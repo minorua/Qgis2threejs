@@ -15,7 +15,7 @@ from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebChannel import QWebChannel
 
 from .conf import DEBUG_MODE
-from .const import WebViewType
+from .const import PreviewState, WebViewType
 from .utils import logger, web_logger
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 from ...utils.basic import pluginDir
@@ -124,6 +124,7 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
 
         self._page = self.WebPageClass(self)
         self._page.setObjectName("WebEnginePage")
+        self._page.loadFinished.connect(lambda ok: self.previewStateChanged.emit(PreviewState.Active))
         self.setPage(self._page)
 
         restoreChromiumFlags()

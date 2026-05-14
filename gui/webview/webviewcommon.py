@@ -191,6 +191,7 @@ class Q3DWebViewCommon:
 
     devToolsClosed = pyqtSignal()
     fileDropped = pyqtSignal(list)
+    previewStateChanged = pyqtSignal(int)       # PreviewState
 
     def __init__(self, _=None):
         pass

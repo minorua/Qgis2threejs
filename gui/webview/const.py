@@ -14,7 +14,8 @@ class WebViewMode:
 
 
 class PreviewState:
-    State_Idle = 0
-    State_Loading = 1
-    State_Error = 2
-    State_Disabled = 3
+    Idle = 0
+    Loading = 1
+    Active = 2
+    Error = 3
+    Disabled = 4

@@ -15,7 +15,7 @@ from .webbridge import WebIPCBridge
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 from ..ipc.ipc_const import Event, Request
 from ..ipc.socketserver import SocketServer
-from ...utils.basic import createUid, pluginDir, NoopClass
+from ...utils.basic import createUid, pluginDir
 
 
 class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
@@ -107,12 +107,10 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
         self.embeddedMode = True
         self.previewEnabled = True
         self.viewProcess = None
-        self.viewContainer = NoopClass()
 
         self.serverName = "Q3D" + createUid()
         self.socketServer = SocketServer(self, self.serverName)
         self.socketServer.notified.connect(self.notified)
-        self.socketServer.requestReceived.connect(self.requestReceived)
         self.socketServer.disconnected.connect(self.disconnected)
 
         self._page = Q3DWebPageProxy(self)
@@ -122,17 +120,14 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
     def setup(self, webViewMode=None, enabledAtStart=True):
         self._page.setup()
 
-        if webViewMode == WebViewMode.EMBEDDED:
-            self.viewContainer = self.parent()
-        else:   # webViewMode == WebViewMode.SEPARATE:
-            self.embeddedMode = False
-
-        self.setPreviewEnabled(enabledAtStart)
+        self.embeddedMode = (webViewMode == WebViewMode.EMBEDDED)
+        self.previewEnabled = enabledAtStart
+        if enabledAtStart:
+            self.startPreview()
 
     def teardown(self):
         logger.info("Socket server is going to shut down.")
         self.stopPreview()
-        self.viewContainer = None
         self._page = None
 
     def page(self):
@@ -145,7 +140,7 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
         self.socketServer.request(Request.SIZE, callback=callback)
 
     def startPreview(self):
-        self.viewContainer.showPreviewState(PreviewState.State_Loading)
+        self.previewStateChanged.emit(PreviewState.Loading)
 
         if self.viewProcess:
             self.stopPreview()
@@ -198,9 +193,15 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
         if not self.viewProcess:
             return
 
+        self.previewStateChanged.emit(PreviewState.Disabled)
+
         self.socketServer.notify(Event.QUIT)
 
-        self.viewContainer.removeEmbeddedWnd()
+        self.terminateViewProcess()
+
+    def terminateViewProcess(self):
+        if not self.viewProcess:
+            return
 
         try:
             self.viewProcess.terminate()
@@ -216,7 +217,6 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
         if enabled:
             self.startPreview()
         else:
-            self.viewContainer.showPreviewState(PreviewState.State_Disabled)
             self.stopPreview()
 
     def showDevTools(self):
@@ -235,15 +235,8 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
         elif method == Event.DEV_TOOLS_CLOSED:
             self.devToolsClosed.emit()
 
-    def requestReceived(self, id, method, params, payload):
-        if method == Request.EMBED_WND:
-            self.viewContainer.embedWnd(int(params["winId"]))
-        else:
-            return
-
-        self.socketServer.respond(id, method)
-
     def disconnected(self):
         logger.info("Disconnected from preview process.")
         if self.embeddedMode and self.previewEnabled:
-            self.viewContainer.showPreviewState(PreviewState.State_Error)
+            self.previewStateChanged.emit(PreviewState.Error)
+            self.terminateViewProcess()
