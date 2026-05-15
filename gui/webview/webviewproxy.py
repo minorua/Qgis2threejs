@@ -192,7 +192,6 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
         if USE_QPROCESS:
             self.viewProcess = QProcess(self)
             self.viewProcess.finished.connect(self.viewProcessFinished)
-            self.viewProcess.errorOccurred.connect(self.viewProcessErrorOccurred)
 
             self.viewProcess.setWorkingDirectory(cwd)
             self.viewProcess.start(args[0], args[1:])
@@ -217,16 +216,13 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
         self.viewProcess = subprocess.Popen(args, cwd=cwd, startupinfo=startupinfo)        # env=env
 
     def viewProcessFinished(self, exitCode, exitStatus):
-        if exitCode:
+        if exitCode not in (0, 15):
             msg = f"""Exit code: {exitCode}
 Exit status: {exitStatus}
 
 """
             msg += bytes(self.viewProcess.readAllStandardError()).decode("utf-8", "replace")
             QMessageBox.critical(None, f"{PLUGIN_NAME} Preview Error", msg)
-
-    def viewProcessErrorOccurred(self, error):
-        QMessageBox.critical(None, f"{PLUGIN_NAME} Preview", str(error))
 
     def stopPreview(self):
         if not self.viewProcess:
@@ -248,7 +244,6 @@ Exit status: {exitStatus}
                 self.viewProcess.waitForFinished(3000)
 
                 self.viewProcess.finished.disconnect()
-                self.viewProcess.errorOccurred.disconnect()
             else:
                 self.viewProcess.terminate()
                 self.viewProcess.wait(timeout=3)
