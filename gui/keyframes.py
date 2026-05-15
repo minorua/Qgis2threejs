@@ -11,6 +11,7 @@ from qgis.core import QgsApplication, QgsFieldProxyModel
 
 from .ui.animationpanel import Ui_AnimationPanel
 from .ui.keyframedialog import Ui_KeyframeDialog
+from .webview.const import WebViewType
 from ..conf import DEF_SETS, PLUGIN_NAME
 from ..core.const import DEMMtlType, LayerType, ATConst
 from ..core.exportsettings import Layer
@@ -58,7 +59,7 @@ class AnimationPanel(QWidget):
 
         self.setData(settings.animationData())
 
-        if self.webPage.SupportsPreview:
+        if wnd.webViewType == WebViewType.WEBENGINE:
             self.tree.currentItemChanged.connect(self.currentItemChanged)
             self.currentItemChanged(None, None)
 

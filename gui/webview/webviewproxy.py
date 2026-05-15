@@ -25,7 +25,6 @@ USE_QPROCESS = True
 class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
 
     BridgeClass = WebIPCBridge
-    SupportsPreview = True
 
     # QWebEnginePage signals
     loadStarted = pyqtSignal()
