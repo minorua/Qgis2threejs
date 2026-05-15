@@ -53,8 +53,11 @@ class WebViewContainer(QStackedWidget):
     def showPreviewState(self, state):
         self.previewStateWidget.setState(state)
         self.setCurrentIndex(0)
+        self.previewStateWidget.repaint()
 
     def embedWnd(self, winId):
+        self.showPreviewState(PreviewState.Idle)
+
         self.embeddedWnd = QWindow.fromWinId(winId)
         container = QWidget.createWindowContainer(self.embeddedWnd)
 
@@ -64,7 +67,6 @@ class WebViewContainer(QStackedWidget):
             self.removeWidget(w)
 
         self.addWidget(container)
-        self.setCurrentIndex(1)
 
         logger.debug(f"External window ({winId}) embedded.")
 
