@@ -96,7 +96,8 @@ class SocketInterface(QObject):
             method = data.get("method")
             params = data.get("params", {})
 
-            logger.debug(f"[-->][{data_type}:{id or ''}] {method} - {str(params)[:40]}")
+            if DEBUG_MODE:
+                logger.debug(f"[-->][{data_type}:{id or ''}] {method} - {str(params)[:80]}")
 
             payload = b""
             payload_dict = data.get("payload", {})
@@ -183,10 +184,12 @@ class SocketInterface(QObject):
 
     def _send(self, msg_type, id, method, params=None, payload=None):
         if not self.conn:
-            logger.error("No connection.")
+            logger.debug(f"No connection. Failed to send {method} {msg_type}.")
             return False
 
-        logger.debug(f"[<--][{msg_type}:{id or ''}] {method} - {str(params)[:40]}")
+        if DEBUG_MODE:
+            logger.debug(f"[<--][{msg_type}:{id or ''}] {method} - {str(params)[:80]}")
+
         msg = {
             "type": msg_type,
             "method": method

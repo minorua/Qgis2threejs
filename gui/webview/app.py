@@ -10,28 +10,19 @@ import logging
 import sys
 import traceback
 
+from PyQt6.QtCore import Qt, QPointF, QTimer, qDebug
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout
 
-def fatal_exception(exit_code=1):
-    traceback.print_exc(file=sys.stderr)
-    sys.exit(exit_code)
+from . import conf
+conf.WEBVIEW_IN_QGIS_PROCESS = False
 
-
-try:
-    from PyQt6.QtCore import Qt, QPointF, QTimer, qDebug
-    from PyQt6.QtGui import QIcon
-    from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout
-
-    from . import conf
-    conf.WEBVIEW_IN_QGIS_PROCESS = False
-
-    from .webbridge import WebIPCBridge
-    from .webengineview import Q3DWebEnginePage, Q3DWebEngineView
-    from ..ipc.ipc_const import Event, Request
-    from ..ipc.socketclient import SocketClient
-    from ...conf import DEBUG_MODE, PLUGIN_NAME
-    from ...utils.basic import pluginDir
-except Exception:
-    fatal_exception()
+from .webbridge import WebIPCBridge
+from .webengineview import Q3DWebEnginePage, Q3DWebEngineView
+from ..ipc.ipc_const import Event, Request
+from ..ipc.socketclient import SocketClient
+from ...conf import DEBUG_MODE, PLUGIN_NAME
+from ...utils.basic import pluginDir
 
 
 logger = logging.getLogger(PLUGIN_NAME)
@@ -215,10 +206,6 @@ class Window(QWidget):
                 self.restoreGeometry(geom)
 
 
-def handle_exception(exc_type, exc_value, exc_traceback):
-    logger.error("".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
-
-
 class ConditionalPrefixFilter(logging.Filter):
     def filter(self, record):
         msg = record.getMessage()
@@ -235,8 +222,6 @@ class QDebugHandler(logging.Handler):
 
 
 def main():
-    sys.excepthook = handle_exception
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--server", type=str, help="Server name", required=True)
     parser.add_argument("-p", "--pid", type=int, help="Parent process ID")
