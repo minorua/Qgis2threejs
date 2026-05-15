@@ -307,7 +307,7 @@ class AnimationTreeWidget(QTreeWidget):
                 dp = True
 
         item = items[0]
-        dest = self.itemAt(event.pos())
+        dest = self.itemAt(event.position().toPoint())
         accept = False
         if dest and item.type() & ATConst.ITEM_MBR and not dp:
             if item.type() == dest.type():
