@@ -66,7 +66,7 @@ class WebViewContainer(QStackedWidget):
         self.addWidget(container)
         self.setCurrentIndex(1)
 
-        logger.info(f"External window ({winId}) embedded.")
+        logger.debug(f"External window ({winId}) embedded.")
 
         self.previewStateChanged(PreviewState.Active)
 

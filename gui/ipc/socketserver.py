@@ -18,7 +18,7 @@ class SocketServer(SocketInterface):
         self.server.newConnection.connect(self.onNewConnection)
         self.server.listen(serverName)
 
-        logger.info(f'Server is listening on "{serverName}".')
+        logger.debug(f'Server is listening on "{serverName}".')
 
     def teardown(self):
         self.server.close()
@@ -39,12 +39,12 @@ class SocketServer(SocketInterface):
             self.conn.readyRead.connect(self.handleIncomingMessage)
             self.conn.disconnected.connect(self.connDisconnected)
             self.connected.emit()
-            logger.info("Connection established.")
+            logger.debug("Connection established.")
         else:
             conn.disconnectFromServer()
             logger.error("Connection refused.")
 
     def connDisconnected(self):
-        logger.info("Disconnected.")
+        logger.debug("Disconnected.")
         self.conn = None
         self.disconnected.emit()

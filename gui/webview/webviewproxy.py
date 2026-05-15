@@ -136,7 +136,7 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
             self.startPreview()
 
     def teardown(self):
-        logger.info("Socket server is going to shut down.")
+        logger.debug("Socket server is going to shut down.")
         self.stopPreview()
         self._page = None
 
@@ -280,7 +280,7 @@ Exit status: {exitStatus}
             self.devToolsClosed.emit()
 
     def disconnected(self):
-        logger.info("Disconnected from preview process.")
+        logger.debug("Disconnected from preview process.")
         if self.embeddedMode and self.previewEnabled:
             self.previewStateChanged.emit(PreviewState.Error)
             self.terminateViewProcess()
