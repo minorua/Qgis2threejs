@@ -453,8 +453,13 @@ Q3D.E = function (id) {
 	};
 
 	app.loadData = function (data) {
-		app.scene.loadData(data);
-		if (data.animation !== undefined) app.animation.keyframes.load(data.animation.tracks);
+		try {
+			app.scene.loadData(data);
+			if (data.animation !== undefined) app.animation.keyframes.load(data.animation.tracks);
+		}
+		catch (e) {
+			console.error(e);
+		}
 	};
 
 	app.loadJSONFile = function (url, callback) {
