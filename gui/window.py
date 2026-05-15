@@ -195,6 +195,15 @@ class Q3DWindow(QMainWindow):
             self.controller.abort()
         QMainWindow.keyPressEvent(self, event)
 
+    def changeEvent(self, event):
+        if event.type() == QEvent.Type.WindowStateChange:
+            if self.windowState() & Qt.WindowState.WindowMinimized:
+                self.runScript("app.pause()")
+            else:
+                self.runScript("app.resume()")
+
+        QMainWindow.changeEvent(self, event)
+
     def loadIcons(self):
         self.icons = {
             LayerType.DEM: QgsApplication.getThemeIcon("mIconRaster.svg"),
@@ -337,13 +346,6 @@ class Q3DWindow(QMainWindow):
 
     def previewClosed(self):
         self.ui.checkBoxPreview.setChecked(False)
-
-    def changeEvent(self, event):
-        if event.type() == QEvent.Type.WindowStateChange:
-            if self.windowState() & Qt.WindowState.WindowMinimized:
-                self.runScript("app.pause()")
-            else:
-                self.runScript("app.resume()")
 
     def runScript(self, string, message="", sourceID="Q3DWindow.py", callback=None, wait=False):
         return self.webPage.runScript(string, message, sourceID, callback, wait)
