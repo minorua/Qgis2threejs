@@ -4,7 +4,6 @@
 # begin: 2016-02-10
 
 import os
-import base64
 from datetime import datetime
 
 from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QSettings, QUrl, pyqtSignal, pyqtSlot
@@ -13,12 +12,12 @@ from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QD
                                  QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
-from .ipc.ipc_const import Event, Request
+from .ipc.ipc_const import Request
 from .webview.const import PreviewState, WebViewType, WebViewMode
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
-from .webview.webview import getWebViewClass, WEBENGINE_AVAILABLE
+from .webview.webview import getWebViewClass
 from .webview.webviewcontainer import WebViewContainer
 from ..conf import DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
 from ..core.const import LayerType, ScriptFile
@@ -76,18 +75,15 @@ class Q3DWindow(QMainWindow):
 
             self.ui.webViewContainer.setWebView(webView)
 
-        webView.setObjectName("webView")
-        webView.setup(webViewMode=webViewMode, enabledAtStart=previewEnabled)
-        webView.fileDropped.connect(self.fileDropped)
-
         if webViewMode in (WebViewMode.EMBEDDED, WebViewMode.SEPARATE):
-            webView.socketServer.notified.connect(self.notified)
             webView.socketServer.requestReceived.connect(self.requestReceived)
 
             if webViewMode == WebViewMode.SEPARATE:
                 webView.socketServer.disconnected.connect(self.previewClosed)
 
         self.ui.webView = webView
+        self.ui.webView.setObjectName("webView")
+        self.ui.webView.fileDropped.connect(self.fileDropped)
         self.webPage = webView.page()
 
         self.controller = Q3DController(self, settings, self.webPage, useThread=RUN_BLDR_IN_BKGND, enabledAtStart=previewEnabled)
@@ -97,12 +93,13 @@ class Q3DWindow(QMainWindow):
         self.controller.taskManager.allTasksFinalized.connect(self.hideProgress)
 
         self._setupMenu(self.ui)
+        self._setupStatusBar(self.ui, previewEnabled, "WebEngine" if webViewType == WebViewType.WEBENGINE else "")
+        self.restoreWindowState()
 
-        viewName = "WebEngine" if webViewType == WebViewType.WEBENGINE else ""
-        self._setupStatusBar(self.ui, previewEnabled, viewName)
+        self.ui.webView.setup(webViewMode=webViewMode, enabledAtStart=previewEnabled)
         self.ui.treeView.setup(self, self.icons, settings.layers())
 
-        if self.webPage.SupportsPreview:
+        if webViewType == WebViewType.WEBENGINE:
             self.controller.conn.setup()
 
             self.webPage.bridge.modelDataReady.connect(self.saveModelData)
@@ -128,8 +125,6 @@ class Q3DWindow(QMainWindow):
         project = QgsProject.instance()
         project.dirtySet.connect(self.setDirty)
 
-        self.restoreWindowState()
-
         if DEBUG_MODE:
             from ..utils.debug import setupDestructionLogging
             setupDestructionLogging(self)
@@ -137,15 +132,7 @@ class Q3DWindow(QMainWindow):
         self._modelFile = None
         self._saveModelState = None
 
-    def notified(self, method, params, payload):
-        if method == Event.WND_STATE_CHANGED:
-            self._previewWndGeometry = base64.b64decode(params["geom"])
-
     def requestReceived(self, id, method, params, payload):
-        if method == Request.WND_GEOM:
-            self.ui.webView.socketServer.respond(id, method, params={"geom": base64.b64encode(self._previewWndGeometry).decode("ascii")})
-            return
-
         if method == Request.EMBED_WND:
             self.ui.webViewContainer.embedWnd(int(params["winId"]))
         else:
@@ -243,7 +230,7 @@ class Q3DWindow(QMainWindow):
         ui.actionSendFeedback.triggered.connect(self.sendFeedback)
         ui.actionVersion.triggered.connect(self.about)
 
-        if self.webPage.SupportsPreview:
+        if self.webViewType == WebViewType.WEBENGINE:
             ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
             ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
             ui.actionReload.triggered.connect(self.reloadPage)
@@ -253,7 +240,7 @@ class Q3DWindow(QMainWindow):
 
         self.alwaysOnTopToggled(False)
 
-        if DEBUG_MODE and self.webPage.SupportsPreview:
+        if DEBUG_MODE and self.webViewType == WebViewType.WEBENGINE:
             ui.menuTestDebug = QMenu(ui.menubar)
             ui.menuTestDebug.setTitle("Test&&&Debug")
             ui.menubar.addAction(ui.menuTestDebug.menuAction())
@@ -283,7 +270,7 @@ class Q3DWindow(QMainWindow):
         w.toggled.connect(self.previewEnabledChanged)
         ui.statusbar.addPermanentWidget(w)
 
-        if self.webPage.SupportsPreview:
+        if self.webViewType == WebViewType.WEBENGINE:
             w = ui.toolButtonConsoleStatus = QToolButton(ui.statusbar)
             w.setObjectName("toolButtonConsoleStatus")
             w.setToolTip("Click this button to open the developer tools.")
@@ -302,7 +289,10 @@ class Q3DWindow(QMainWindow):
         settings.beginGroup("Qgis2threejs/wnd")
         self.restoreGeometry(settings.value(f"geometry{suffix}", b""))
         self.restoreState(settings.value(f"state{suffix}", b""))
-        self._previewWndGeometry = settings.value("preview") or b""
+
+        if self.webViewMode == WebViewMode.SEPARATE:
+            self.ui.webView.previewWndGeometry = settings.value(f"preview{suffix}", {})
+
         settings.endGroup()
 
     def saveWindowState(self):
@@ -313,7 +303,10 @@ class Q3DWindow(QMainWindow):
         settings.beginGroup("Qgis2threejs/wnd")
         settings.setValue(f"geometry{suffix}", self.saveGeometry())
         settings.setValue(f"state{suffix}", self.saveState())
-        settings.setValue("preview", self._previewWndGeometry)
+
+        if self.webViewMode == WebViewMode.SEPARATE and self.ui.webView.previewWndGeometry:
+            settings.setValue(f"preview{suffix}", self.ui.webView.previewWndGeometry)
+
         settings.endGroup()
 
     def showConsoleStatusIcon(self, is_error):
@@ -637,6 +630,10 @@ class Q3DWindow(QMainWindow):
 
         self.ui.treeView.addLayer(layer)
 
+    def reloadPage(self):
+        self.controller.abort()
+        self.controller.taskManager.addReloadPageTask(force_reload=True)
+
     # View menu
     def cameraChanged(self, action):
         is_ortho = bool(action == self.ui.actionOrthographic)
@@ -663,10 +660,6 @@ class Q3DWindow(QMainWindow):
     def updateWidgetProperties(self, name, properties):
         self.settings.setWidgetProperties(name, properties)
         self.controller.updateWidget(name, properties)
-
-    def reloadPage(self):
-        self.controller.abort()
-        self.controller.taskManager.addReloadPageTask(force_reload=True)
 
     # Window menu
     def alwaysOnTopToggled(self, checked):

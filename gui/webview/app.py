@@ -4,7 +4,6 @@
 
 import os
 import argparse
-import base64
 import json
 import logging
 import sys
@@ -155,6 +154,7 @@ class Window(QWidget):
 
             self.setWindowTitle("Qgis2threejs Preview")
             self.setWindowFlags(Qt.WindowType.Window)
+            self.setMinimumSize(400, 300)
 
         self.embedMode = embedMode
 
@@ -165,7 +165,6 @@ class Window(QWidget):
         self.webView.socketClient.connected.connect(self.connected)
         self.webView.socketClient.notified.connect(self.notified)
         self.webView.socketClient.requestReceived.connect(self.requestReceived)
-        self.webView.socketClient.responseReceived.connect(self.responseReceived)
         self.webView.setup()
         layout.addWidget(self.webView)
 
@@ -180,14 +179,12 @@ class Window(QWidget):
         QWidget.resizeEvent(self, event)
 
     def notifyWndGeometry(self):
-        geom = base64.b64encode(self.saveGeometry()).decode("ascii")
-        self.webView.socketClient.notify(Event.WND_STATE_CHANGED, {"geom": geom})
+        rect = self.geometry()
+        self.webView.socketClient.notify(Event.WND_GEOM_CHANGED, {"x": rect.x(), "y": rect.y(), "width": rect.width(), "height": rect.height()})
 
     def connected(self):
         if self.embedMode:
             self.webView.socketClient.request(Request.EMBED_WND, {"winId": int(self.winId())})
-        else:
-            self.webView.socketClient.request(Request.WND_GEOM)
 
     def notified(self, method, params, payload):
         if method == Event.QUIT:
@@ -198,12 +195,6 @@ class Window(QWidget):
         if method == Request.RESIZE:
             self.resize(params["width"], params["height"])
             self.webView.socketClient.respond(id, method)
-
-    def responseReceived(self, id, method, params, payload):
-        if method == Request.WND_GEOM:
-            geom = base64.b64decode(params["geom"])
-            if geom:
-                self.restoreGeometry(geom)
 
 
 class ConditionalPrefixFilter(logging.Filter):
@@ -226,6 +217,10 @@ def main():
     parser.add_argument("-s", "--server", type=str, help="Server name", required=True)
     parser.add_argument("-p", "--pid", type=int, help="Parent process ID")
     parser.add_argument("-f", "--floating", action="store_true", help="Floating mode")
+    parser.add_argument("--x", type=int, default=None, help="Window x position")
+    parser.add_argument("--y", type=int, default=None, help="Window y position")
+    parser.add_argument("--width", type=int, default=None, help="Window width")
+    parser.add_argument("--height", type=int, default=None, help="Window height")
     args = parser.parse_args()
 
     # logging
@@ -256,6 +251,9 @@ def main():
     app.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
 
     window = Window(serverName=args.server, embedMode=not args.floating, pid=args.pid)
+    if args.x is not None and args.y is not None and args.width and args.height:
+        window.setGeometry(args.x, args.y, args.width, args.height)
+
     sys.excepthook = window.webView.handle_exception
 
     window.show()

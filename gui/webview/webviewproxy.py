@@ -117,6 +117,7 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
         self.embeddedMode = True
         self.previewEnabled = True
         self.viewProcess = None
+        self.previewWndGeometry = {}
 
         self.serverName = "Q3D" + createUid()
         self.socketServer = SocketServer(self, self.serverName)
@@ -175,6 +176,14 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
             "-s", self.serverName,
             "-p", str(os.getpid())
         ]
+
+        if self.previewWndGeometry:
+            args += [
+                "--x", str(self.previewWndGeometry["x"]),
+                "--y", str(self.previewWndGeometry["y"]),
+                "--width", str(self.previewWndGeometry["width"]),
+                "--height", str(self.previewWndGeometry["height"])
+            ]
 
         if not self.embeddedMode:
             args.append("-f")
@@ -267,7 +276,10 @@ Exit status: {exitStatus}
         self.socketServer.notify(Event.CLICK, params={"x": pos.x(), "y": pos.y()})
 
     def notified(self, method, params, payload):
-        if method == Event.PY_ERROR:
+        if method == Event.WND_GEOM_CHANGED:
+            self.previewWndGeometry = params
+
+        elif method == Event.PY_ERROR:
             logger.error(params["msg"])
 
         elif method == Event.DEV_TOOLS_CLOSED:

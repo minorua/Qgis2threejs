@@ -17,7 +17,7 @@ class Event:
     METHOD_INVOKED = "invoke"           # bridge method invoked
 
     # <- window
-    WND_STATE_CHANGED = "wnd_state_changed"     # window resized or moved
+    WND_GEOM_CHANGED = "wnd_geom_changed"     # window resized or moved
 
     # view proxy ->
     QUIT = "quit"                       # window is closing
@@ -30,7 +30,6 @@ class Request:
 
     # <- window
     EMBED_WND = "embed"
-    WND_GEOM = "wnd_geom"
 
     # page proxy ->
     LOAD_DATA = "data"
