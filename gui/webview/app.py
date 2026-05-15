@@ -173,6 +173,7 @@ class Window(QWidget):
         self.webView = WebView(self, serverName)
         self.webView.socketClient.connected.connect(self.connected)
         self.webView.socketClient.notified.connect(self.notified)
+        self.webView.socketClient.requestReceived.connect(self.requestReceived)
         self.webView.socketClient.responseReceived.connect(self.responseReceived)
         self.webView.setup()
         layout.addWidget(self.webView)
@@ -201,6 +202,11 @@ class Window(QWidget):
         if method == Event.QUIT:
             logger.info("Closing...")
             self.close()
+
+    def requestReceived(self, id, method, params, payload):
+        if method == Request.RESIZE:
+            self.resize(params["width"], params["height"])
+            self.webView.socketClient.respond(id, method)
 
     def responseReceived(self, id, method, params, payload):
         if method == Request.WND_GEOM:

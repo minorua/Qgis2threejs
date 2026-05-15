@@ -39,3 +39,6 @@ class Request:
 
     # view proxy ->
     SIZE = "size"
+
+    # test ->
+    RESIZE = "resize"
