@@ -9,8 +9,8 @@ import subprocess
 from qgis.PyQt.QtCore import QObject, QSize, QProcess, QUrl, pyqtSignal
 from qgis.PyQt.QtWidgets import QMessageBox
 
-from .const import PreviewState, WebViewType, WebViewMode
-from .utils import logger, web_logger
+from .const import PreviewState, WebViewMode
+from .utils import logger
 from .webbridge import WebIPCBridge
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 from ..ipc.ipc_const import Event, Request
@@ -106,8 +106,6 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
 
 
 class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
-
-    WebViewType = WebViewType.WEBENGINE
 
     def __init__(self, parent):
         QObject.__init__(self, parent)

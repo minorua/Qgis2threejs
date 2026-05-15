@@ -148,7 +148,7 @@ class Q3DWindow(QMainWindow):
             self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
             self.controller.conn.teardown()
 
-            if self.ui.webView.WebViewType == WebViewType.WEBENGINE:
+            if self.webViewType == WebViewType.WEBENGINE:
                 self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
 
             # save export settings to a settings file

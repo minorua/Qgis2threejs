@@ -186,8 +186,6 @@ class Q3DWebPageCommon:
 
 class Q3DWebViewCommon:
 
-    WebViewType = None
-
     devToolsClosed = pyqtSignal()
     fileDropped = pyqtSignal(list)
     previewStateChanged = pyqtSignal(int)       # PreviewState

@@ -4,7 +4,6 @@
 
 from qgis.PyQt.QtCore import QObject, QUrl, pyqtSignal
 
-from .const import WebViewType
 from .utils import logger
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 
@@ -34,8 +33,6 @@ class Q3DDummyPage(Q3DWebPageCommon, QObject):
 
 
 class Q3DDummyView(Q3DWebViewCommon, QObject):
-
-    WebViewType = WebViewType.NONE
 
     def __init__(self, parent):
         QObject.__init__(self, parent)
