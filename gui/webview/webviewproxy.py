@@ -72,7 +72,13 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
         return self.myUrl
 
     def runJavaScript(self, string, callback=None):
-        self.socketServer.request(Request.RUN_SCRIPT, params={"script": string}, callback=callback)
+        if callback:
+            def _callback(msg):
+                callback(msg.get("params", {}).get("result"))
+        else:
+            _callback = None
+
+        self.socketServer.request(Request.RUN_SCRIPT, params={"script": string}, callback=_callback)
 
     def sendData(self, data, viaQueue=False):
         logger.debug("Sending {} data to web page...".format(data.get("type", "unknown")))
