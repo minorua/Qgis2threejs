@@ -456,9 +456,11 @@ Q3D.E = function (id) {
 		try {
 			app.scene.loadData(data);
 			if (data.animation !== undefined) app.animation.keyframes.load(data.animation.tracks);
+			return true;
 		}
 		catch (e) {
 			console.error(e);
+			return false;
 		}
 	};
 

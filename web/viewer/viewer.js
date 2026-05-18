@@ -42,11 +42,11 @@ function init(off_screen, debug_mode, qgis_version, is_webengine) {
 		new QWebChannel(qt.webChannelTransport, function(channel) {
 			window.pyObj = channel.objects.bridge;
 			pyObj.sendData.connect(function (data, viaQueue) {
-				loadData(data, viaQueue);
+				var result = loadData(data, viaQueue);
 
 				if (Q3D.Config.debugMode) {
 					var dataType = data.type || "unknown";
-					console.debug("↓" + dataType + " data loaded", data);
+					console.debug("↓" + dataType + " data " + (result ? "loaded" : "loading error"), data);
 				}
 			});
 
@@ -152,6 +152,8 @@ function _init(off_screen) {
 var appLoadDataTypes = ["scene", "layer", "block"];
 
 function loadData(data, viaQueue) {
+	var result = true;
+
 	if (Q3D.Config.debugMode) {
 		console.debug("Loading " + (data.type || "unknown") + " data...");
 	}
@@ -165,7 +167,7 @@ function loadData(data, viaQueue) {
 		if (data.type == "scene" && data.properties !== undefined) {
 			_requestCameraUpdate(data.properties);
 		}
-		app.loadData(data);
+		result = app.loadData(data);
 
 		if (data.progress !== undefined) {
 			updateProgressBar(data.progress);
@@ -193,6 +195,8 @@ function loadData(data, viaQueue) {
 	if (viaQueue) {
 		app.loadingManager.itemEnd("data");
 	}
+
+	return result;
 }
 
 function _requestCameraUpdate(sp) {
