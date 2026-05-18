@@ -60,10 +60,7 @@ class SocketInterface(QObject):
         return buffer
 
     def handleIncomingMessage(self):
-        b = self.conn.readAll()
-        if DEBUG_MODE:
-            logger.debug(f"Incoming msg size: {len(b):,}")
-        self._buffer.append(b)
+        self._buffer.append(self.conn.readAll())
 
         while True:
             if self._target_size == 0:
