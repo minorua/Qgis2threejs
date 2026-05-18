@@ -7,12 +7,15 @@ qgisMaximumVersion=4.99
 supportsQt6=True
 description=3D map visualization and web export powered by three.js JavaScript library
 about=This plugin visualizes DEM and vector data in 3D within web browsers. You can easily create various 3D objects, generate files for web publishing, and export 3D models in glTF format for 3DCG or 3D printing.
-version=2.10.1
+version=2.10.2
 author=Minoru Akagi
 email=akaginch@gmail.com
 
 # Optional items:
 changelog=
+    Version 2.10.2
+    - add base64Charset function to LASLAZWorker.js to avoid false-positive Base64 high-entropy string detection
+
     Version 2.10.1
     - Fixed a preview freeze caused by data loading errors
     - Fixed an error that occurred when interrupting the layer build process

@@ -1,5 +1,8 @@
 ## CHANGELOG
 
+### Version 2.10.2
+- add base64Charset function to LASLAZWorker.js to avoid false-positive Base64 high-entropy string detection
+
 ### Version 2.10.1
 - Fixed a preview freeze caused by data loading errors
 - Fixed an error that occurred when interrupting the layer build process
