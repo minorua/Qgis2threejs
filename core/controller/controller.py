@@ -386,10 +386,15 @@ class Q3DController(QObject):
     # send queue management
     @pyqtSlot(dict)
     def appendDataToSendQueue(self, data):
+        if self.aborted:
+            if DEBUG_MODE:
+                logger.debug(f'Discarded {data.get("type")} data: processing aborted')
+            return
+
         self.sendQueue.append(data)
 
         if DEBUG_MODE and len(self.sendQueue) > 1:
-            logger.debug(f'Sending/loading data is busy. Added data: {data.get("type", "Unknown")}, Queue length: {len(self.sendQueue)}')
+            logger.debug(f'Sending/loading data is busy. Added data: {data.get("type")}, Queue length: {len(self.sendQueue)}')
 
         self.sendQueuedData()
 
