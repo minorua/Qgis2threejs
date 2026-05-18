@@ -378,6 +378,7 @@ class Q3DController(QObject):
     def hideLayer(self, layer, callback=None):
         """hide layer and remove all objects from the layer"""
         self.taskManager.removeBuildLayerTask(layer)        # abort if being processed and remove pending task for the layer
+        self.removeQueuedLayerData(layer)
         self.runScript(f'hideLayer("{layer.jsLayerId}", true)', callback=callback)
 
     # send queue management
@@ -394,6 +395,11 @@ class Q3DController(QObject):
             logger.debug(f'Sending/loading data is busy. Added data: {data.get("type")}, Queue length: {len(self.sendQueue)}')
 
         self.sendQueuedData()
+
+    def removeQueuedLayerData(self, layer):
+        # remove data related to layer from send queue
+        id = layer.jsLayerId
+        self.sendQueue = deque([d for d in self.sendQueue if d.get("id") != id and d.get("layer") != id])
 
     def clearSendQueue(self):
         self.sendQueue.clear()
