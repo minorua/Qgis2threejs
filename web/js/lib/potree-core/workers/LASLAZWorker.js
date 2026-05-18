@@ -3399,6 +3399,15 @@ function intArrayToString(array) {
   return ret.join('');
 }
 
+// base64Charset - Added by @minorua
+function base64Charset() {
+  let chars = '';
+  for (let i = 65; i <= 90; i++) chars += String.fromCharCode(i);   // A-Z
+  for (let i = 97; i <= 122; i++) chars += String.fromCharCode(i);  // a-z
+  for (let i = 48; i <= 57; i++) chars += String.fromCharCode(i);   // 0-9
+  chars += '+/=';
+  return chars;
+}
 
 // Copied from https://github.com/strophe/strophejs/blob/e06d027/src/polyfills.js#L149
 
@@ -3411,7 +3420,7 @@ function intArrayToString(array) {
  * @param {String} input The string to decode.
  */
 var decodeBase64 = typeof atob === 'function' ? atob : function (input) {
-  var keyStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  var keyStr = base64Charset();
 
   var output = '';
   var chr1, chr2, chr3;
