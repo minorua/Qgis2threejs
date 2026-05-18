@@ -1,5 +1,12 @@
 ## CHANGELOG
 
+### Version 3.0
+- The preview now runs in a separate process
+- Dropped support for QWebView (WebKit) and PyQt5
+- The minimum supported version of QGIS is now 4.0
+- Fixed a preview freeze caused by data loading errors
+- Fixed an error that occurred when interrupting the layer build process
+
 ### Version 2.10
 - Added a button to launch the Qgis2OnlineMap plugin from the export dialog
 - Use timestamp-based subdirectories for the default export output directory

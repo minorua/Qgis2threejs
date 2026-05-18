@@ -6,19 +6,18 @@ qgisMinimumVersion=4.0
 qgisMaximumVersion=4.99
 description=3D map visualization and web export powered by three.js JavaScript library
 about=This plugin visualizes DEM and vector data in 3D within web browsers. You can easily create various 3D objects, generate files for web publishing, and export 3D models in glTF format for 3DCG or 3D printing.
-version=2.10
+version=3.0
 author=Minoru Akagi
 email=akaginch@gmail.com
 
 # Optional items:
 changelog=
-    Version 2.10
-    - Added a button to launch the Qgis2OnlineMap plugin from the export dialog
-    - Use timestamp-based subdirectories for the default export output directory
-    - Improved DEM NoData handling (#407)
-    - Set transparent to false when opacity is 1 to ensure opaque objects are rendered before transparent ones (#408)
-    - Fixed the sceneLoaded event being dispatched twice (#409)
-    - Fixed label opacity being affected by layer opacity (#411)
+    Version 3.0
+    - The preview now runs in a separate process
+    - Dropped support for QWebView (WebKit) and PyQt5
+    - The minimum supported version of QGIS is now 4.0
+    - Fixed a preview freeze caused by data loading errors
+    - Fixed an error that occurred when interrupting the layer build process
 
 # tags are comma separated with spaces allowed
 tags=3D,terrain,web,DEM,glTF,AR,narrative,story,animation
