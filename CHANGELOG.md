@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+### Version 2.10.1
+- Fixed a preview freeze caused by data loading errors
+- Fixed an error that occurred when interrupting the layer build process
+- Revert "remove atob polyfill flagged as critical security issue by plugins.qgis.org scan"
+
 ### Version 2.10
 - Added a button to launch the Qgis2OnlineMap plugin from the export dialog
 - Use timestamp-based subdirectories for the default export output directory
