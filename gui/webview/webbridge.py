@@ -68,15 +68,6 @@ class WebBridge(QObject):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self._storedData = QVariant()
-
-    @pyqtSlot(result="QVariant")
-    def data(self):
-        return self._storedData
-
-    def setData(self, data):
-        self._storedData = QVariant(data)
-
     @pyqtSlot()
     @deco
     def emitInitialized(self):
