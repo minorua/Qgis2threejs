@@ -13,6 +13,7 @@ from PyQt6.QtWebEngineCore import QWebEnginePage
 
 from .conf import DEBUG_MODE
 from .webbridge import WebBridge
+from .sendqueue import SendQueue
 from .utils import logger
 from ...core.const import ScriptFile
 from ...utils.js import js_bool
@@ -24,6 +25,7 @@ TIMEOUT_MS = 30000      # timeout (ms) for script loading
 class Q3DWebPageCommon:
 
     BridgeClass = WebBridge
+    SendQueueClass = SendQueue
 
     # signals
     jsErrorWarning = pyqtSignal(bool)       # is_error
@@ -36,6 +38,9 @@ class Q3DWebPageCommon:
 
         self.bridge = self.BridgeClass(self)
         self.bridge.scriptFileLoaded.connect(self.scriptFileLoaded)
+
+        self.sendQueue = self.SendQueueClass(self.bridge)
+        self.bridge.dataLoaded.connect(self.sendQueue.dataLoaded)
 
     def setup(self):
         pass
@@ -191,7 +196,17 @@ class Q3DWebViewCommon:
     previewStateChanged = pyqtSignal(int)       # PreviewState
 
     def __init__(self, _=None):
-        pass
+        self._page = None
+
+    def page(self):
+        return self._page
+
+    def setup(self, webViewMode=None, enabledAtStart=True):
+        self._page.setup()
+
+    def teardown(self):
+        self._page.teardown()
+        self._page = None
 
     def runScript(self, string, message="", sourceID="webviewcommon.py", callback=None, wait=False):
         return self._page.runScript(string, message, sourceID, callback, wait)
@@ -203,9 +218,6 @@ class Q3DWebViewCommon:
         self.runScript("app.renderer.info", callback=showInfo)
 
     # <abstract methods>
-    # def page(self):
-    # def setup(self, webViewMode=None, enabledAtStart=True):
-    # def teardown(self):
     # def setPreviewEnabled(self, enabled):
     # def showDevTools(self):
     # def showGPUInfo(self):

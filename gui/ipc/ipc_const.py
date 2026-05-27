@@ -33,6 +33,9 @@ class Request:
 
     # page proxy ->
     LOAD_DATA = "data"
+    REMOVE_LAYER_DATA = "rmlyr"
+    CLEAR_QUEUE = "clrq"
+
     RELOAD = "reload"                   # reload page
     RUN_SCRIPT = "run"
 

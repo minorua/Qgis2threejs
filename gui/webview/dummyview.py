@@ -41,15 +41,6 @@ class Q3DDummyView(Q3DWebViewCommon, QObject):
         self._page = Q3DDummyPage(self)
         self._page.setObjectName("DummyPage")
 
-    def page(self):
-        return self._page
-
-    def setup(self, webViewMode=None, enabledAtStart=True):
-        pass
-
-    def teardown(self):
-        pass
-
     def setPreviewEnabled(self, enabled):
         pass
 

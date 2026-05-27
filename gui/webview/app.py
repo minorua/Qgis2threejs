@@ -4,7 +4,6 @@
 
 import os
 import argparse
-import json
 import logging
 import sys
 import traceback
@@ -66,12 +65,13 @@ class WebPage(Q3DWebEnginePage):
             return
 
         if method == Request.LOAD_DATA:
-            data = json.loads(payload) if payload else params.get("data", {})
+            self.sendData(params["data"], viaQueue=params["viaQueue"])
 
-            if DEBUG_MODE:
-                logger.debug(f"Loading data: {json.dumps(data)[:20]}")
+        elif method == Request.REMOVE_LAYER_DATA:
+            self.sendQueue.removeLayer(params["jsLayerId"])
 
-            self.sendData(data, viaQueue=params["viaQueue"])
+        elif method == Request.CLEAR_QUEUE:
+            self.sendQueue.clear()
 
         elif method == Request.RELOAD:
             self.reload()

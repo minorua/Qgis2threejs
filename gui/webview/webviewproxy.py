@@ -22,9 +22,37 @@ from ...utils.basic import createUid, pluginDir
 USE_QPROCESS = True
 
 
+class SendQueueProxy:
+
+    def __init__(self, bridge):
+        pass
+
+    def setSocketServer(self, server):
+        self.socketServer = server
+
+    def append(self, data):
+        self.socketServer.request(Request.LOAD_DATA, params={
+            "data": data,
+            "viaQueue": True
+        })
+
+    def removeLayer(self, jsLayerId):
+        self.socketServer.request(Request.REMOVE_LAYER_DATA, params={"jsLayerId": jsLayerId})
+
+    def clear(self):
+        self.socketServer.request(Request.CLEAR_QUEUE)
+
+    def dataLoaded(self):
+        pass
+
+    def __len__(self):
+        return 0
+
+
 class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
 
     BridgeClass = WebIPCBridge
+    SendQueueClass = SendQueueProxy
 
     # QWebEnginePage signals
     loadStarted = pyqtSignal()
@@ -42,6 +70,8 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
         self.socketServer.notified.connect(self.notified)
         self.socketServer.requestReceived.connect(self.requestReceived)
         self.socketServer.responseReceived.connect(self.responseReceived)
+
+        self.sendQueue.setSocketServer(server)
 
     def notified(self, method, params, payload):
         if method == Event.METHOD_INVOKED:
@@ -80,16 +110,14 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
         self.socketServer.request(Request.RUN_SCRIPT, params={"script": string}, callback=_callback)
 
     def sendData(self, data, viaQueue=False):
-        logger.debug("Sending {} data to web page...".format(data.get("type", "unknown")))
+        logger.debug("Sending {} data to web page...".format(data.get("type")))
 
-        params = {
+        self.socketServer.request(Request.LOAD_DATA, params={
             "data": data,
             "viaQueue": viaQueue
-        }
-        self.socketServer.request(Request.LOAD_DATA, params=params)
+        })
 
         return
-
         # use shared memory
         b = json.dumps(data).encode("utf-8")
         size = len(b)
@@ -126,7 +154,7 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
         self._page.setSocketServer(self.socketServer)
 
     def setup(self, webViewMode=None, enabledAtStart=True):
-        self._page.setup()
+        Q3DWebViewCommon.setup(self, webViewMode, enabledAtStart)
 
         self.embeddedMode = (webViewMode == WebViewMode.EMBEDDED)
         self.previewEnabled = enabledAtStart
@@ -136,10 +164,8 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
     def teardown(self):
         logger.debug("Socket server is going to shut down.")
         self.stopPreview()
-        self._page = None
 
-    def page(self):
-        return self._page
+        Q3DWebViewCommon.teardown(self)
 
     def size(self):
         return self.parent().size() if self.embeddedMode else QSize()

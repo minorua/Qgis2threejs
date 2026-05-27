@@ -42,7 +42,6 @@ class ConnectionManager:
 
         # web bridge -> controller
         self.webPage.bridge.initialized.connect(self.controller.viewerInitialized)
-        self.webPage.bridge.dataLoaded.connect(self.controller.dataLoaded)
 
         # controller -> builder
         self.controller.buildSceneRequest.connect(self.builder.buildSceneSlot)
@@ -69,7 +68,6 @@ class ConnectionManager:
             signals = [
                 self.webPage.loadFinished,
                 self.webPage.bridge.initialized,
-                self.webPage.bridge.dataLoaded,
                 self.controller.buildSceneRequest,
                 self.controller.buildLayerRequest,
                 self.controller.taskManager.executeTask,
@@ -144,10 +142,6 @@ class Q3DController(QObject):
         self.taskManager = TaskManager(self, settings)
         self.taskManager.setObjectName("taskManager")
 
-        # data dispatching
-        self.sendQueue = deque()
-        self.isDataLoading = False
-
         # progress
         self.currentProgress = -1
 
@@ -206,7 +200,7 @@ class Q3DController(QObject):
 
             self.builder.abort()
 
-        self.clearSendQueue()
+        self.webPage.sendQueue.clear()
 
     def close(self):
         self.enabled = False
@@ -225,7 +219,7 @@ class Q3DController(QObject):
             return
 
         self.taskManager.initialize()
-        self.clearSendQueue()
+        self.webPage.sendQueue.clear()
 
         configs = []
         if self.settings.isOrthoCamera():
@@ -317,13 +311,14 @@ class Q3DController(QObject):
         logger.debug("All tasks finalized.")
 
         # send a special data item that represents the final item in a sequence of tasks.
-        signal = {
+        self.appendDataToSendQueue({
             "type": "signal",
             "name": "queueCompleted",
             "success": not self.taskManager.taskSequenceStatus.taskFailed,
             "is_scene": self.taskManager.taskSequenceStatus.buildSceneStarted
-        }
-        self.appendDataToSendQueue(data=signal)
+        })
+
+        self.taskManager.taskSequenceStatus.reset()
 
     def buildScene(self):
         self.updateSettingsCopyIfNeeded()
@@ -381,7 +376,9 @@ class Q3DController(QObject):
     def hideLayer(self, layer, callback=None):
         """hide layer and remove all objects from the layer"""
         self.taskManager.removeBuildLayerTask(layer)        # abort if being processed and remove pending task for the layer
-        self.removeQueuedLayerData(layer)
+
+        self.webPage.sendQueue.removeLayer(layer.jsLayerId)   # remove data related to layer from send queue
+
         self.runScript(f'hideLayer("{layer.jsLayerId}", true)', callback=callback)
 
     # send queue management
@@ -392,38 +389,10 @@ class Q3DController(QObject):
                 logger.debug(f'Discarded {data.get("type")} data: processing aborted')
             return
 
-        self.sendQueue.append(data)
+        if DEBUG_MODE and len(self.webPage.sendQueue) > 1:
+            logger.debug(f'Sending/loading data is busy. Added data: {data.get("type")}, Queue length: {len(self.webPage.sendQueue)}')
 
-        if DEBUG_MODE and len(self.sendQueue) > 1:
-            logger.debug(f'Sending/loading data is busy. Added data: {data.get("type")}, Queue length: {len(self.sendQueue)}')
-
-        self.sendQueuedData()
-
-    def removeQueuedLayerData(self, layer):
-        # remove data related to layer from send queue
-        id = layer.jsLayerId
-        self.sendQueue = deque([d for d in self.sendQueue if d.get("id") != id and d.get("layer") != id])
-
-    def clearSendQueue(self):
-        self.sendQueue.clear()
-        self.isDataLoading = False
-
-    @pyqtSlot()
-    def dataLoaded(self):
-        self.isDataLoading = False
-        if self.sendQueue:
-            self.sendQueuedData()
-
-    def sendQueuedData(self):
-        if self.isDataLoading or not self.sendQueue:
-            return
-
-        data = self.sendQueue.popleft()
-        if data.get("type") == "signal" and data.get("name") == "queueCompleted":
-            self.taskManager.taskSequenceStatus.reset()
-
-        self.isDataLoading = True
-        self.sendData(data, viaQueue=True)
+        self.webPage.sendQueue.append(data)
 
     # web page access methods
     def updateWidget(self, name, properties):
@@ -432,9 +401,11 @@ class Q3DController(QObject):
             self.runScript("setNorthArrowVisible({})".format(js_bool(properties.get("visible"))))
 
         elif name == "Label":
-            self.sendData({"type": "labels",
-                           "Header": properties.get("Header", ""),
-                           "Footer": properties.get("Footer", "")})
+            self.sendData({
+                "type": "labels",
+                "Header": properties.get("Header", ""),
+                "Footer": properties.get("Footer", "")
+            })
         else:
             return
 
@@ -443,8 +414,10 @@ class Q3DController(QObject):
 
     def setCameraState(self, state):
         """set camera position and its target"""
-        self.sendData({"type": "cameraState",
-                       "state": state})
+        self.sendData({
+            "type": "cameraState",
+            "state": state
+        })
 
     def resetCameraState(self):
         self.runScript("app.controls.reset()")

@@ -6,9 +6,9 @@ def run_script(iface):
 
     msg = ""
     for n, o in [("taskQueue", wnd.controller.taskManager.taskQueue),
-                 ("sendQueue", wnd.controller.sendQueue),
                  ("isTaskRunning", wnd.controller.taskManager.isTaskRunning),
-                 ("isDataLoading", wnd.controller.isDataLoading)]:
+                 ("sendQueue", wnd.webPage.sendQueue),
+                 ("isDataLoading", wnd.webPage.sendQueue.isDataLoading)]:
        msg += f"{n}: {o}\n"
 
     QMessageBox.information(None, "Qgis2threejs Status", msg)

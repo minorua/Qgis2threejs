@@ -70,6 +70,8 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         self.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
 
     def setup(self):
+        Q3DWebPageCommon.setup(self)
+
         url = pluginDir("web/viewer/webengine.html").replace("\\", "/")
         self.myUrl = QUrl.fromLocalFile(url)
         self.reload()
@@ -79,8 +81,11 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         self.setUrl(self.myUrl)
 
     def sendData(self, data, viaQueue=False):
-        logger.debug("Sending {} data to web page...".format(data.get("type", "unknown")))
-        self.bridge.sendData.emit(data, viaQueue)
+        if viaQueue:
+            self.sendQueue.append(data)
+        else:
+            logger.debug("Sending {} data to web page...".format(data.get("type")))
+            self.bridge.sendData.emit(data, viaQueue)
 
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
         CML = QWebEnginePage.JavaScriptConsoleMessageLevel
@@ -125,12 +130,6 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
         self.setPage(self._page)
 
         restoreChromiumFlags()
-
-    def setup(self, webViewMode=None, enabledAtStart=True):
-        self._page.setup()
-
-    def teardown(self):
-        self._page = None
 
     def dragEnterEvent(self, event):
         event.acceptProposedAction()
