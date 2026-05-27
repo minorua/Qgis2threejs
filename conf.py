@@ -12,7 +12,7 @@ PLUGIN_VERSION_INT = 30000
 WEBENGINE_INPROCESS_WEBGL_AVAILABLE = False
 
 # vector layer
-FEATURES_PER_BLOCK = 50   # max number of features in a data block
+FEATURES_PER_BLOCK = 500    # max number of features in a data block
 
 # threading
 RUN_BLDR_IN_BKGND = True    # If True, builders run in a worker thread
