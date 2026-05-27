@@ -7,7 +7,7 @@ from qgis.PyQt.QtWidgets import QInputDialog, QMessageBox
 from qgis.core import QgsProject
 from qgis.testing import unittest
 
-from Qgis2threejs.gui.ipc.ipc_const import Request
+from Qgis2threejs.gui.ipc.ipc_const import Command
 from Qgis2threejs.gui.webview.const import WebViewMode
 from Qgis2threejs.tests.utils import initOutputDir
 from Qgis2threejs.utils.logging import logger
@@ -129,7 +129,7 @@ def runTest(wnd):
     # set view size
     webView = wnd.ui.webView
     if wnd.webViewMode == WebViewMode.SEPARATE:
-        webView.socketServer.request(Request.RESIZE, {"width": WIDTH, "height": HEIGHT})
+        webView.socketServer.sendCommand(Command.RESIZE, {"width": WIDTH, "height": HEIGHT})
     else:
         viewSize = wnd.ui.webView.size()
         wnd.resize(wnd.width() + WIDTH - viewSize.width(),

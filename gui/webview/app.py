@@ -17,7 +17,7 @@ conf.WEBVIEW_IN_QGIS_PROCESS = False
 
 from .webbridge import WebIPCBridge
 from .webengineview import Q3DWebEnginePage, Q3DWebEngineView
-from ..ipc.ipc_const import Event, Request
+from ..ipc.ipc_const import Command, Event, Request
 from ..ipc.socketclient import SocketClient
 from ...conf import DEBUG_MODE, PLUGIN_NAME
 from ...utils.basic import pluginDir
@@ -38,56 +38,44 @@ class WebPage(Q3DWebEnginePage):
 
     def setSocketClient(self, socket):
         self.socketClient = socket
-        self.socketClient.notified.connect(self.notified)
+        self.socketClient.commandReceived.connect(self.commandReceived)
         self.socketClient.requestReceived.connect(self.requestReceived)
-        self.socketClient.responseReceived.connect(self.responseReceived)
 
     def pageLoadStarted(self):
-        self.socketClient.notify(Event.PAGE_LOAD_STARTED)
+        self.socketClient.sendEvent(Event.PAGE_LOAD_STARTED)
 
     def pageLoaded(self, ok):
         logger.debug("Page load finished.")
 
         super().pageLoaded(ok)
-        self.socketClient.notify(Event.PAGE_LOADED, {"ok": ok})
+        self.socketClient.sendEvent(Event.PAGE_LOADED, {"ok": ok})
 
     def bridgeMethodInvoked(self, params):
-        self.socketClient.notify(Event.METHOD_INVOKED, params)
+        self.socketClient.sendEvent(Event.METHOD_INVOKED, params)
 
-    def notified(self, method, params, payload):
-        pass
+    def commandReceived(self, method, params, payload):
+        if method == Command.LOAD_DATA:
+            self.sendData(params["data"], viaQueue=params["viaQueue"])
+
+        elif method == Command.REMOVE_LAYER_DATA:
+            self.sendQueue.removeLayer(params["jsLayerId"])
+
+        elif method == Command.CLEAR_QUEUE:
+            self.sendQueue.clear()
+
+        elif method == Command.RELOAD:
+            self.reload()
 
     def requestReceived(self, id, method, params, payload):
         if method == Request.RUN_SCRIPT:
             def callback(result):
-                self.socketClient.respond(id, method, params={"result": result})
+                self.socketClient.sendResponse(id, method, params={"result": result})
             self.runScript(params["script"], callback=callback)
-            return
-
-        if method == Request.LOAD_DATA:
-            self.sendData(params["data"], viaQueue=params["viaQueue"])
-
-        elif method == Request.REMOVE_LAYER_DATA:
-            self.sendQueue.removeLayer(params["jsLayerId"])
-
-        elif method == Request.CLEAR_QUEUE:
-            self.sendQueue.clear()
-
-        elif method == Request.RELOAD:
-            self.reload()
-
-        else:
-            return
-
-        self.socketClient.respond(id, method)
-
-    def responseReceived(self, id, method, params, payload):
-        pass
 
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
         CML = Q3DWebEnginePage.JavaScriptConsoleMessageLevel
         if level in (CML.WarningMessageLevel, CML.ErrorMessageLevel):
-            self.socketClient.notify(Event.JS_ERROR_WARNING, params={"is_error": bool(level == CML.ErrorMessageLevel)})
+            self.socketClient.sendEvent(Event.JS_ERROR_WARNING, params={"is_error": bool(level == CML.ErrorMessageLevel)})
 
 
 class WebView(Q3DWebEngineView):
@@ -100,9 +88,8 @@ class WebView(Q3DWebEngineView):
         Q3DWebEngineView.__init__(self, parent)
 
         self.socketClient = SocketClient(self, serverName)
-        self.socketClient.notified.connect(self.notified)
+        self.socketClient.commandReceived.connect(self.commandReceived)
         self.socketClient.requestReceived.connect(self.requestReceived)
-        self.socketClient.responseReceived.connect(self.responseReceived)
 
         self._page.setSocketClient(self.socketClient)
 
@@ -112,30 +99,27 @@ class WebView(Q3DWebEngineView):
         super().setup(enabledAtStart=enabledAtStart)
         self.socketClient.connect()
 
-    def notified(self, method, params, payload):
-        if method == Event.DEV_TOOLS:
+    def commandReceived(self, method, params, payload):
+        if method == Command.DEV_TOOLS:
             self.showDevTools()
 
-        elif method == Event.GPU_INFO:
+        elif method == Command.GPU_INFO:
             self.showGPUInfo()
 
-        elif method == Event.CLICK:
+        elif method == Command.CLICK:
             self.triggerTestClick(QPointF(params["x"], params["y"]))
 
     def requestReceived(self, id, method, params, payload):
         if method == Request.SIZE:
             size = self.size()
-            self.socketClient.respond(id, method, {"width": size.width(), "height": size.height()})
-
-    def responseReceived(self, id, method, params, payload):
-        pass
+            self.socketClient.sendResponse(id, method, {"width": size.width(), "height": size.height()})
 
     def handle_exception(self, exc_type, exc_value, exc_traceback):
         msg = "[Preview]" + "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-        self.socketClient.notify(Event.PY_ERROR, params={"msg": msg})
+        self.socketClient.sendEvent(Event.PY_ERROR, params={"msg": msg})
 
     def notifyDevToolsClosed(self):
-        self.socketClient.notify(Event.DEV_TOOLS_CLOSED)
+        self.socketClient.sendEvent(Event.DEV_TOOLS_CLOSED)
 
 
 class Window(QWidget):
@@ -163,8 +147,8 @@ class Window(QWidget):
 
         self.webView = WebView(self, serverName)
         self.webView.socketClient.connected.connect(self.connected)
-        self.webView.socketClient.notified.connect(self.notified)
-        self.webView.socketClient.requestReceived.connect(self.requestReceived)
+        self.webView.socketClient.eventReceived.connect(self.eventReceived)
+        self.webView.socketClient.commandReceived.connect(self.commandReceived)
         self.webView.setup()
         layout.addWidget(self.webView)
 
@@ -180,21 +164,20 @@ class Window(QWidget):
 
     def notifyWndGeometry(self):
         rect = self.geometry()
-        self.webView.socketClient.notify(Event.WND_GEOM_CHANGED, {"x": rect.x(), "y": rect.y(), "width": rect.width(), "height": rect.height()})
+        self.webView.socketClient.sendEvent(Event.WND_GEOM_CHANGED, {"x": rect.x(), "y": rect.y(), "width": rect.width(), "height": rect.height()})
 
     def connected(self):
         if self.embedMode:
-            self.webView.socketClient.request(Request.EMBED_WND, {"winId": int(self.winId())})
+            self.webView.socketClient.sendCommand(Command.EMBED_WND, {"winId": int(self.winId())})
 
-    def notified(self, method, params, payload):
+    def eventReceived(self, method, params, payload):
         if method == Event.QUIT:
             logger.info("Closing...")
             self.close()
 
-    def requestReceived(self, id, method, params, payload):
-        if method == Request.RESIZE:
+    def commandReceived(self, method, params, payload):
+        if method == Command.RESIZE:
             self.resize(params["width"], params["height"])
-            self.webView.socketClient.respond(id, method)
 
 
 class ConditionalPrefixFilter(logging.Filter):

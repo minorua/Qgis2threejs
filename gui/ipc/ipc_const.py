@@ -21,26 +21,34 @@ class Event:
 
     # view proxy ->
     QUIT = "quit"                       # window is closing
-    GPU_INFO = "gpuinfo"                # GPU Info menu item clicked
-    DEV_TOOLS = "devtools"              # Developer tools menu item clicked
-    CLICK = "click"                     # simulate a click for testing
 
 
-class Request:
+class Command:
 
     # <- window
     EMBED_WND = "embed"
 
     # page proxy ->
-    LOAD_DATA = "data"
-    REMOVE_LAYER_DATA = "rmlyr"
-    CLEAR_QUEUE = "clrq"
+    LOAD_DATA = "data"                  # load data immediately or enqueue data
+    REMOVE_LAYER_DATA = "rmlyr"         # remove queued data related to layer from send queue
+    CLEAR_QUEUE = "clrq"                # clear send queue
 
     RELOAD = "reload"                   # reload page
+
+    # view proxy ->
+    DEV_TOOLS = "devtools"              # show developer tools
+    GPU_INFO = "gpuinfo"                # show GPU info
+
+    CLICK = "click"                     # simulate a click for testing
+
+    # test ->
+    RESIZE = "resize"
+
+
+class Request:
+
+    # page proxy ->
     RUN_SCRIPT = "run"
 
     # view proxy ->
     SIZE = "size"
-
-    # test ->
-    RESIZE = "resize"

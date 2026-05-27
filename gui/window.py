@@ -12,7 +12,7 @@ from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QD
                                  QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
-from .ipc.ipc_const import Request
+from .ipc.ipc_const import Command
 from .webview.const import PreviewState, WebViewType, WebViewMode
 from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
 from .ui.q3dwindow import Ui_Q3DWindow
@@ -76,7 +76,7 @@ class Q3DWindow(QMainWindow):
             self.ui.webViewContainer.setWebView(webView)
 
         if webViewMode in (WebViewMode.EMBEDDED, WebViewMode.SEPARATE):
-            webView.socketServer.requestReceived.connect(self.requestReceived)
+            webView.socketServer.commandReceived.connect(self.commandReceived)
 
             if webViewMode == WebViewMode.SEPARATE:
                 webView.socketServer.disconnected.connect(self.previewClosed)
@@ -132,13 +132,9 @@ class Q3DWindow(QMainWindow):
         self._modelFile = None
         self._saveModelState = None
 
-    def requestReceived(self, id, method, params, payload):
-        if method == Request.EMBED_WND:
+    def commandReceived(self, method, params, payload):
+        if method == Command.EMBED_WND:
             self.ui.webViewContainer.embedWnd(int(params["winId"]))
-        else:
-            return
-
-        self.ui.webView.socketServer.respond(id, method)
 
     def closeEvent(self, event):
         try:

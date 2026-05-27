@@ -13,7 +13,7 @@ from .const import PreviewState, WebViewMode
 from .utils import logger
 from .webbridge import WebIPCBridge
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
-from ..ipc.ipc_const import Event, Request
+from ..ipc.ipc_const import Command, Event, Request
 from ..ipc.socketserver import SocketServer
 from ...conf import DEBUG_MODE, PLUGIN_NAME
 from ...utils.basic import createUid, pluginDir
@@ -31,16 +31,16 @@ class SendQueueProxy:
         self.socketServer = server
 
     def append(self, data):
-        self.socketServer.request(Request.LOAD_DATA, params={
+        self.socketServer.sendCommand(Command.LOAD_DATA, params={
             "data": data,
             "viaQueue": True
         })
 
     def removeLayer(self, jsLayerId):
-        self.socketServer.request(Request.REMOVE_LAYER_DATA, params={"jsLayerId": jsLayerId})
+        self.socketServer.sendCommand(Command.REMOVE_LAYER_DATA, params={"jsLayerId": jsLayerId})
 
     def clear(self):
-        self.socketServer.request(Request.CLEAR_QUEUE)
+        self.socketServer.sendCommand(Command.CLEAR_QUEUE)
 
     def dataLoaded(self):
         pass
@@ -67,13 +67,11 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
 
     def setSocketServer(self, server):
         self.socketServer = server
-        self.socketServer.notified.connect(self.notified)
-        self.socketServer.requestReceived.connect(self.requestReceived)
-        self.socketServer.responseReceived.connect(self.responseReceived)
+        self.socketServer.eventReceived.connect(self.eventReceived)
 
         self.sendQueue.setSocketServer(server)
 
-    def notified(self, method, params, payload):
+    def eventReceived(self, method, params, payload):
         if method == Event.METHOD_INVOKED:
             func = getattr(self.bridge, params["name"])
             func(*params["args"])
@@ -87,15 +85,9 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
         elif method == Event.JS_ERROR_WARNING:
             self.jsErrorWarning.emit(params.get("is_error", False))
 
-    def requestReceived(self, id, method, params, payload):
-        pass
-
-    def responseReceived(self, id, method, params, payload):
-        pass
-
     def reload(self):
         self.showStatusMessage("Initializing preview in an external process...")
-        self.socketServer.request(Request.RELOAD)
+        self.socketServer.sendCommand(Command.RELOAD)
 
     def url(self):
         return self.myUrl
@@ -107,12 +99,12 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
         else:
             _callback = None
 
-        self.socketServer.request(Request.RUN_SCRIPT, params={"script": string}, callback=_callback)
+        self.socketServer.sendRequest(Request.RUN_SCRIPT, params={"script": string}, callback=_callback)
 
     def sendData(self, data, viaQueue=False):
         logger.debug("Sending {} data to web page...".format(data.get("type")))
 
-        self.socketServer.request(Request.LOAD_DATA, params={
+        self.socketServer.sendCommand(Command.LOAD_DATA, params={
             "data": data,
             "viaQueue": viaQueue
         })
@@ -130,7 +122,7 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
         else:
             payload = b
 
-        self.socketServer.request(Request.LOAD_DATA, params=params, payload=payload)
+        self.socketServer.sendCommand(Command.LOAD_DATA, params=params, payload=payload)
 
 
 class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
@@ -146,7 +138,7 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
 
         self.serverName = "Q3D" + createUid()
         self.socketServer = SocketServer(self, self.serverName)
-        self.socketServer.notified.connect(self.notified)
+        self.socketServer.eventReceived.connect(self.eventReceived)
         self.socketServer.disconnected.connect(self.disconnected)
 
         self._page = Q3DWebPageProxy(self)
@@ -171,7 +163,7 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
         return self.parent().size() if self.embeddedMode else QSize()
 
     def getSizeAsync(self, callback):
-        self.socketServer.request(Request.SIZE, callback=callback)
+        self.socketServer.sendRequest(Request.SIZE, callback=callback)
 
     def startPreview(self):
         self.previewStateChanged.emit(PreviewState.Loading)
@@ -254,7 +246,7 @@ Exit status: {exitStatus}
 
         self.previewStateChanged.emit(PreviewState.Disabled)
 
-        self.socketServer.notify(Event.QUIT)
+        self.socketServer.sendEvent(Event.QUIT)
 
         self.terminateViewProcess()
 
@@ -285,15 +277,15 @@ Exit status: {exitStatus}
             self.stopPreview()
 
     def showDevTools(self):
-        self.socketServer.notify(Event.DEV_TOOLS)
+        self.socketServer.sendCommand(Command.DEV_TOOLS)
 
     def showGPUInfo(self):
-        self.socketServer.notify(Event.GPU_INFO)
+        self.socketServer.sendCommand(Command.GPU_INFO)
 
     def triggerTestClick(self, pos):
-        self.socketServer.notify(Event.CLICK, params={"x": pos.x(), "y": pos.y()})
+        self.socketServer.sendCommand(Command.CLICK, params={"x": pos.x(), "y": pos.y()})
 
-    def notified(self, method, params, payload):
+    def eventReceived(self, method, params, payload):
         if method == Event.WND_GEOM_CHANGED:
             self.previewWndGeometry = params
 

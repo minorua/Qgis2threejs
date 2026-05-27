@@ -17,18 +17,20 @@ logger = logging.getLogger(PLUGIN_NAME)
 class SocketInterface(QObject):
 
     # message type
-    TYPE_NOTIFICATION = "NTF"
+    TYPE_COMMAND = "CMD"
+    TYPE_EVENT = "EVT"
     TYPE_REQUEST = "REQ"
     TYPE_RESPONSE = "RES"
 
-    # notification for common use
+    # method
     DATA_RECEIVED = "_DR"       # params={"key": memory_key}
 
     # signals
     connected = pyqtSignal()
     disconnected = pyqtSignal()
 
-    notified = pyqtSignal(str, dict, bytes)                 # method, params
+    commandReceived = pyqtSignal(str, dict, bytes)          # method, params, payload
+    eventReceived = pyqtSignal(str, dict, bytes)            # method, params, payload
     requestReceived = pyqtSignal(int, str, dict, bytes)     # id, method, params, payload
     responseReceived = pyqtSignal(int, str, dict, bytes)    # id, reqMethod, params, payload
 
@@ -108,13 +110,16 @@ class SocketInterface(QObject):
 
                 logger.debug(f"payload: {payload[:40]}")
 
-                self.notify(self.DATA_RECEIVED, {"key": key})
+                self.sendEvent(self.DATA_RECEIVED, {"key": key})
 
-            if data_type == self.TYPE_NOTIFICATION:
+            if data_type == self.TYPE_COMMAND:
+                self.commandReceived.emit(method, params, payload)
+
+            elif data_type == self.TYPE_EVENT:
                 if method == self.DATA_RECEIVED:
                     self.destroySharedMemory(params.get("key"))
                 else:
-                    self.notified.emit(method, params, payload)
+                    self.eventReceived.emit(method, params, payload)
 
             elif data_type == self.TYPE_REQUEST:
                 self.requestReceived.emit(id, method, params, payload)
@@ -218,10 +223,13 @@ class SocketInterface(QObject):
         self.conn.flush()
         return True
 
-    def notify(self, method, params=None, payload=None):
-        return self._send(self.TYPE_NOTIFICATION, id=None, method=method, params=params, payload=payload)
+    def sendCommand(self, method, params=None, payload=None):
+        return self._send(self.TYPE_COMMAND, id=None, method=method, params=params, payload=payload)
 
-    def request(self, method, params=None, payload=None, callback=None):
+    def sendEvent(self, method, params=None, payload=None):
+        return self._send(self.TYPE_EVENT, id=None, method=method, params=params, payload=payload)
+
+    def sendRequest(self, method, params=None, payload=None, callback=None):
         id = self._next_id()
 
         if callback:
@@ -229,5 +237,5 @@ class SocketInterface(QObject):
 
         return self._send(self.TYPE_REQUEST, id=id, method=method, params=params, payload=payload)
 
-    def respond(self, id, method, params=None, payload=None):
+    def sendResponse(self, id, method, params=None, payload=None):
         return self._send(self.TYPE_RESPONSE, id=id, method=method, params=params, payload=payload)
