@@ -74,11 +74,9 @@ function _init(off_screen) {
 
 	app.addEventListener("loadComplete", function () {
 		preview.isDataLoading = false;
+		pyObj.emitDataLoaded();
 
-		setTimeout(function () {
-			app.render(true);
-			pyObj.emitDataLoaded();
-		}, 0);
+		app.render();
 	});
 
 	app.addEventListener("loadError", function () {
@@ -138,6 +136,7 @@ function loadData(data, viaQueue) {
 		result = app.loadData(data);
 
 		if (data.progress !== undefined) {
+			console.debug("Progress: " + data.progress);
 			updateProgressBar(data.progress);
 		}
 	}
