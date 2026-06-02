@@ -287,7 +287,7 @@ Q3D.E = function (id) {
 		}
 
 		// outline effect
-		if (THREE.OutlineEffect !== undefined) app.effect = new THREE.OutlineEffect(app.renderer);
+		if (THREE_EX.OutlineEffect) app.effect = new THREE_EX.OutlineEffect(app.renderer);
 
 		// scene
 		app.scene = new Q3DScene();
@@ -331,8 +331,8 @@ Q3D.E = function (id) {
 		app.buildCamera(conf.orthoCamera);
 
 		// controls
-		if (THREE.OrbitControls) {
-			app.controls = new THREE.OrbitControls(app.camera, app.renderer.domElement);
+		if (THREE_EX.OrbitControls) {
+			app.controls = new THREE_EX.OrbitControls(app.camera, app.renderer.domElement);
 
 			app.controls.addEventListener("change", function (event) {
 				app.render();
@@ -342,7 +342,7 @@ Q3D.E = function (id) {
 		}
 
 		// navigation
-		if (conf.navigation.enabled && typeof ViewHelper !== "undefined") {
+		if (conf.navigation.enabled && THREE_EX.ViewHelper) {
 			app.buildViewHelper(E("navigation"));
 		}
 
@@ -506,10 +506,10 @@ Q3D.E = function (id) {
 			ext = url.split(".").pop();
 
 		if (ext == "dae") {
-			loader = new THREE.ColladaLoader(app.loadingManager);
+			loader = new THREE_EX.ColladaLoader(app.loadingManager);
 		}
 		else if (ext == "gltf" || ext == "glb") {
-			loader = new THREE.GLTFLoader(app.loadingManager);
+			loader = new THREE_EX.GLTFLoader(app.loadingManager);
 		}
 		else {
 			console.warn("Model file type not supported: " + url);
@@ -532,11 +532,11 @@ Q3D.E = function (id) {
 	app.loadModelData = function (data, ext, resourcePath, callback) {
 
 		if (ext == "dae") {
-			var model = new THREE.ColladaLoader(app.loadingManager).parse(data, resourcePath);
+			var model = new THREE_EX.ColladaLoader(app.loadingManager).parse(data, resourcePath);
 			if (callback) callback(model);
 		}
 		else if (ext == "gltf" || ext == "glb") {
-			new THREE.GLTFLoader(app.loadingManager).parse(data, resourcePath, function (model) {
+			new THREE_EX.GLTFLoader(app.loadingManager).parse(data, resourcePath, function (model) {
 				if (callback) callback(model);
 			}, function (e) {
 				console.warn("Failed to load a glTF model: " + e);
@@ -731,7 +731,7 @@ Q3D.E = function (id) {
 			app.viewHelper.removeEventListener("requestAnimation", app.startViewHelperAnimation);
 		}
 
-		app.viewHelper = new ViewHelper(app.camera, {dom: container});
+		app.viewHelper = new THREE_EX.ViewHelper(app.camera, {dom: container});
 		app.viewHelper.controls = app.controls;
 
 		app.viewHelper.addEventListener("requestAnimation", app.startViewHelperAnimation);

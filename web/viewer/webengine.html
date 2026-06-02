@@ -6,11 +6,25 @@
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <link rel="stylesheet" type="text/css" href="../css/Qgis2threejs.css">
 <link rel="stylesheet" type="text/css" href="viewer.css">
-<script src="../js/lib/threejs/three.min.js"></script>
-<script src="../js/lib/threejs/controls/OrbitControls.js"></script>
-<script src="../js/lib/threejs/editor/ViewHelper.js"></script>
-<script src="../js/Qgis2threejs.js"></script>
-<script src="viewer.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "../js/lib/threejs/three.module.min.js"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from "three";
+window.THREE = THREE;
+window.THREE_EX = {};
+
+import { OrbitControls } from "../js/lib/threejs/controls/OrbitControls.js";
+import { ViewHelper } from "../js/lib/threejs/helpers/ViewHelper.js";
+THREE_EX.OrbitControls = OrbitControls;
+THREE_EX.ViewHelper = ViewHelper;
+</script>
+<script defer src="../js/Qgis2threejs.js"></script>
+<script defer src="viewer.js"></script>
 <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
 </head>
 <body>

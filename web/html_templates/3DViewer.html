@@ -109,22 +109,27 @@ ${narration}
 </div>
 
 <script>
+var app, gui;
+
+function main() {
+  app = Q3D.application;
+  gui = Q3D.gui;
+
 ${options}
 
-var container = document.getElementById("view"),
-    app = Q3D.application,
-    gui = Q3D.gui;
+  var container = document.getElementById("view")
+  app.init(container);       // initialize viewer
 
-app.init(container);       // initialize viewer
+  // load the scene
+  app.loadSceneFile("${scenefile}", function (scene) {
+    // scene file has been loaded
+    app.start();
+  }, function (scene) {
+    // all associated files have been loaded
 
-// load the scene
-app.loadSceneFile("${scenefile}", function (scene) {
-  // scene file has been loaded
-  app.start();
-}, function (scene) {
-  // all associated files have been loaded
-
-});
+  });
+}
+document.addEventListener("DOMContentLoaded", main);
 </script>
 </body>
 </html>

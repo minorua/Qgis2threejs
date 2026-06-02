@@ -7,7 +7,7 @@
  * minorua changed y-up coordinate system to z-up
  */
 
-THREE.DeviceOrientationControls = function( object ) {
+THREE_EX.DeviceOrientationControls = function( object ) {
 
 	var scope = this;
 

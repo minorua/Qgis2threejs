@@ -7,8 +7,8 @@
 <base target="_blank">
 <link rel="stylesheet" type="text/css" href="./Qgis2threejs.css">
 ${scripts}
-<script src="./dat-gui/dat.gui.min.js"></script>
-<script src="./dat-gui_panel.js"></script>
+<script defer src="./dat-gui/dat.gui.min.js"></script>
+<script defer src="./dat-gui_panel.js"></script>
 </head>
 <body>
 <div id="view">
@@ -95,31 +95,36 @@ ${narration}
 </div>
 
 <script>
+var app, gui;
+
+function main() {
+  app = Q3D.application;
+  gui = Q3D.gui;
+
 ${options}
 
-var container = document.getElementById("view"),
-    app = Q3D.application,
-    gui = Q3D.gui;
+  var container = document.getElementById("view")
+  app.init(container);    // initialize viewer
 
-app.init(container);    // initialize viewer
+  // load the scene
+  app.loadSceneFile("${scenefile}", function (scene) {
+    // scene file has been loaded
+    app.start();
 
-// load the scene
-app.loadSceneFile("${scenefile}", function (scene) {
-  // scene file has been loaded
-  app.start();
+    gui.dat.initLayersFolder(scene);
 
-  gui.dat.initLayersFolder(scene);
+  }, function (scene) {
+    // all associated files have been loaded
 
-}, function (scene) {
-  // all associated files have been loaded
-
-  if (Q3D.Config.gui.customPlane) {
-    // specify preferred values. If not specified, z range of scene bounding box is used.
-    var zMin = undefined,
-        zMax = undefined;
-    gui.dat.initCustomPlaneFolder(zMin, zMax);
-  }
-});
+    if (Q3D.Config.gui.customPlane) {
+      // specify preferred values. If not specified, z range of scene bounding box is used.
+      var zMin = undefined,
+          zMax = undefined;
+      gui.dat.initCustomPlaneFolder(zMin, zMax);
+    }
+  });
+}
+document.addEventListener("DOMContentLoaded", main);
 </script>
 </body>
 </html>

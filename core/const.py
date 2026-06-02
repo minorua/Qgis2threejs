@@ -51,7 +51,7 @@ class ScriptFile:
         POTREE: "lib/potree-core/potree.min.js",
         PCLAYER: "pointcloudlayer.js",
         OUTLINE: "lib/threejs/effects/OutlineEffect.js",
-        VIEWHELPER: "lib/threejs/editor/ViewHelper.js",
+        VIEWHELPER: "lib/threejs/helpers/ViewHelper.js",
         MESHLINE: "lib/meshline/THREE.MeshLine.js",
         TEST: "../../tests/gui/test.js"
     }

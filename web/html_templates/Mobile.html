@@ -10,8 +10,8 @@
 <script defer src="./fontawesome/solid.min.js"></script>
 <script defer src="./fontawesome/fontawesome.min.js"></script>
 ${scripts}
-<script src="./threejs/DeviceOrientationControls.js"></script>
-<script src="./mobile.js"></script>
+<script defer src="./threejs/DeviceOrientationControls.js"></script>
+<script defer src="./mobile.js"></script>
 </head>
 <body>
 
@@ -140,29 +140,34 @@ ${narration}
 </div>
 
 <script>
+var app, gui;
+
+function main() {
+  app = Q3D.application;
+  gui = Q3D.gui;
+
 ${options}
 
-var container = document.getElementById("view"),
-    app = Q3D.application,
-    gui = Q3D.gui;
+  var container = document.getElementById("view")
+  app.init(container);          // initialize viewer
+  init();                       // initialization for mobile template (in mobile.js)
 
-app.init(container);          // initialize viewer
-init();                       // initialization for mobile template (in mobile.js)
+  // load the scene
+  app.loadSceneFile("${scenefile}", function (scene) {
+    // scene file has been loaded
+    app.start();
 
-// load the scene
-app.loadSceneFile("${scenefile}", function (scene) {
-  // scene file has been loaded
-  app.start();
+    if ("AR" in app.urlParams) {
+      document.getElementById("ar-checkbox").checked = true;
+      startARMode();
+      moveToCurrentLocation();
+    }
+  }, function (scene) {
+    // all associated files have been loaded
 
-  if ("AR" in app.urlParams) {
-    document.getElementById("ar-checkbox").checked = true;
-    startARMode();
-    moveToCurrentLocation();
-  }
-}, function (scene) {
-  // all associated files have been loaded
-
-});
+  });
+}
+document.addEventListener("DOMContentLoaded", main);
 </script>
 </body>
 </html>

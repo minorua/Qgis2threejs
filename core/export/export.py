@@ -176,7 +176,7 @@ class ThreeJSExporter(QObject):
         mapping = {
             "title": self.settings.title(),
             "options": "\n".join(options),
-            "scripts": "\n".join(self.scripts()),
+            "scripts": self.scripts(),
             "scenefile": "./data/{}/scene.{}".format(self.settings.outputFileTitle(), "js" if self.settings.localMode else "json"),
             "header": self.settings.headerLabel(),
             "footer": self.settings.footerLabel(),
@@ -202,7 +202,7 @@ class ThreeJSExporter(QObject):
         files.append({"files": ["web/js/lib/threejs/controls/" + self.settings.controls()], "dest": "threejs"})
 
         if self.settings.isNavigationEnabled():
-            files.append({"files": ["web/js/lib/threejs/editor/ViewHelper.js"], "dest": "threejs"})
+            files.append({"files": ["web/js/lib/threejs/helpers/ViewHelper.js"], "dest": "threejs"})
 
         # outline effect
         if self.settings.useOutlineEffect():
@@ -254,57 +254,78 @@ class ThreeJSExporter(QObject):
         return files
 
     def scripts(self):
-        files = []
+        classic = []
+        modules = []
 
-        # three.js and controls
-        files.append("./threejs/three.min.js")
-        files.append("./threejs/{}".format(self.settings.controls()))
+        # controls
+        modules.append("./threejs/{}".format(self.settings.controls()))
 
         if self.settings.isNavigationEnabled():
-            files.append("./threejs/ViewHelper.js")
+            modules.append("./threejs/ViewHelper.js")
 
         # outline effect
         if self.settings.useOutlineEffect():
-            files.append("./threejs/OutlineEffect.js")
+            modules.append("./threejs/OutlineEffect.js")
 
         # html template config
         config = self.settings.templateConfig()
         s = config.get("scripts", "").strip()
         if s:
-            files += s.split(",")
+            classic += s.split(",")
 
         # proj4.js
         if self.settings.isCoordLatLon():    # display coordinates in latitude and longitude format
             proj4 = "./proj4js/proj4.js"
-            if proj4 not in files:
-                files.append(proj4)
+            if proj4 not in classic:
+                classic.append(proj4)
 
         # animation
         if self.settings.isAnimationEnabled():
-            files.append("./tweenjs/tween.js")
+            classic.append("./tweenjs/tween.js")
 
         # Qgis2threejs.js
-        files.append("./Qgis2threejs.js")
+        classic.append("./Qgis2threejs.js")
 
         # layer-specific dependencies
         wl = pc = True
         for layer in [lyr for lyr in self.settings.layers() if lyr.visible]:
             if layer.type == LayerType.LINESTRING:
                 if layer.properties.get("comboBox_ObjectType") == "Thick Line" and wl:
-                    files.append("./meshline/THREE.MeshLine.js")
+                    classic.append("./meshline/THREE.MeshLine.js")
                     wl = False
             elif layer.type == LayerType.POINTCLOUD and pc:
-                files.append("./potree-core/potree.min.js")
-                files.append("./pointcloudlayer.js")
+                classic.append("./potree-core/potree.min.js")
+                classic.append("./pointcloudlayer.js")
                 pc = False
 
         # model loaders
         for manager in self.modelManagers:
-            for f in manager.scripts():
-                if f not in files:
-                    files.append(f)
+            for mod in manager.modules():
+                if mod not in modules:
+                    modules.append(mod)
 
-        return ['<script src="%s"></script>' % fn for fn in files]
+        script = """<script type="importmap">
+{
+  "imports": {
+  "three": "./threejs/three.module.min.js"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from "three";
+window.THREE = THREE;
+window.THREE_EX = {};
+"""
+        for mod in modules:
+            obj = mod.split("/")[-1].rsplit(".", 1)[0]
+            script += f'import {{ {obj} }} from "{mod}";\n'
+            script += f'THREE_EX.{obj} = {obj};\n'
+        script += '</script>\n'
+
+        for src in classic:
+            script += f'<script defer src="{src}"></script>\n'
+
+        return script
 
     def buildScene(self, settings):
         builder = ThreeJSBuilder(self, self.progress, self.log, isInUiThread=False)

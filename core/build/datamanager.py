@@ -368,14 +368,14 @@ class ModelManager(DataManager):
             f.append({"files": self._list, "dest": "./data/{}/models".format(self.exportSettings.outputFileTitle())})
         return f
 
-    def scripts(self):
-        s = []
+    def modules(self):
+        mods = []
         if self._list:
             if self.hasColladaModel():
-                s.append("./threejs/loaders/ColladaLoader.js")
+                mods.append("./threejs/loaders/ColladaLoader.js")
             if self.hasGLTFModel():
-                s.append("./threejs/loaders/GLTFLoader.js")
-        return s
+                mods.append("./threejs/loaders/GLTFLoader.js")
+        return mods
 
 
 def jpegCompressedImage(image):

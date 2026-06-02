@@ -68,7 +68,7 @@ app.setRotateAnimationMode = function (enabled) {
 
 function init() {
 	orbitControls = app.controls;
-	devControls = new THREE.DeviceOrientationControls(app.camera);
+	devControls = new THREE_EX.DeviceOrientationControls(app.camera);
 	devControls.alphaOffset = -Q3D.Config.AR.MND * Math.PI / 180;    // counter-clockwise, in radians
 
 	// store default camera FOV (non-AR mode)

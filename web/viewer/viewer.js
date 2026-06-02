@@ -454,13 +454,13 @@ function setPreviewEnabled(enabled) {
 
 function setOutlineEffectEnabled(enabled) {
 	if (enabled) {
-		if (THREE.OutlineEffect === undefined) {
+		if (THREE_EX.OutlineEffect === undefined) {
 			loadScriptFile("../js/lib/threejs/effects/OutlineEffect.js", function () {
-				app.effect = new THREE.OutlineEffect(app.renderer);
+				app.effect = new THREE_EX.OutlineEffect(app.renderer);
 			});
 		}
 		else if (app.effect !== undefined) {
-			app.effect = new THREE.OutlineEffect(app.renderer);
+			app.effect = new THREE_EX.OutlineEffect(app.renderer);
 		}
 	}
 	else {
