@@ -103,14 +103,6 @@ function _init(off_screen) {
 		showFPS();
 	}
 
-	// check extension support of web view
-	// see https://github.com/minorua/Qgis2threejs/issues/147
-	var gl = app.renderer.getContext();		// WebGLRenderingContext
-	if (gl.getExtension("WEBGL_depth_texture") === null) {
-		var msg = "The current web view (Qt WebEngine) cannot display 3D objects.";
-		showMessageBar(msg, undefined, true);
-	}
-
 	pyObj.emitInitialized();
 }
 
