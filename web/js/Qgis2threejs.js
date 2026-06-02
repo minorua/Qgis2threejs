@@ -356,7 +356,7 @@ Q3D.E = function (id) {
 
 		// create a marker for queried point
 		var opt = conf.qmarker;
-		app.queryMarker = new THREE.Mesh(new THREE.SphereBufferGeometry(opt.radius, 32, 32),
+		app.queryMarker = new THREE.Mesh(new THREE.SphereGeometry(opt.radius, 32, 32),
 										 new THREE.MeshLambertMaterial({color: opt.color, opacity: opt.opacity, transparent: (opt.opacity < 1)}));
 		app.queryMarker.name = "marker";
 
@@ -1411,7 +1411,7 @@ Q3D.E = function (id) {
 
 				if (!this.geom) {
 					var opt = conf.measure.marker;
-					this.geom = new THREE.SphereBufferGeometry(opt.radius, 32, 32);
+					this.geom = new THREE.SphereGeometry(opt.radius, 32, 32);
 					this.mtl = new THREE.MeshLambertMaterial({color: opt.color, opacity: opt.opacity, transparent: (opt.opacity < 1)});
 					opt = conf.measure.line;
 					this.lineMtl = new THREE.LineBasicMaterial({color: opt.color});
@@ -2537,7 +2537,7 @@ class Q3DDEMBlockBase {
 			  band_width = -2 * z0;
 
 		// front and back
-		const geom_fr = new THREE.PlaneBufferGeometry(planeWidth, band_width, w - 1, 1),
+		const geom_fr = new THREE.PlaneGeometry(planeWidth, band_width, w - 1, 1),
 			  geom_ba = geom_fr.clone();
 
 		const vertices_fr = geom_fr.attributes.position.array,
@@ -2564,7 +2564,7 @@ class Q3DDEMBlockBase {
 		parent.add(mesh);
 
 		// left and right
-		const geom_le = new THREE.PlaneBufferGeometry(band_width, planeHeight, 1, h - 1),
+		const geom_le = new THREE.PlaneGeometry(band_width, planeHeight, 1, h - 1),
 			  geom_ri = geom_le.clone();
 
 		const vertices_le = geom_le.attributes.position.array,
@@ -2589,7 +2589,7 @@ class Q3DDEMBlockBase {
 		parent.add(mesh);
 
 		// bottom
-		var geom = new THREE.PlaneBufferGeometry(planeWidth, planeHeight, 1, 1);
+		var geom = new THREE.PlaneGeometry(planeWidth, planeHeight, 1, 1);
 		mesh = new THREE.Mesh(geom, material);
 		mesh.rotation.x = Math.PI;
 		mesh.position.x = cx;
@@ -2906,7 +2906,7 @@ class Q3DClippedDEMBlock extends Q3DDEMBlockBase {
 			for (j = 1, m = bnds.length; j < m; j++) {
 				shape.holes.push(new THREE.Path(Q3D.Utils.flatArrayToVec2Array(bnds[j], 3)));
 			}
-			geom = new THREE.ShapeBufferGeometry(shape);
+			geom = new THREE.ShapeGeometry(shape);
 			mesh = new THREE.Mesh(geom, mat_back);
 			mesh.position.z = z0;
 			mesh.name = "bottom";
@@ -3577,7 +3577,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 
 		if (objType == "Sphere") {
 			return [
-				new THREE.SphereBufferGeometry(1, 32, 32),
+				new THREE.SphereGeometry(1, 32, 32),
 				function (mesh, geom, pt) {
 					mesh.scale.setScalar(geom.r);
 					mesh.position.fromArray(pt);
@@ -3586,7 +3586,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 		}
 		else if (objType == "Box") {
 			return [
-				new THREE.BoxBufferGeometry(1, 1, 1),
+				new THREE.BoxGeometry(1, 1, 1),
 				function (mesh, geom, pt) {
 					mesh.scale.set(geom.w, geom.h, geom.d);
 					mesh.rotation.x = rx;
@@ -3597,7 +3597,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 		else if (objType == "Disk") {
 			var sz = this.sceneData.zScale;
 			return [
-				new THREE.CircleBufferGeometry(1, 32),
+				new THREE.CircleGeometry(1, 32),
 				function (mesh, geom, pt) {
 					mesh.scale.set(geom.r, geom.r * sz, 1);
 					mesh.rotateOnWorldAxis(Q3D.uv.i, -geom.d * deg2rad);
@@ -3609,7 +3609,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 		else if (objType == "Plane") {
 			var sz = this.sceneData.zScale;
 			return [
-				new THREE.PlaneBufferGeometry(1, 1, 1, 1),
+				new THREE.PlaneGeometry(1, 1, 1, 1),
 				function (mesh, geom, pt) {
 					mesh.scale.set(geom.w, geom.l * sz, 1);
 					mesh.rotateOnWorldAxis(Q3D.uv.i, -geom.d * deg2rad);
@@ -3622,7 +3622,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 		// Cylinder or Cone
 		var radiusTop = (objType == "Cylinder") ? 1 : 0;
 		return [
-			new THREE.CylinderBufferGeometry(radiusTop, 1, 1, 32),
+			new THREE.CylinderGeometry(radiusTop, 1, 1, 32),
 			function (mesh, geom, pt) {
 				mesh.scale.set(geom.r, geom.h, geom.r);
 				mesh.rotation.x = rx;
@@ -3814,11 +3814,11 @@ class Q3DLineLayer extends Q3DVectorLayer {
 		else if (objType == "Pipe" || objType == "Cone") {
 			var jointGeom, cylinGeom;
 			if (objType == "Pipe") {
-				jointGeom = new THREE.SphereBufferGeometry(1, 32, 32);
-				cylinGeom = new THREE.CylinderBufferGeometry(1, 1, 1, 32);
+				jointGeom = new THREE.SphereGeometry(1, 32, 32);
+				cylinGeom = new THREE.CylinderGeometry(1, 1, 1, 32);
 			}
 			else {
-				cylinGeom = new THREE.CylinderBufferGeometry(0, 1, 1, 32);
+				cylinGeom = new THREE.CylinderGeometry(0, 1, 1, 32);
 			}
 
 			var group, mesh, axis = Q3D.uv.j;
@@ -4112,7 +4112,7 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 				}
 
 				// extruded geometry
-				var geom = new THREE.ExtrudeBufferGeometry(shape, {bevelEnabled: false, depth: f.geom.h});
+				var geom = new THREE.ExtrudeGeometry(shape, {bevelEnabled: false, depth: f.geom.h});
 				var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
 				mesh.position.z = z;
 

@@ -112,7 +112,7 @@ Q3D.gui.dat = {
 
 		var addPlane = function (color) {
 			// Add a new plane in the current scene
-			var geometry = new THREE.PlaneBufferGeometry(p.baseExtent.width, p.baseExtent.height, 1, 1),
+			var geometry = new THREE.PlaneGeometry(p.baseExtent.width, p.baseExtent.height, 1, 1),
 				material = _this.customPlaneMaterial(color);
 			_this.customPlane = new THREE.Mesh(geometry, material);
 			_this.customPlane.rotation.z = p.baseExtent.rotation * Q3D.deg2rad;
