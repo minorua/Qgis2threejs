@@ -1,0 +1,29 @@
+@echo off
+set OSGEO4W_ROOT={o4w_root}
+if exist "%OSGEO4W_ROOT%" (
+    call "%OSGEO4W_ROOT%\bin\o4w_env.bat"
+)
+
+set PORT=8000
+
+:find_port
+
+netstat -an | findstr /r /c:":%PORT% .*LISTENING" > nul
+if not errorlevel 1 (
+    set /a PORT+=1
+    goto find_port
+)
+
+echo Using port %PORT%
+cd . > nul
+
+start "Qgis2threejs Local Web Server" cmd /c "echo === Keep this window open while using the 3D view. === && echo. && python -m http.server --bind localhost %PORT%"
+
+if errorlevel 1 (
+	pause
+	exit /b 1
+)
+
+timeout /t 1 /nobreak > nul
+
+start "" "http://localhost:%PORT%/{file_title}.html"

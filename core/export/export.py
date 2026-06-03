@@ -190,6 +190,17 @@ class ThreeJSExporter(QObject):
         with open(self.settings.outputFileName(), "w", encoding="utf-8") as f:
             f.write(html)
 
+        # create a windows batch file
+        tmpl_path = os.path.join(os.path.dirname(__file__), "local_server.bat.tmpl")
+        batch_path = os.path.join(self.settings.outputDirectory(), os.path.basename(self.settings.outputFileTitle()) + ".bat")
+        o4w_root = os.environ.get("OSGEO4W_ROOT", "C:\\OSGeo4W")
+
+        with open(tmpl_path, "r", encoding="utf-8") as f:
+            tmpl = f.read()
+
+        with open(batch_path, "w", encoding="utf-8") as f:
+            f.write(tmpl.format(o4w_root=o4w_root, file_title=self.settings.outputFileTitle()))
+
     def nextLayerIndex(self):
         self._index += 1
         return self._index
