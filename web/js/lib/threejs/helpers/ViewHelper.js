@@ -367,6 +367,7 @@ class ViewHelper extends Object3D {
 
 		};
 
+		// NOTE: Customized for Z-up coordinate systems.
 		function prepareAnimationData( object, focusPoint ) {
 
 			switch ( object.userData.type ) {
@@ -398,7 +399,7 @@ class ViewHelper extends Object3D {
 
 				case 'negZ':
 					targetPosition.set( 0, 0, - 1 );
-					targetQuaternion.setFromEuler( new Euler( 0, Math.PI, 0 ) );
+					targetQuaternion.setFromEuler( new Euler( 0, Math.PI, Math.PI ) );
 					break;
 
 				default:
@@ -411,13 +412,22 @@ class ViewHelper extends Object3D {
 			radius = camera.position.distanceTo( focusPoint );
 			targetPosition.multiplyScalar( radius ).add( focusPoint );
 
-			dummy.position.copy( focusPoint );
+			q1.copy( camera.quaternion );
 
-			dummy.lookAt( camera.position );
-			q1.copy( dummy.quaternion );
+			if ( object.userData.type === 'posZ' || object.userData.type === 'negZ' ) {
 
-			dummy.lookAt( targetPosition );
-			q2.copy( dummy.quaternion );
+				q2.copy( targetQuaternion ).invert();
+
+			} else {
+
+				dummy.up.set( 0, 0, 1 );
+				dummy.position.copy( focusPoint );
+				dummy.lookAt( targetPosition );
+
+				q2.copy( dummy.quaternion );
+				targetQuaternion.copy( dummy.quaternion );
+
+			}
 
 		}
 
