@@ -699,22 +699,31 @@ Q3D.E = function (id) {
 		app.scene2.buildLights(conf.lights.directional, 0);
 
 		// an arrow object
-		var geometry = new THREE.Geometry();
-		geometry.vertices.push(
-			new THREE.Vector3(-5, -10, 0),
-			new THREE.Vector3(0, 10, 0),
-			new THREE.Vector3(0, -7, 3),
-			new THREE.Vector3(5, -10, 0)
-		);
-		geometry.faces.push(
-			new THREE.Face3(0, 1, 2),
-			new THREE.Face3(2, 1, 3)
-		);
-		geometry.computeFaceNormals();
+		const vertices = [
+			-5, -10, 0,
+			 0,  10, 0,
+			 0,  -7, 3,
+			 5, -10, 0
+		];
 
-		var material = new THREE.MeshLambertMaterial({color: conf.northArrow.color, side: THREE.DoubleSide});
-		var mesh = new THREE.Mesh(geometry, material);
+		const index = [
+			0, 1, 2,
+			2, 1, 3
+		];
+
+		const geometry = new THREE.BufferGeometry();
+		geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(vertices), 3));
+		geometry.setIndex(index);
+
+		const material = new THREE.MeshLambertMaterial({
+			color: conf.northArrow.color,
+			flatShading: true,
+			side: THREE.DoubleSide
+		});
+
+		const mesh = new THREE.Mesh(geometry, material);
 		if (declination) mesh.rotation.z = -declination * Q3D.deg2rad;
+
 		app.scene2.add(mesh);
 	};
 
@@ -1064,7 +1073,7 @@ Q3D.E = function (id) {
 
 		// North arrow
 		if (app.renderer2) {
-			app.scene2.quaternion.copy(app.camera.quaternion).inverse();
+			app.scene2.quaternion.copy(app.camera.quaternion).invert();
 			app.scene2.updateMatrixWorld();
 
 			app.renderer2.render(app.scene2, app.camera2);
