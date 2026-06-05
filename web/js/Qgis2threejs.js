@@ -42,12 +42,12 @@ Q3D.Config = {
 			{
 				type: "ambient",
 				color: 0x999999,
-				intensity: 0.8
+				intensity: 2.513
 			},
 			{
 				type: "directional",
 				color: 0xffffff,
-				intensity: 0.7,
+				intensity: 2.199,
 				azimuth: 220,   // azimuth of light, in degrees. default light azimuth of gdaldem hillshade is 315.
 				altitude: 45    // altitude angle in degrees.
 			}
@@ -56,12 +56,13 @@ Q3D.Config = {
 			{
 				type: "ambient",
 				color: 0x999999,
-				intensity: 0.9
+				intensity: 2.827
 			},
 			{
 				type: "point",
 				color: 0xffffff,
-				intensity: 0.6,
+				intensity: 3,
+				decay: 0.01,
 				height: 10
 			}
 		]
@@ -2069,7 +2070,7 @@ class Q3DScene extends THREE.Scene {
 								.applyAxisAngle(Q3D.uv.k, (rotation - p.azimuth) * Q3D.deg2rad);
 			}
 			else if (p.type == "point") {
-				light = new THREE.PointLight(p.color, p.intensity);
+				light = new THREE.PointLight(p.color, p.intensity, 0, p.decay);
 				light.position.set(0, 0, p.height);
 			}
 			else {
