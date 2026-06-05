@@ -385,16 +385,6 @@ table.measure tr > td:nth-child(2) {
   display: none;
 }
 
-#navigation {
-  position: absolute;
-  right: 0px;
-  bottom: 0px;
-  width: 128px;
-  height: 128px;
-  z-index: 1000;
-  display: none;
-}
-
 /* animation */
 #narrativebox {
   position: absolute;

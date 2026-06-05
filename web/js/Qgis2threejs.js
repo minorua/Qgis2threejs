@@ -85,7 +85,9 @@ Q3D.Config = {
 
 	// widgets
 	navigation: {
-		enabled: true
+		enabled: true,
+		top: null,
+		bottom: 0
 	},
 
 	northArrow: {
@@ -266,6 +268,7 @@ Q3D.E = function (id) {
 
 		// WebGLRenderer
 		app.renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
+		app.renderer.autoClear = false;
 
 		if (conf.renderer.hiDpi) {
 			app.renderer.setPixelRatio(window.devicePixelRatio);
@@ -342,8 +345,8 @@ Q3D.E = function (id) {
 		}
 
 		// navigation
-		if (conf.navigation.enabled && THREE_EX.ViewHelper) {
-			app.buildViewHelper(E("navigation"));
+		if (THREE_EX.ViewHelper && conf.navigation.enabled) {
+			app.buildViewHelper(app.container);
 		}
 
 		// north arrow
@@ -714,33 +717,24 @@ Q3D.E = function (id) {
 		app.scene2.add(mesh);
 	};
 
+	var anim_timer = new THREE.Timer();
+	var _pupListenerAdded = false;
 	app.buildViewHelper = function (container) {
+		app.viewHelper = new THREE_EX.ViewHelper(app.camera, container);
+		app.viewHelper.center = app.controls.target;
+		app.viewHelper.setLabels("X", "Y", "Z");
+		app.viewHelper.location.top = Q3D.Config.navigation.top;
+		app.viewHelper.location.bottom = Q3D.Config.navigation.bottom;
 
-		if (app.renderer3 === undefined) {
-			container.style.display = "block";
-
-			app.renderer3 = new THREE.WebGLRenderer({alpha: true, antialias: true});
-			app.renderer3.setClearColor(0, 0);
-			app.renderer3.setSize(container.clientWidth, container.clientHeight);
-
-			app.container3 = container;
-			app.container3.appendChild(app.renderer3.domElement);
+		if (!_pupListenerAdded) {
+			container.addEventListener("pointerup", (event) => {
+				if (app.viewHelper && app.viewHelper.handleClick(event)) {
+					anim_timer.update();
+					requestAnimationFrame(app.animate);
+				}
+			});
+			_pupListenerAdded = true;
 		}
-
-		if (app.viewHelper !== undefined) {
-			app.viewHelper.removeEventListener("requestAnimation", app.startViewHelperAnimation);
-		}
-
-		app.viewHelper = new THREE_EX.ViewHelper(app.camera, {dom: container});
-		app.viewHelper.controls = app.controls;
-
-		app.viewHelper.addEventListener("requestAnimation", app.startViewHelperAnimation);
-	};
-
-	var clock = new THREE.Clock();
-	app.startViewHelperAnimation = function () {
-		clock.start();
-		requestAnimationFrame(app.animate);
 	};
 
 	app.currentViewUrl = function () {
@@ -777,7 +771,8 @@ Q3D.E = function (id) {
 		else if (app.viewHelper && app.viewHelper.animating) {
 			requestAnimationFrame(app.animate);
 
-			app.viewHelper.update(clock.getDelta());
+			anim_timer.update();
+			app.viewHelper.update(anim_timer.getDelta());
 		}
 
 		app.render(true);
@@ -1057,7 +1052,8 @@ Q3D.E = function (id) {
 			app.camera.updateMatrixWorld();
 		}
 
-		// render
+		// rendering
+		app.renderer.clear()
 		if (app.effect) {
 			app.effect.render(app.scene, app.camera);
 		}
@@ -1075,7 +1071,7 @@ Q3D.E = function (id) {
 
 		// navigation widget
 		if (app.viewHelper) {
-			app.viewHelper.render(app.renderer3);
+			app.viewHelper.render(app.renderer);
 		}
 	};
 
@@ -1352,6 +1348,7 @@ Q3D.E = function (id) {
 		if (!fill_background) app.renderer.setClearColor(0, 0);
 
 		// rendering
+		app.renderer.clear()
 		app.renderer.preserveDrawingBuffer = true;
 
 		if (app.effect) {

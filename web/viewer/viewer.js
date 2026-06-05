@@ -494,8 +494,9 @@ function switchCamera(is_ortho) {
 	}
 
 	// rebuild view helper
-	if (app.viewHelper !== undefined) {
-		app.buildViewHelper(Q3D.E("navigation"));
+	if (app.viewHelper) {
+		app.viewHelper.dispose();
+		app.buildViewHelper(app.container);
 	}
 
 	app.updateControlsAndRender();
@@ -547,18 +548,19 @@ function changeLight(type) {
 
 //// widgets
 function setNavigationEnabled(enabled) {
-	var elm = Q3D.E("navigation");
-	elm.style.display = (enabled) ? "block" : "none";
-
 	if (enabled) {
 		if (app.viewHelper === undefined) {
-			app.buildViewHelper(elm);
-			app.viewHelper.render(app.renderer3);
+			app.buildViewHelper(app.container);
+			app.viewHelper.render(app.renderer);
 		}
 	}
 	else {
-		app.viewHelper = undefined;
+		if (app.viewHelper) {
+			app.viewHelper.dispose();
+			app.viewHelper = undefined;
+		}
 	}
+	app.render();
 }
 
 function setNorthArrowVisible(visible) {

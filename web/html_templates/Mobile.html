@@ -18,7 +18,6 @@ ${scripts}
 <video id="video" autoplay></video>
 <div id="view">
   <div id="northarrow"></div>
-  <div id="navigation"></div>
 </div>
 
 <!-- buttons -->
@@ -147,6 +146,9 @@ function main() {
   gui = Q3D.gui;
 
 ${options}
+
+  Q3D.Config.navigation.top = 54;
+  Q3D.Config.navigation.bottom = null;
 
   var container = document.getElementById("view")
   app.init(container);          // initialize viewer
