@@ -2182,6 +2182,7 @@ class Q3DMaterial {
 				delete m.image.base64;
 			}
 			opt.map.anisotropy = Q3D.Config.texture.anisotropy;
+			opt.map.colorSpace = THREE.SRGBColorSpace;
 		}
 
 		if (m.c !== undefined) opt.color = m.c;
