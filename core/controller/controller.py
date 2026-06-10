@@ -349,13 +349,19 @@ class Q3DController(QObject):
     def buildLayer(self, layer):
         self.taskManager.processingLayer = layer
 
+        objType = layer.properties.get("comboBox_ObjectType")
         files = []
-        if layer.type == LayerType.POINT and layer.properties.get("comboBox_ObjectType") == "3D Model":
-            files = [ScriptFile.COLLADALOADER,
-                     ScriptFile.GLTFLOADER]
+        if layer.type == LayerType.POINT:
+            if objType == "3D Model":
+                files = [ScriptFile.COLLADALOADER,
+                         ScriptFile.GLTFLOADER]
 
-        elif layer.type == LayerType.LINESTRING and layer.properties.get("comboBox_ObjectType") == "Thick Line":
-            files = [ScriptFile.MESHLINE]
+        elif layer.type == LayerType.LINESTRING:
+            if objType == "Thick Line":
+                files = [ScriptFile.MESHLINE]
+
+            elif objType == "Box":
+                files = [ScriptFile.BUFGEOMUTILS]
 
         elif layer.type == LayerType.POINTCLOUD:
             files = [ScriptFile.POTREE,

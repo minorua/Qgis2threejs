@@ -3860,77 +3860,96 @@ class Q3DLineLayer extends Q3DVectorLayer {
 		else if (objType == "Box") {
 			// In this method, box corners are exposed near joint when both azimuth and slope of
 			// the segments of both sides are different. Also, some unnecessary faces are created.
-			var faces = [], vi;
-			vi = [[0, 5, 4], [4, 5, 1],   // left turn - top, side, bottom
-				[3, 0, 7], [7, 0, 4],
-				[6, 3, 2], [2, 3, 7],
-				[4, 1, 0], [0, 1, 5],   // right turn - top, side, bottom
-				[1, 2, 5], [5, 2, 6],
-				[2, 7, 6], [6, 7, 3]];
-
-			for (var j = 0; j < 12; j++) {
-				faces.push(new THREE.Face3(vi[j][0], vi[j][1], vi[j][2]));
-			}
+			const jnt_idx = [
+				0, 5, 4, 4, 5, 1,   // left turn - top, side, bottom
+				3, 0, 7, 7, 0, 4,
+				6, 3, 2, 2, 3, 7,
+				4, 1, 0, 0, 1, 5,   // right turn - top, side, bottom
+				1, 2, 5, 5, 2, 6,
+				2, 7, 6, 6, 7, 3
+			];
 
 			return function (f, points) {
-				var geometry = new THREE.Geometry();
+				const geometries = [];
 
-				var geom, dist, rx, rz, wh4, vb4, vf4;
-				var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3(),
-					pt = new THREE.Vector3(), ptM = new THREE.Vector3(), scale1 = new THREE.Vector3(1, 1, 1),
-					matrix = new THREE.Matrix4(), quat = new THREE.Quaternion();
+				let geom, vf4;
+				const pt0 = new THREE.Vector3(),
+					  pt1 = new THREE.Vector3(),
+					  sub = new THREE.Vector3(),
+					  pt = new THREE.Vector3(),
+					  ptM = new THREE.Vector3(),
+					  scale1 = new THREE.Vector3(1, 1, 1),
+					  matrix = new THREE.Matrix4(),
+					  quat = new THREE.Quaternion();
 
 				pt0.fromArray(points[0]);
-				for (var i = 1, l = points.length; i < l; i++) {
+
+				for (let i = 1, l = points.length; i < l; i++) {
 					pt1.fromArray(points[i]);
-					dist = pt0.distanceTo(pt1);
+
+					const dist = pt0.distanceTo(pt1);
+
 					sub.subVectors(pt1, pt0);
-					rx = Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y));
-					rz = Math.atan2(sub.y, sub.x) - Math.PI / 2;
-					ptM.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);   // midpoint
+
+					const rx = Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y));
+					const rz = Math.atan2(sub.y, sub.x) - Math.PI / 2;
+
+					ptM.set(
+						(pt0.x + pt1.x) / 2,
+						(pt0.y + pt1.y) / 2,
+						(pt0.z + pt1.z) / 2
+					);
+
 					quat.setFromEuler(new THREE.Euler(rx, 0, rz, "ZXY"));
 					matrix.compose(ptM, quat, scale1);
 
-					// place a box to the segment
+					// segment box
 					geom = new THREE.BoxGeometry(f.geom.w, dist, f.geom.h);
-					geom.applyMatrix(matrix);
-					geometry.merge(geom);
+					geom.deleteAttribute("normal");
+					geom.deleteAttribute("uv");
+					geom.applyMatrix4(matrix);
+					geometries.push(geom);
 
 					// joint
-					// 4 vertices of backward side of current segment
-					wh4 = [[-f.geom.w / 2, f.geom.h / 2],
-							[f.geom.w / 2, f.geom.h / 2],
-							[f.geom.w / 2, -f.geom.h / 2],
-							[-f.geom.w / 2, -f.geom.h / 2]];
-					vb4 = [];
-					for (j = 0; j < 4; j++) {
+					// backward side
+					const wh4 = [
+						[-f.geom.w / 2,  f.geom.h / 2],
+						[ f.geom.w / 2,  f.geom.h / 2],
+						[ f.geom.w / 2, -f.geom.h / 2],
+						[-f.geom.w / 2, -f.geom.h / 2]
+					];
+
+					const vb4 = [];
+
+					for (let j = 0; j < 4; j++) {
 						pt.set(wh4[j][0], -dist / 2, wh4[j][1]);
 						pt.applyMatrix4(matrix);
-						vb4.push(pt.clone());
+
+						vb4.push(pt.x, pt.y, pt.z);
 					}
 
 					if (vf4) {
-						geom = new THREE.Geometry();
-						geom.vertices = vf4.concat(vb4);
-						geom.faces = faces;
-						geometry.merge(geom);
+						geom = new THREE.BufferGeometry();
+						geom.setAttribute("position", new THREE.Float32BufferAttribute(vf4.concat(vb4), 3));
+						geom.setIndex(jnt_idx);
+						geometries.push(geom);
 					}
 
-					// 4 vertices of forward side
+					// forward side
 					vf4 = [];
-					for (j = 0; j < 4; j++) {
+
+					for (let j = 0; j < 4; j++) {
 						pt.set(wh4[j][0], dist / 2, wh4[j][1]);
 						pt.applyMatrix4(matrix);
-						vf4.push(new THREE.Vector3(pt.x, pt.y, pt.z));
+
+						vf4.push(pt.x, pt.y, pt.z);
 					}
 
 					pt0.copy(pt1);
 				}
 
-				geometry.faceVertexUvs = [[]];
-				geometry.mergeVertices();
-				geometry.computeFaceNormals();
-				return new THREE.Mesh(geometry, materials.mtl(f.mtl.idx));
+				geom = THREE_EX.BufferGeometryUtils.mergeGeometries(geometries, false);
+				return new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
 			};
 		}
 		else if (objType == "Wall") {
