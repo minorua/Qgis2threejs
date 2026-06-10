@@ -4105,8 +4105,6 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 				var geom = new THREE.BufferGeometry();
 				geom.setAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
 				geom.setIndex(f.geom.triangles.f);
-				geom = new THREE.Geometry().fromBufferGeometry(geom); // Flat shading doesn't work with combination of
-																	// BufferGeometry and Lambert/Toon material.
 				return new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
 			};
 		}
