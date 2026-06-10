@@ -2903,7 +2903,7 @@ class Q3DClippedDEMBlock extends Q3DDEMBlockBase {
 
 			// sides
 			for (var j = 0, m = bnds.length; j < m; j++) {
-				geom = Q3D.Utils.createWallGeometry(bnds[j], bzFunc, true);
+				geom = Q3D.Utils.createWallGeometry(bnds[j], bzFunc);
 				mesh = new THREE.Mesh(geom, material);
 				mesh.name = "side";
 				parent.add(mesh);
@@ -4363,14 +4363,16 @@ Q3D.Models = Q3DModels;
 // Q3D.Utils - Utilities
 Q3D.Utils = {};
 
-// Put a stick to given position (for debug)
+// Put a stick to given position (for debugging)
 Q3D.Utils.putStick = function (x, y, zFunc, h) {
 	if (Q3D.Utils._stick_mat === undefined) Q3D.Utils._stick_mat = new THREE.LineBasicMaterial({color: 0xff0000});
 	if (h === undefined) h = 0.2;
-	var z = zFunc(x, y);
-	var geom = new THREE.Geometry();
-	geom.vertices.push(new THREE.Vector3(x, y, z + h), new THREE.Vector3(x, y, z));
-	var stick = new THREE.Line(geom, Q3D.Utils._stick_mat);
+	const z = zFunc(x, y);
+	const geom = new THREE.BufferGeometry().setFromPoints([
+		new THREE.Vector3(x, y, z + h),
+		new THREE.Vector3(x, y, z)
+	]);
+	const stick = new THREE.Line(geom, Q3D.Utils._stick_mat);
 	Q3D.application.scene.add(stick);
 };
 
@@ -4389,27 +4391,30 @@ Q3D.Utils.convertToDMS = function (lat, lon) {
 		   ((lon < 0) ? "W" : "E") + toDMS(Math.abs(lon));
 };
 
-Q3D.Utils.createWallGeometry = function (vert, bzFunc, buffer_geom) {
-	var geom = new THREE.Geometry();
-	for (var i = 0, l = vert.length; i < l; i += 3) {
-		geom.vertices.push(
-			new THREE.Vector3(vert[i], vert[i + 1], vert[i + 2]),
-			new THREE.Vector3(vert[i], vert[i + 1], bzFunc(vert[i], vert[i + 1]))
+Q3D.Utils.createWallGeometry = function (vert, bzFunc) {
+	const positions = [];
+	const indices = [];
+
+	for (let i = 0; i < vert.length; i += 3) {
+		const x = vert[i];
+		const y = vert[i + 1];
+
+		positions.push(
+			x, y, vert[i + 2],
+			x, y, bzFunc(x, y)
 		);
 	}
 
-	for (var i = 1, i2 = 1, l = vert.length / 3; i < l; i++, i2 += 2) {
-		geom.faces.push(
-			new THREE.Face3(i2 - 1, i2, i2 + 1),
-			new THREE.Face3(i2 + 1, i2, i2 + 2)
+	for (let i = 1, v = 1, n = vert.length / 3; i < n; i++, v += 2) {
+		indices.push(
+			v - 1, v, v + 1,
+			v + 1, v, v + 2
 		);
 	}
 
-	geom.computeFaceNormals();
-
-	if (buffer_geom) {
-		return new THREE.BufferGeometry().fromGeometry(geom);
-	}
+	const geom = new THREE.BufferGeometry();
+	geom.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+	geom.setIndex(indices);
 	return geom;
 };
 
