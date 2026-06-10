@@ -206,18 +206,21 @@ class ThreeJSExporter(QObject):
         return self._index
 
     def filesToCopy(self):
+        LIB = "web/js/lib"
+        THREE = LIB + "/threejs"
+
         # three.js library
-        files = [{"dirs": ["web/js/lib/threejs"]}]
+        files = [{"dirs": [THREE]}]
 
         # controls
-        files.append({"files": ["web/js/lib/threejs/controls/" + self.settings.controls()], "dest": "threejs"})
+        files.append({"files": [THREE + "/controls/" + self.settings.controls()], "dest": "threejs"})
 
         if self.settings.isNavigationEnabled():
-            files.append({"files": ["web/js/lib/threejs/helpers/ViewHelper.js"], "dest": "threejs"})
+            files.append({"files": [THREE + "/helpers/ViewHelper.js"], "dest": "threejs"})
 
         # outline effect
         if self.settings.useOutlineEffect():
-            files.append({"files": ["web/js/lib/threejs/effects/OutlineEffect.js"], "dest": "threejs"})
+            files.append({"files": [THREE + "/effects/OutlineEffect.js"], "dest": "threejs"})
 
         # template specific files
         config = self.settings.templateConfig()
@@ -237,20 +240,25 @@ class ThreeJSExporter(QObject):
 
         # proj4js
         if self.settings.isCoordLatLon():
-            files.append({"dirs": ["web/js/lib/proj4js"]})
+            files.append({"dirs": [LIB + "/proj4js"]})
 
         # layer-specific dependencies
-        wl = pc = True
+        added = set()
         for layer in [lyr for lyr in self.settings.layers() if lyr.visible]:  # HACK: lyr.export
+            objType = layer.properties.get("comboBox_ObjectType")
             if layer.type == LayerType.LINESTRING:
-                if layer.properties.get("comboBox_ObjectType") == "Thick Line" and wl:
-                    files.append({"dirs": ["web/js/lib/meshline"]})
-                    wl = False
+                if objType == "Thick Line" and "meshline" not in added:
+                    files.append({"dirs": [LIB + "/meshline"]})
+                    added.add("meshline")
 
-            elif layer.type == LayerType.POINTCLOUD and pc:
-                files.append({"dirs": ["web/js/lib/potree-core"], "subdirs": True})
+                elif objType == "Box" and "geomutils" not in added:
+                    files.append({"files": [THREE + "/utils/BufferGeometryUtils.js"], "dest": "threejs"})
+                    added.add("geomutils")
+
+            elif layer.type == LayerType.POINTCLOUD and "pc" not in added:
+                files.append({"dirs": [LIB + "/potree-core"], "subdirs": True})
                 files.append({"files": ["web/js/pointcloudlayer.js"]})
-                pc = False
+                added.add("pc")
 
         # model loades and model files
         for manager in self.modelManagers:
@@ -260,60 +268,59 @@ class ThreeJSExporter(QObject):
 
         # animation
         if self.settings.isAnimationEnabled():
-            files.append({"dirs": ["web/js/lib/tweenjs"]})
+            files.append({"dirs": [LIB + "/tweenjs"]})
 
         return files
 
     def scripts(self):
-        classic = []
-        modules = []
+        files = []
 
         # controls
-        modules.append("./threejs/{}".format(self.settings.controls()))
+        files.append(("./threejs/{}".format(self.settings.controls()), ScriptFile.TYPE_CLASS))
 
         if self.settings.isNavigationEnabled():
-            modules.append("./threejs/ViewHelper.js")
+            files.append(("./threejs/ViewHelper.js", ScriptFile.TYPE_CLASS))
 
         # outline effect
         if self.settings.useOutlineEffect():
-            modules.append("./threejs/OutlineEffect.js")
+            files.append(("./threejs/OutlineEffect.js", ScriptFile.TYPE_CLASS))
 
         # html template config
         config = self.settings.templateConfig()
         s = config.get("scripts", "").strip()
         if s:
-            classic += s.split(",")
+            for f in s.split(","):
+                files.append((f, ScriptFile.TYPE_NON_MODULE))
 
         # proj4.js
         if self.settings.isCoordLatLon():    # display coordinates in latitude and longitude format
-            proj4 = "./proj4js/proj4.js"
-            if proj4 not in classic:
-                classic.append(proj4)
+            files.append(("./proj4js/proj4.js", ScriptFile.TYPE_NON_MODULE))
 
         # animation
         if self.settings.isAnimationEnabled():
-            classic.append("./tweenjs/tween.js")
+            files.append(("./tweenjs/tween.js", ScriptFile.TYPE_NON_MODULE))
 
         # Qgis2threejs.js
-        classic.append("./Qgis2threejs.js")
+        files.append(("./Qgis2threejs.js", ScriptFile.TYPE_NON_MODULE))
 
         # layer-specific dependencies
-        wl = pc = True
         for layer in [lyr for lyr in self.settings.layers() if lyr.visible]:
+            objType = layer.properties.get("comboBox_ObjectType")
             if layer.type == LayerType.LINESTRING:
-                if layer.properties.get("comboBox_ObjectType") == "Thick Line" and wl:
-                    classic.append("./meshline/THREE.MeshLine.js")
-                    wl = False
-            elif layer.type == LayerType.POINTCLOUD and pc:
-                classic.append("./potree-core/potree.min.js")
-                classic.append("./pointcloudlayer.js")
-                pc = False
+                if objType == "Thick Line":
+                    files.append(("./meshline/THREE.MeshLine.js", ScriptFile.TYPE_NON_MODULE))
+
+                elif objType == "Box":
+                    files.append(("./threejs/BufferGeometryUtils.js", ScriptFile.TYPE_UTILS))
+
+            elif layer.type == LayerType.POINTCLOUD:
+                files.append(("./potree-core/potree.min.js", ScriptFile.TYPE_NON_MODULE))
+                files.append(("./pointcloudlayer.js", ScriptFile.TYPE_NON_MODULE))
 
         # model loaders
         for manager in self.modelManagers:
             for mod in manager.modules():
-                if mod not in modules:
-                    modules.append(mod)
+                files.append((mod, ScriptFile.TYPE_CLASS))
 
         script = """<script type="importmap">
 {
@@ -327,14 +334,28 @@ import * as THREE from "three";
 window.THREE = THREE;
 window.THREE_EX = {};
 """
-        for mod in modules:
-            obj = mod.split("/")[-1].rsplit(".", 1)[0]
-            script += f'import {{ {obj} }} from "{mod}";\n'
-            script += f'THREE_EX.{obj} = {obj};\n'
-        script += '</script>\n'
+        non_module_script = ""
 
-        for src in classic:
-            script += f'<script defer src="{src}"></script>\n'
+        for filepath, type in list(dict.fromkeys(files)):
+            if type == ScriptFile.TYPE_NON_MODULE:
+                non_module_script += f'<script defer src="{filepath}"></script>\n'
+
+            else:
+                obj = filepath.split("/")[-1].rsplit(".", 1)[0]
+
+                if type == ScriptFile.TYPE_CLASS:
+                    script += f'import {{ {obj} }} from "{filepath}";\n'
+
+                elif type == ScriptFile.TYPE_UTILS:
+                    script += f'import * as {obj} from "{filepath}";\n'
+
+                else:
+                    raise
+
+                script += f'THREE_EX.{obj} = {obj};\n'
+
+        script += '</script>\n'
+        script += non_module_script
 
         return script
 
