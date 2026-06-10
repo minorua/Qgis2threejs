@@ -180,9 +180,22 @@ function _requestCameraUpdate(sp) {
 	app.scene.requestCameraUpdate(pos, focal, near, far);
 }
 
-function loadScriptFile(path, callback) {
-	var url = new URL(path, document.baseURI);
+function loadScriptFile(path, callback, isModule=false, isUtils=false) {
+	if (isModule) {
+		const filename = path.split("/").pop();
+		const mod = filename.substring(0, filename.lastIndexOf("."));
+		import(path).then(module => {
+			if (isUtils) {
+				THREE_EX[mod] = module;
+			} else {
+				THREE_EX[mod] = module[mod];
+			}
+			if (callback) callback();
+		});
+		return;
+	}
 
+	var url = new URL(path, document.baseURI);
 	var elms = document.head.getElementsByTagName("script");
 	for (var i = 0; i < elms.length; i++) {
 		if (elms[i].src == url) {
@@ -231,13 +244,13 @@ function loadModel(url) {
 		loadScriptFile("../js/lib/threejs/loaders/ColladaLoader.js", function () {
 			var loader = new THREE.ColladaLoader(app.loadingManager);
 			loader.load(url, loadToScene, undefined, onError);
-		});
+		}, true);
 	}
 	else if (ext == "gltf" || ext == "glb") {
 		loadScriptFile("../js/lib/threejs/loaders/GLTFLoader.js", function () {
 			var loader = new THREE.GLTFLoader(app.loadingManager);
 			loader.load(url, loadToScene, undefined, onError);
-		});
+		}, true);
 	}
 }
 
@@ -446,14 +459,9 @@ function setPreviewEnabled(enabled) {
 
 function setOutlineEffectEnabled(enabled) {
 	if (enabled) {
-		if (THREE_EX.OutlineEffect === undefined) {
-			loadScriptFile("../js/lib/threejs/effects/OutlineEffect.js", function () {
-				app.effect = new THREE_EX.OutlineEffect(app.renderer);
-			});
-		}
-		else if (app.effect !== undefined) {
+		loadScriptFile("../js/lib/threejs/effects/OutlineEffect.js", function () {
 			app.effect = new THREE_EX.OutlineEffect(app.renderer);
-		}
+		}, true);
 	}
 	else {
 		app.effect = undefined;

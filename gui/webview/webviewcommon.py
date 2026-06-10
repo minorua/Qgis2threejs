@@ -67,8 +67,10 @@ class Q3DWebPageCommon:
         if callback:
             self.loadScriptCallbacks.setdefault(scriptFileId, []).append(callback)
 
-        path = "../js/" + ScriptFile.PATHS[scriptFileId]
-        script = f"loadScriptFile('{path}', function () {{pyObj.emitScriptReady({scriptFileId})}})"
+        path, type = ScriptFile.FILES[scriptFileId]
+        is_module = js_bool(type != ScriptFile.TYPE_NON_MODULE)
+        is_utils = js_bool(type == ScriptFile.TYPE_UTILS)
+        script = f"loadScriptFile('../js/{path}', () => {{pyObj.emitScriptReady({scriptFileId})}}, {is_module}, {is_utils})"
 
         if wait:
             loop = QEventLoop()

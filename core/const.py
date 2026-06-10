@@ -31,29 +31,37 @@ class DEMMtlType:
 
 class ScriptFile:
     """Enum for JavaScript files"""
-    PROJ4 = 1
-    GLTFLOADER = 2
-    COLLADALOADER = 3
-    GLTFEXPORTER = 4
-    POTREE = 5
-    PCLAYER = 6
-    OUTLINE = 7
-    VIEWHELPER = 8
-    MESHLINE = 9
-    TEST = 201
+    GLTFLOADER = 1
+    COLLADALOADER = 2
+    GLTFEXPORTER = 3
+    OUTLINE = 4
+    VIEWHELPER = 5
+    BUFGEOMUTILS = 6
+    PROJ4 = 10
+    POTREE = 11
+    MESHLINE = 12
+    PCLAYER = 101
+    TEST = 102
+
+    # type
+    TYPE_NON_MODULE = 0
+    TYPE_CLASS = 1
+    TYPE_UTILS = 2
 
     # relative paths to script files from js directory
-    PATHS = {
-        PROJ4: "lib/proj4js/proj4.js",
-        GLTFLOADER: "lib/threejs/loaders/GLTFLoader.js",
-        COLLADALOADER: "lib/threejs/loaders/ColladaLoader.js",
-        GLTFEXPORTER: "lib/threejs/exporters/GLTFExporter.js",
-        POTREE: "lib/potree-core/potree.min.js",
-        PCLAYER: "pointcloudlayer.js",
-        OUTLINE: "lib/threejs/effects/OutlineEffect.js",
-        VIEWHELPER: "lib/threejs/helpers/ViewHelper.js",
-        MESHLINE: "lib/meshline/THREE.MeshLine.js",
-        TEST: "../../tests/gui/test.js"
+    THREE_DIR = "lib/threejs"
+    FILES = {
+        GLTFLOADER: (THREE_DIR + "/loaders/GLTFLoader.js", TYPE_CLASS),
+        COLLADALOADER: (THREE_DIR + "/loaders/ColladaLoader.js", TYPE_CLASS),
+        GLTFEXPORTER: (THREE_DIR + "/exporters/GLTFExporter.js", TYPE_CLASS),
+        OUTLINE: (THREE_DIR + "/effects/OutlineEffect.js", TYPE_CLASS),
+        VIEWHELPER: (THREE_DIR + "/helpers/ViewHelper.js", TYPE_CLASS),
+        BUFGEOMUTILS: (THREE_DIR + "/utils/BufferGeometryUtils.js", TYPE_UTILS),
+        PROJ4: ("lib/proj4js/proj4.js", TYPE_NON_MODULE),
+        POTREE: ("lib/potree-core/potree.min.js", TYPE_NON_MODULE),
+        MESHLINE: ("lib/meshline/THREE.MeshLine.js", TYPE_NON_MODULE),
+        PCLAYER: ("pointcloudlayer.js", TYPE_NON_MODULE),
+        TEST: ("../../tests/gui/test.js", TYPE_NON_MODULE)
     }
 
 
