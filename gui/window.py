@@ -6,7 +6,7 @@
 import os
 from datetime import datetime
 
-from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QSettings, QUrl, pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QSettings, QTimer, QUrl, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QColor, QDesktopServices, QIcon
 from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                                  QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
@@ -455,13 +455,8 @@ class Q3DWindow(QMainWindow):
         if not filename:
             return
 
-        def saveModel():
-            self.runScript("saveModelAsGLTF('{}')".format(filename.replace("\\", "\\\\")))
-            self.ui.statusbar.clearMessage()
-
-        _, ext = os.path.splitext(filename)
-        self.ui.statusbar.showMessage(f"Exporting current scene to a {ext} file...")
-        self.webPage.loadScriptFile(ScriptFile.GLTFEXPORTER, callback=saveModel)
+        fn = filename.replace("\\", "\\\\")
+        self.runScript(f"saveModelAsGLTF('{fn}')")
 
         self.lastDir = os.path.dirname(filename)
 
@@ -485,7 +480,10 @@ class Q3DWindow(QMainWindow):
                 self._modelFile = None
 
                 if self._saveModelState == SAVING:
-                    QMessageBox.information(self, "Save Scene As glTF", "Successfully saved model data: " + filename)
+                    def showMessage():
+                        QMessageBox.information(self, "Save Scene As glTF", "Successfully saved model data: " + filename)
+                    QTimer.singleShot(0, showMessage)
+
                 self._saveModelState = None
                 return
 

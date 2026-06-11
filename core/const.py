@@ -33,7 +33,6 @@ class ScriptFile:
     """Enum for JavaScript files"""
     GLTFLOADER = 1
     COLLADALOADER = 2
-    GLTFEXPORTER = 3
     OUTLINE = 4
     VIEWHELPER = 5
     BUFGEOMUTILS = 6
@@ -53,7 +52,6 @@ class ScriptFile:
     FILES = {
         GLTFLOADER: (THREE_DIR + "/loaders/GLTFLoader.js", TYPE_CLASS),
         COLLADALOADER: (THREE_DIR + "/loaders/ColladaLoader.js", TYPE_CLASS),
-        GLTFEXPORTER: (THREE_DIR + "/exporters/GLTFExporter.js", TYPE_CLASS),
         OUTLINE: (THREE_DIR + "/effects/OutlineEffect.js", TYPE_CLASS),
         VIEWHELPER: (THREE_DIR + "/helpers/ViewHelper.js", TYPE_CLASS),
         BUFGEOMUTILS: (THREE_DIR + "/utils/BufferGeometryUtils.js", TYPE_UTILS),

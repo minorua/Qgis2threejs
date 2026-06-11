@@ -1,6 +1,8 @@
 // (C) 2017 Minoru Akagi
 // SPDX-License-Identifier: MIT
 
+const THREE_DIR = "../js/lib/threejs";
+
 Q3D.Config.preview = {
 
 	// showTriangleCount: debug_mode,
@@ -12,10 +14,10 @@ Q3D.Config.preview = {
 Q3D.Config.potree.basePath = document.currentScript.src + "/../../js/lib/potree-core";
 Q3D.Config.potree.maxNodesLoading = 1;
 
-var app = Q3D.application,
-	gui = Q3D.gui;
+const app = Q3D.application,
+	  gui = Q3D.gui;
 
-var preview = {
+const preview = {
 
 	renderEnabled: true,
 
@@ -241,16 +243,16 @@ function loadModel(url) {
 
 	var ext = url.split(".").pop();
 	if (ext == "dae") {
-		loadScriptFile("../js/lib/threejs/loaders/ColladaLoader.js", function () {
-			var loader = new THREE.ColladaLoader(app.loadingManager);
+		import(THREE_DIR + "/loaders/ColladaLoader.js").then(({ ColladaLoader }) => {
+			var loader = new ColladaLoader(app.loadingManager);
 			loader.load(url, loadToScene, undefined, onError);
-		}, true);
+		});
 	}
 	else if (ext == "gltf" || ext == "glb") {
-		loadScriptFile("../js/lib/threejs/loaders/GLTFLoader.js", function () {
-			var loader = new THREE.GLTFLoader(app.loadingManager);
+		import(THREE_DIR + "/loaders/GLTFLoader.js").then(({ GLTFLoader }) => {
+			var loader = new GLTFLoader(app.loadingManager);
 			loader.load(url, loadToScene, undefined, onError);
-		}, true);
+		});
 	}
 }
 
@@ -328,41 +330,35 @@ function saveModelAsGLTF(filename) {
 	}
 	scene.updateMatrixWorld();
 
-	var options = {
+	const options = {
 		binary: (filename.split(".").pop().toLowerCase() == "glb")
 	};
 
-	var gltfExporter = new THREE.GLTFExporter();
-	gltfExporter.parse(scene, function(result) {
-		var showStatus = function () {
-			showStatusMessage("Successfully saved the model.", 5000);
-		};
+	import(THREE_DIR + "/exporters/GLTFExporter.js").then(({ GLTFExporter }) => {
+		const gltfExporter = new GLTFExporter();
+		gltfExporter.parse(scene, (result) => {
+			const showStatus = () => {
+				showStatusMessage("Successfully saved the model.", 5000);
+			}
 
-		if (result instanceof ArrayBuffer) {
-			sendBytes(new Uint8Array(result), filename, showStatus);
-		}
-		else {
-			sendText(JSON.stringify(result, null, 2), filename, showStatus);
-		}
+			if (result instanceof ArrayBuffer) {
+				sendData(new Uint8Array(result), true, filename, showStatus);
+			}
+			else {
+				sendData(JSON.stringify(result, null, 2), false, filename, showStatus);
+			}
 
-		// restore preview
-		for (var k in app.scene.mapLayers) {
-			layer = app.scene.mapLayers[k];
-			group = layer.objectGroup;
-			group.rotation.set(0, 0, 0);
-			app.scene.add(group);
-		}
-		app.scene.updateMatrixWorld();
-		app.render();
-	}, options);
-}
-
-function sendBytes(bytes, filename, callback) {
-	sendData(true, bytes, filename, callback);
-}
-
-function sendText(text, filename, callback) {
-	sendData(false, text, filename, callback);
+			// restore preview
+			for (var k in app.scene.mapLayers) {
+				layer = app.scene.mapLayers[k];
+				group = layer.objectGroup;
+				group.rotation.set(0, 0, 0);
+				app.scene.add(group);
+			}
+			app.scene.updateMatrixWorld();
+			app.render();
+		}, options);
+	});
 }
 
 function uint8ToBase64(u8) {
@@ -373,7 +369,7 @@ function uint8ToBase64(u8) {
     return btoa(binary);
 }
 
-function sendData(is_base64, data, filename, callback) {
+function sendData(data, is_base64, filename, callback) {
     const CHUNK_SIZE = 100000;
     let offset = 0;
 
@@ -437,7 +433,7 @@ function closeMessageBar() {
 
 function showStatusMessage(message, timeout_ms) {
 	pyObj.showStatusMessage(message, timeout_ms || 0);
-	console.log(message);
+	console.info(message);
 }
 
 function clearStatusMessage() {
