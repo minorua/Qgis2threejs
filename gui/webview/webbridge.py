@@ -73,52 +73,42 @@ class WebBridge(QObject):
         self.dataLoaded.emit()
 
     @pyqtSlot()
-    @deco
     def emitInitialized(self):
         self.initialized.emit()
 
     @pyqtSlot()
-    @deco
     def emitDataLoadError(self):
         self.dataLoadError.emit()
 
     @pyqtSlot()
-    @deco
     def emitSceneLoaded(self):
         self.sceneLoaded.emit()
 
     @pyqtSlot(int)
-    @deco
     def emitScriptReady(self, scriptFileId):
         self.scriptFileLoaded.emit(scriptFileId)
 
     @pyqtSlot(int)
-    @deco
     def emitTweenStarted(self, index):
         self.tweenStarted.emit(index)
 
     @pyqtSlot()
-    @deco
     def emitAnimationStopped(self):
         self.animationStopped.emit()
 
     @pyqtSlot(str, int)
-    @deco
     def showStatusMessage(self, message, timeout_ms=0):
         self.statusMessage.emit(message, timeout_ms)
 
     @pyqtSlot(str, str, bool, bool)
-    @deco
     def saveBase64(self, b64str, filename, is_first, is_last):
         self.modelDataReady.emit(base64.b64decode(b64str), filename, is_first, is_last)
 
     @pyqtSlot(str, str, bool, bool)
-    @deco
     def saveText(self, text, filename, is_first, is_last):
         self.modelDataReady.emit(text.encode("UTF-8"), filename, is_first, is_last)
 
     @pyqtSlot(str)
-    @deco
     def saveImage(self, dataUrl):
         image = QImage()
         if dataUrl:
@@ -127,7 +117,6 @@ class WebBridge(QObject):
         self.imageReady.emit(image, False)
 
     @pyqtSlot(str)
-    @deco
     def copyToClipboard(self, dataUrl):
         image = QImage()
         if dataUrl:
@@ -136,12 +125,10 @@ class WebBridge(QObject):
         self.imageReady.emit(image, True)
 
     @pyqtSlot()
-    @deco
     def emitRequestedRenderingFinished(self):
         self.requestedRenderingFinished.emit()
 
     @pyqtSlot(str, bool, str)
-    @deco
     def sendTestResult(self, testName, result, msg):
         self.testResultReceived.emit(testName, result, msg)
 
