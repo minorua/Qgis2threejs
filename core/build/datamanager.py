@@ -9,6 +9,7 @@ from qgis.PyQt.QtCore import Qt, QBuffer, QByteArray, QIODevice, QSize, QUrl
 from qgis.PyQt.QtGui import QColor, QImage, QPainter
 from qgis.core import QgsMapLayer, QgsMapSettings
 
+from ..const import ScriptFile
 from ...utils.file import copyFile
 from ...utils.js import base64file, image2dataUri, imageFile2dataUri
 from ...utils.logging import logger
@@ -359,23 +360,52 @@ class ModelManager(DataManager):
         return False
 
     def filesToCopy(self):
+        THREE = "web/js/lib/threejs"
+        LOADER = THREE + "/loaders"
+        UTILS = THREE + "/utils"
+
         f = []
         if self._list:
             if self.hasColladaModel():
-                f.append({"files": ["web/js/lib/threejs/loaders/ColladaLoader.js"], "dest": "threejs/loaders"})
+                f.append({
+                    "files": [
+                        LOADER + "/ColladaLoader.js",
+                        LOADER + "/TGALoader.js"
+                    ],
+                    "dirs": [
+                        LOADER + "/collada"
+                    ],
+                    "dest": "threejs/loaders"
+                })
+
             if self.hasGLTFModel():
-                f.append({"files": ["web/js/lib/threejs/loaders/GLTFLoader.js"], "dest": "threejs/loaders"})
+                f.append({
+                    "files": [
+                        LOADER + "/GLTFLoader.js"
+                    ],
+                    "dest": "threejs/loaders"
+                })
+                f.append({
+                    "files": [
+                        UTILS + "/BufferGeometryUtils.js",
+                        UTILS + "/SkeletonUtils.js"
+                    ],
+                    "dest": "threejs/utils"
+                })
+
             f.append({"files": self._list, "dest": "./data/{}/models".format(self.exportSettings.outputFileTitle())})
         return f
 
-    def modules(self):
-        mods = []
+    def moduleFiles(self):
+        files = []
         if self._list:
             if self.hasColladaModel():
-                mods.append("./threejs/loaders/ColladaLoader.js")
+                files.append(("./threejs/loaders/ColladaLoader.js", ScriptFile.TYPE_CLASS))
+
             if self.hasGLTFModel():
-                mods.append("./threejs/loaders/GLTFLoader.js")
-        return mods
+                files.append(("./threejs/loaders/GLTFLoader.js", ScriptFile.TYPE_CLASS))
+
+        return files
 
 
 def jpegCompressedImage(image):

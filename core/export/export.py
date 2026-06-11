@@ -319,8 +319,7 @@ class ThreeJSExporter(QObject):
 
         # model loaders
         for manager in self.modelManagers:
-            for mod in manager.modules():
-                files.append((mod, ScriptFile.TYPE_CLASS))
+            files += manager.moduleFiles()
 
         script = """<script type="importmap">
 {
