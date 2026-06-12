@@ -3813,10 +3813,12 @@ class Q3DLineLayer extends Q3DVectorLayer {
 		}
 		else if (objType == "Thick Line") {
 			return function (f, vertices) {
-				var line = new THREE_EX.meshline.MeshLineGeometry();
-				line.setPoints(vertices);
+				const geom = new THREE_EX.meshline.MeshLineGeometry();
+				geom.setPoints(vertices);
 
-				return new THREE.Mesh(line, materials.mtl(f.mtl.idx));
+				const mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
+				mesh.raycast = THREE_EX.meshline.raycast;
+				return mesh;
 			};
 		}
 		else if (objType == "Pipe" || objType == "Cone") {

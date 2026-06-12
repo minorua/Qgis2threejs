@@ -1005,10 +1005,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     def objectTypeChanged(self, index=None):
         objType = ObjectType.typeByName(self.comboBox_ObjectType.currentData(), self.layer.type)
 
-        if self.layer.type == LayerType.LINESTRING:
-            self.checkBox_Clickable.setVisible(objType != ObjectType.ThickLine)
-
-        elif self.layer.type == LayerType.POLYGON:
+        if self.layer.type == LayerType.POLYGON:
             supportZM = (objType == ObjectType.Polygon)
             self.radioButton_zValue.setEnabled(self.hasZ and supportZM)
             self.radioButton_mValue.setEnabled(self.hasM and supportZM)
