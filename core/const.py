@@ -36,9 +36,9 @@ class ScriptFile:
     OUTLINE = 4
     VIEWHELPER = 5
     BUFGEOMUTILS = 6
-    PROJ4 = 10
-    POTREE = 11
-    MESHLINE = 12
+    MESHLINE = 10
+    PROJ4 = 20
+    POTREE = 21
     PCLAYER = 101
     TEST = 102
 
@@ -54,10 +54,12 @@ class ScriptFile:
         COLLADALOADER: (THREE_DIR + "/loaders/ColladaLoader.js", TYPE_CLASS),
         OUTLINE: (THREE_DIR + "/effects/OutlineEffect.js", TYPE_CLASS),
         VIEWHELPER: (THREE_DIR + "/helpers/ViewHelper.js", TYPE_CLASS),
+
         BUFGEOMUTILS: (THREE_DIR + "/utils/BufferGeometryUtils.js", TYPE_NAMESPACE),
+        MESHLINE: ("lib/meshline/meshline.js", TYPE_NAMESPACE),
+
         PROJ4: ("lib/proj4js/proj4.js", TYPE_NON_MODULE),
         POTREE: ("lib/potree-core/potree.min.js", TYPE_NON_MODULE),
-        MESHLINE: ("lib/meshline/THREE.MeshLine.js", TYPE_NON_MODULE),
         PCLAYER: ("pointcloudlayer.js", TYPE_NON_MODULE),
         TEST: ("../../tests/gui/test.js", TYPE_NON_MODULE)
     }

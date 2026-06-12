@@ -308,7 +308,7 @@ class ThreeJSExporter(QObject):
             objType = layer.properties.get("comboBox_ObjectType")
             if layer.type == LayerType.LINESTRING:
                 if objType == "Thick Line":
-                    files.append(("./meshline/THREE.MeshLine.js", ScriptFile.TYPE_NON_MODULE))
+                    files.append(("./meshline/meshline.js", ScriptFile.TYPE_NAMESPACE))
 
                 elif objType == "Box":
                     files.append(("./threejs/BufferGeometryUtils.js", ScriptFile.TYPE_NAMESPACE))

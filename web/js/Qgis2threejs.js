@@ -2244,7 +2244,7 @@ class Q3DMaterial {
 			}
 			// opt.sizeAttenuation = 1;
 
-			var mtl = this.mtl = new MeshLineMaterial(opt);
+			var mtl = this.mtl = new THREE_EX.meshline.MeshLineMaterial(opt);
 			var updateAspect = this._listener = function () {
 				mtl.resolution = new THREE.Vector2(Q3D.application.width, Q3D.application.height);
 			};
@@ -3813,7 +3813,7 @@ class Q3DLineLayer extends Q3DVectorLayer {
 		}
 		else if (objType == "Thick Line") {
 			return function (f, vertices) {
-				var line = new MeshLine();
+				var line = new THREE_EX.meshline.MeshLineGeometry();
 				line.setPoints(vertices);
 
 				return new THREE.Mesh(line, materials.mtl(f.mtl.idx));
@@ -3996,7 +3996,7 @@ class Q3DLineLayer extends Q3DVectorLayer {
 				m = f.objs[0].material;
 
 				if (m.isMeshLineMaterial) {
-					mtl = new MeshLineMaterial();
+					mtl = new THREE_EX.meshline.MeshLineMaterial();
 					mtl.color = m.color;
 					mtl.opacity = m.opacity;
 					mtl.lineWidth = m.lineWidth;
