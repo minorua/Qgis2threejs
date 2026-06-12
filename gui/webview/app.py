@@ -8,7 +8,7 @@ import logging
 import sys
 import traceback
 
-from PyQt6.QtCore import Qt, QPointF, QTimer, qDebug
+from PyQt6.QtCore import Qt, QEvent, QObject, QPointF, QTimer, qDebug
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout
 
@@ -24,6 +24,15 @@ from ...utils.basic import pluginDir
 
 
 logger = logging.getLogger(PLUGIN_NAME)
+
+
+class WindowActivator(QObject):
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.MouseButtonPress:
+            self.parent().parent().windowHandle().requestActivate()
+
+        return False
 
 
 class WebPage(Q3DWebEnginePage):
@@ -98,6 +107,9 @@ class WebView(Q3DWebEngineView):
     def setup(self, webViewMode=None, enabledAtStart=True):
         super().setup(enabledAtStart=enabledAtStart)
         self.socketClient.connect()
+
+        self.activator = WindowActivator(self)
+        self.focusProxy().installEventFilter(self.activator)
 
     def commandReceived(self, method, params, payload):
         if method == Command.DEV_TOOLS:
