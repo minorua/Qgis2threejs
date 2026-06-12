@@ -45,7 +45,7 @@ class ScriptFile:
     # type
     TYPE_NON_MODULE = 0
     TYPE_CLASS = 1
-    TYPE_UTILS = 2
+    TYPE_NAMESPACE = 2
 
     # relative paths to script files from js directory
     THREE_DIR = "lib/threejs"
@@ -54,7 +54,7 @@ class ScriptFile:
         COLLADALOADER: (THREE_DIR + "/loaders/ColladaLoader.js", TYPE_CLASS),
         OUTLINE: (THREE_DIR + "/effects/OutlineEffect.js", TYPE_CLASS),
         VIEWHELPER: (THREE_DIR + "/helpers/ViewHelper.js", TYPE_CLASS),
-        BUFGEOMUTILS: (THREE_DIR + "/utils/BufferGeometryUtils.js", TYPE_UTILS),
+        BUFGEOMUTILS: (THREE_DIR + "/utils/BufferGeometryUtils.js", TYPE_NAMESPACE),
         PROJ4: ("lib/proj4js/proj4.js", TYPE_NON_MODULE),
         POTREE: ("lib/potree-core/potree.min.js", TYPE_NON_MODULE),
         MESHLINE: ("lib/meshline/THREE.MeshLine.js", TYPE_NON_MODULE),

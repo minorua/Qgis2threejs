@@ -311,7 +311,7 @@ class ThreeJSExporter(QObject):
                     files.append(("./meshline/THREE.MeshLine.js", ScriptFile.TYPE_NON_MODULE))
 
                 elif objType == "Box":
-                    files.append(("./threejs/BufferGeometryUtils.js", ScriptFile.TYPE_UTILS))
+                    files.append(("./threejs/BufferGeometryUtils.js", ScriptFile.TYPE_NAMESPACE))
 
             elif layer.type == LayerType.POINTCLOUD:
                 files.append(("./potree-core/potree.min.js", ScriptFile.TYPE_NON_MODULE))
@@ -345,7 +345,7 @@ window.THREE_EX = {};
                 if type == ScriptFile.TYPE_CLASS:
                     script += f'import {{ {obj} }} from "{filepath}";\n'
 
-                elif type == ScriptFile.TYPE_UTILS:
+                elif type == ScriptFile.TYPE_NAMESPACE:
                     script += f'import * as {obj} from "{filepath}";\n'
 
                 else:

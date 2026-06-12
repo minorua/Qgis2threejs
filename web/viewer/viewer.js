@@ -182,12 +182,12 @@ function _requestCameraUpdate(sp) {
 	app.scene.requestCameraUpdate(pos, focal, near, far);
 }
 
-function loadScriptFile(path, callback, isModule=false, isUtils=false) {
+function loadScriptFile(path, callback, isModule=false, isNamespace=false) {
 	if (isModule) {
 		const filename = path.split("/").pop();
 		const mod = filename.substring(0, filename.lastIndexOf("."));
 		import(path).then(module => {
-			if (isUtils) {
+			if (isNamespace) {
 				THREE_EX[mod] = module;
 			} else {
 				THREE_EX[mod] = module[mod];
