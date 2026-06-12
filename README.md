@@ -23,16 +23,13 @@ Dependencies
 
 This plugin is powered by the following JavaScript libraries and resources:
 
-* [three.js](https://threejs.org)
-
-* [Proj4js](https://trac.osgeo.org/proj4js/)
-
-* [tween.js](https://github.com/tweenjs/tween.js/) for animation
-
-* [Potree Core](https://github.com/tentone/potree-core) for Potree data support
-
-* [dat-gui](https://github.com/dataarts/dat.gui) for export based on 3DViewer(dat-gui) template
-
-* [Font Awesome](https://fontawesome.com/) icons for export based on Mobile template
-
-* Python ported version of [earcut](https://github.com/mapbox/earcut) for Overlay polygon triangulation
+| Library / Resource | Version | Purpose |
+|----------|---------|---------|
+| [three.js](https://threejs.org) | r184 | 3D rendering |
+| [meshline](https://github.com/pmndrs/meshline) | 3.3.1 | Thick line rendering |
+| [Proj4js](https://trac.osgeo.org/proj4js/) | - | Coordinate transformation |
+| [tween.js](https://github.com/tweenjs/tween.js/) | - | Animation |
+| [Potree Core](https://github.com/tentone/potree-core) | - | Potree data support |
+| [dat-gui](https://github.com/dataarts/dat.gui) | - | 3DViewer (dat-gui) template export |
+| [Font Awesome](https://fontawesome.com/) | - | Mobile template icons |
+| Python ported version of [earcut](https://github.com/mapbox/earcut) | - | Overlay polygon triangulation |
