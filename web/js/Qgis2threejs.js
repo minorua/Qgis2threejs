@@ -3369,7 +3369,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 				// render label text
 				ctx.font = font;
 				tw = ctx.measureText(text).width + 2;
-				cw = THREE.Math.ceilPowerOfTwo(tw);
+				cw = THREE.MathUtils.ceilPowerOfTwo(tw);
 				x = cw / 2;
 				y = ch / 2;
 
