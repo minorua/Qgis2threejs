@@ -74,7 +74,7 @@ class Feature:
             self.geom.rotate(baseExtent.rotation(), baseExtent.center())
 
         polys = grid.splitPolygon(self.geom)
-        g = TINGeometry.fromQgsGeometry(polys, zf, transform_func, use_earcut=True)
+        g = TINGeometry.fromQgsGeometry(polys, zf, transform_func)
 
         if border:
             bnds = grid.segmentizeBoundaries(self.geom)

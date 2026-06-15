@@ -114,7 +114,7 @@ class DEMGridBuilder:
         bnds = grid.segmentizeBoundaries(clip_geometry)
         polys = grid.splitPolygon(clip_geometry)
 
-        tin = TINGeometry.fromQgsGeometry(polys, None, transform_func, centroid=False, use_earcut=True)
+        tin = TINGeometry.fromQgsGeometry(polys, None, transform_func, centroid=False)
         d = tin.toDict(flat=True)
 
         polygons = []

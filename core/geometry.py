@@ -4,7 +4,7 @@
 
 from math import ceil, floor
 from qgis.core import (
-    QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest,
+    Qgis, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest,
     QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsGeometryCollection,
     QgsProject, QgsTessellator, QgsVertexId, QgsWkbTypes)
 
@@ -376,7 +376,7 @@ class TINGeometry(PolygonGeometry):
 
     @classmethod
     def fromQgsGeometry(cls, geometry, z_func, transform_func, centroid=True, drop_z=False,
-                        ccw2d=False, use_z_func_cache=False, use_earcut=False):
+                        ccw2d=False, use_z_func_cache=False):
         geom = cls()
 
         if z_func:
@@ -412,39 +412,46 @@ class TINGeometry(PolygonGeometry):
             v_func = lambda x, y, z: transform_func(x, y, z + z_func(x, y))
 
         # triangulation
-        if use_earcut:
-            vertices = []
-            for poly in cls.nestedPointList(g):
-                if len(poly) == 1 and len(poly[0]) == 4:
-                    vertices.extend([v_func(pt.x(), pt.y(), pt.z()) for pt in poly[0][0:3]])
-                else:
-                    bnds = [[[pt.x(), pt.y(), pt.z()] for pt in bnd] for bnd in poly]
-                    data = earcut.flatten(bnds)
-                    v = data["vertices"]
-                    triangles = earcut.earcut(v, data["holes"], 3)
-                    vertices.extend([v_func(v[3 * i], v[3 * i + 1], v[3 * i + 2]) for i in triangles])
-        else:
-            tes = QgsTessellator(0, 0, False)
-            addPolygon = tes.addPolygon
-            for poly in cls.singleGeometries(g):
-                addPolygon(poly, 0)
+        tes = QgsTessellator()
+        tes.setTriangulationAlgorithm(Qgis.TriangulationAlgorithm.Earcut)
 
-            # mp = tes.asMultiPolygon()     # not available
-            data = tes.data()       # [x0, z0, -y0, x1, z1, -y1, ...]
-            vertices = [v_func(x, -my, z) for x, z, my in [data[i:i + 3] for i in range(0, len(data), 3)]]
+        for poly in cls.singleGeometries(g):
+            tes.addPolygon(poly, 0)
 
+        fv = memoryview(tes.vertexBuffer()).cast("f")    # [x0, z0, -y0, ...]
+        floats_per_vertex = tes.stride() // 4            # stride = n * sizeof( float )
+
+        verts = [
+            v_func(fv[i], -fv[i + 2], fv[i + 1])
+            for i in range(0, len(fv), floats_per_vertex)
+        ]
+
+        indices = memoryview(tes.indexBuffer()).cast("I")
+
+        tris = []
         if ccw2d:
             # orient triangles to counter-clockwise order
-            tris = []
-            for v0, v1, v2 in [vertices[i:i + 3] for i in range(0, len(vertices), 3)]:
-                if GeometryUtils.isClockwise([v0, v1, v2, v0]):
+            is_clockwise = GeometryUtils.isClockwise
+
+            for i in range(0, len(indices), 3):
+                v0 = verts[indices[i]]
+                v1 = verts[indices[i + 1]]
+                v2 = verts[indices[i + 2]]
+
+                if is_clockwise([v0, v1, v2, v0]):
                     tris.append([v0, v2, v1])
                 else:
                     tris.append([v0, v1, v2])
-            geom.triangles = tris
         else:
             # use original vertex order
-            geom.triangles = [vertices[i:i + 3] for i in range(0, len(vertices), 3)]
+            tris = [
+                [verts[indices[i]],
+                 verts[indices[i + 1]],
+                 verts[indices[i + 2]]]
+                for i in range(0, len(indices), 3)
+            ]
+
+        geom.triangles = tris
 
         return geom
 
