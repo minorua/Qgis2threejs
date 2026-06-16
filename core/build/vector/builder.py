@@ -203,6 +203,7 @@ class VectorLayerBuilder(LayerBuilderBase):
 
                 # prepare a grid geometry
                 grid = demProvider.readAsGridGeometry(dem_seg.width() + 1, dem_seg.height() + 1, self.settings.baseExtent())
+                z_func = lambda x, y: grid.valueOnSurface(x, y) or 0
 
             else:
                 z_func = demProvider.readValue      # readValue(x, y)

@@ -579,44 +579,16 @@ class GridGeometry:
         return QgsGeometry.fromMultiPolygonXY(list(self._splitPolygon(geom)))
 
     def splitPolygon(self, geom):
-        z_func = lambda x, y: self.valueOnSurface(x, y) or 0
-        cache = FunctionCacheXY(z_func)
-        z_func = cache.func
-
-        polygons = QgsMultiPolygon()
-        for poly in self._splitPolygon(geom):
-            p = QgsPolygon()
-            ring = QgsLineString()
-            for pt in poly[0]:
-                ring.addVertex(QgsPoint(pt.x(), pt.y(), z_func(pt.x(), pt.y())))
-            p.setExteriorRing(ring)
-
-            for bnd in poly[1:]:
-                ring = QgsLineString()
-                for pt in bnd:
-                    ring.addVertex(QgsPoint(pt.x(), pt.y(), z_func(pt.x(), pt.y())))
-                p.addInteriorRing(ring)
-            polygons.addGeometry(p)
-        return QgsGeometry(polygons)
-
-    def _splitPolygon(self, geom):
         if self.vbands is None:
             self.setupBands()
 
+        geoms = []
         for x, vc in self.vSplit(geom):
             for y, c in self.hSplit(vc):
-                if c.isEmpty():
-                    continue
+                if not c.isEmpty():
+                    geoms.append(c)
 
-                for poly in PolygonGeometry.nestedPointXYList(c):
-                    bnds = [[[pt.x(), pt.y()] for pt in bnd] for bnd in poly]
-                    data = earcut.flatten(bnds)
-                    v = data["vertices"]
-                    triangles = earcut.earcut(v, data["holes"], data["dimensions"])
-                    vertices = [QgsPointXY(v[2 * i], v[2 * i + 1]) for i in triangles]
-
-                    for i in range(0, len(vertices), 3):
-                        yield [vertices[i:i + 3]]
+        return QgsGeometry.collectGeometry(geoms)
 
     def segmentizeBoundaries(self, geom):
         """geom: QgsGeometry (polygon or multi-polygon)"""
