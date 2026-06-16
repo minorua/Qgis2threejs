@@ -8,7 +8,6 @@ from qgis.core import (
     QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsGeometryCollection,
     QgsProject, QgsTessellator, QgsVertexId, QgsWkbTypes)
 
-from ..lib.earcut import earcut
 from ..utils.logging import logger
 
 

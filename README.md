@@ -32,4 +32,3 @@ This plugin is powered by the following JavaScript libraries and resources:
 | [Potree Core](https://github.com/tentone/potree-core) | - | Potree data support |
 | [dat-gui](https://github.com/dataarts/dat.gui) | - | 3DViewer (dat-gui) template export |
 | [Font Awesome](https://fontawesome.com/) | - | Mobile template icons |
-| Python ported version of [earcut](https://github.com/mapbox/earcut) | - | Overlay polygon triangulation |
