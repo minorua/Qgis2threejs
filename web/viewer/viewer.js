@@ -184,8 +184,7 @@ function _requestCameraUpdate(sp) {
 
 function loadScriptFile(path, callback, isModule=false, isNamespace=false) {
 	if (isModule) {
-		const filename = path.split("/").pop();
-		const mod = filename.substring(0, filename.lastIndexOf("."));
+		const mod = path.split("/").pop().split(".")[0];
 		import(path).then(module => {
 			if (isNamespace) {
 				THREE_EX[mod] = module;

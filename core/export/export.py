@@ -340,7 +340,7 @@ window.THREE_EX = {};
                 non_module_script += f'<script defer src="{filepath}"></script>\n'
 
             else:
-                obj = filepath.split("/")[-1].rsplit(".", 1)[0]
+                obj = filepath.split("/")[-1].split(".")[0]
 
                 if type == ScriptFile.TYPE_CLASS:
                     script += f'import {{ {obj} }} from "{filepath}";\n'
