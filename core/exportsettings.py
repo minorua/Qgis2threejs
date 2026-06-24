@@ -425,6 +425,8 @@ class ExportSettings:
            Adds layer objects newly added to the project and removes layer objects
            deleted from the project. Layer IDs are renumbered."""
 
+        layers = []
+
         # DEM and vector layers in QGIS project
         for mapLayer in getLayersInProject():
             layerType = layerTypeFromMapLayer(mapLayer)
