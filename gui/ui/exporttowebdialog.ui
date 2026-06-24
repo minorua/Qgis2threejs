@@ -30,10 +30,17 @@
           <string>General</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
-          <item row="0" column="2">
-           <widget class="QPushButton" name="pushButton_Browse">
+          <item row="1" column="1" colspan="2">
+           <widget class="QLineEdit" name="lineEdit_Filename">
+            <property name="placeholderText">
+             <string>index.html</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Browse...</string>
+             <string>HTML filename</string>
             </property>
            </widget>
           </item>
@@ -47,10 +54,24 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_3">
+          <item row="3" column="0" colspan="3">
+           <widget class="QCheckBox" name="checkBox_UseCurrentView">
             <property name="text">
-             <string>HTML filename</string>
+             <string>Use current view as initial view</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Page title</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="pushButton_Browse">
+            <property name="text">
+             <string>Browse...</string>
             </property>
            </widget>
           </item>
@@ -67,36 +88,8 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1" colspan="2">
-           <widget class="QLineEdit" name="lineEdit_Filename">
-            <property name="placeholderText">
-             <string>index.html</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Page title</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="1" colspan="2">
            <widget class="QLineEdit" name="lineEdit_Title"/>
-          </item>
-          <item row="3" column="0" colspan="3">
-           <widget class="QCheckBox" name="checkBox_UseCurrentView">
-            <property name="text">
-             <string>Use current view as initial view</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0" colspan="3">
-           <widget class="QCheckBox" name="checkBox_LocalMode">
-            <property name="text">
-             <string>Enable the viewer to run locally</string>
-            </property>
-           </widget>
           </item>
          </layout>
         </widget>
@@ -146,13 +139,13 @@
              <string>Clockwise from up direction of the map, in degrees</string>
             </property>
             <property name="inputMethodHints">
-             <set>Qt::ImhPreferNumbers</set>
+             <set>Qt::InputMethodHint::ImhPreferNumbers</set>
             </property>
             <property name="text">
              <string>0</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -214,7 +207,7 @@
        <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -274,7 +267,7 @@
    <item row="2" column="1" colspan="2">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="standardButtons">
-      <set>QDialogButtonBox::Close|QDialogButtonBox::Help</set>
+      <set>QDialogButtonBox::StandardButton::Close|QDialogButtonBox::StandardButton::Help</set>
      </property>
     </widget>
    </item>
@@ -287,7 +280,6 @@
   <tabstop>lineEdit_Filename</tabstop>
   <tabstop>lineEdit_Title</tabstop>
   <tabstop>checkBox_UseCurrentView</tabstop>
-  <tabstop>checkBox_LocalMode</tabstop>
   <tabstop>comboBox_Template</tabstop>
   <tabstop>checkBox_Plane</tabstop>
   <tabstop>lineEdit_MND</tabstop>

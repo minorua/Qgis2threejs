@@ -48,7 +48,6 @@ class ExportToWebDialog(QDialog):
         self.ui.lineEdit_Title.setText(title)
 
         self.ui.checkBox_UseCurrentView.setChecked(bool(settings.option("viewpoint")))
-        self.ui.checkBox_LocalMode.setChecked(bool(settings.option("localMode")))
 
         # template settings
         cbox = self.ui.comboBox_Template
@@ -157,10 +156,6 @@ class ExportToWebDialog(QDialog):
         if self.ui.checkBox_UseCurrentView.isChecked():
             self.settings.setOption("viewpoint", self.controller.cameraState())
 
-        local_mode = self.ui.checkBox_LocalMode.isChecked()
-        if local_mode:
-            self.settings.setOption("localMode", True)
-
         # template settings
         self.settings.setTemplate(self.ui.comboBox_Template.currentData())
 
@@ -198,7 +193,7 @@ class ExportToWebDialog(QDialog):
 
         settings = self.settings.clone()
         settings.isPreview = False
-        settings.localMode = settings.requiresJsonSerializable = local_mode
+        settings.localMode = settings.requiresJsonSerializable = False
 
         err_msg = settings.checkValidity()
         if err_msg:
