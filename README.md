@@ -27,7 +27,7 @@ This plugin is powered by the following JavaScript libraries and resources:
 |----------|---------|---------|
 | [three.js](https://threejs.org) | r184 | 3D rendering |
 | [meshline](https://github.com/pmndrs/meshline) | 3.3.1 | Thick line rendering |
-| [Proj4js](https://trac.osgeo.org/proj4js/) | - | Coordinate transformation |
-| [tween.js](https://github.com/tweenjs/tween.js/) | - | Animation |
-| [dat-gui](https://github.com/dataarts/dat.gui) | - | 3DViewer (dat-gui) template export |
-| [Font Awesome](https://fontawesome.com/) | - | Mobile template icons |
+| [Proj4js](https://trac.osgeo.org/proj4js/) | 2.2.1 | Coordinate transformation |
+| [tween.js](https://github.com/tweenjs/tween.js/) | 18.6.4 | Animation |
+| [dat-gui](https://github.com/dataarts/dat.gui) | 0.5.0 | 3DViewer (dat-gui) template export |
+| [Font Awesome](https://fontawesome.com/) | 5.3.1 | Mobile template icons |
