@@ -96,8 +96,8 @@ def layerTypeFromMapLayer(mapLayer):
     elif layerType == QgsMapLayer.RasterLayer and mapLayer.providerType() == "gdal" and mapLayer.bandCount() == 1:
         return LayerType.DEM
 
-    elif layerType == QgsMapLayer.PointCloudLayer:
-        return LayerType.POINTCLOUD
+    # elif layerType == QgsMapLayer.PointCloudLayer:
+    #     return LayerType.POINTCLOUD
 
     return None
 

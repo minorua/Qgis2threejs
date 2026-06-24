@@ -255,11 +255,6 @@ class ThreeJSExporter(QObject):
                     files.append({"files": [THREE + "/utils/BufferGeometryUtils.js"], "dest": "threejs"})
                     added.add("geomutils")
 
-            elif layer.type == LayerType.POINTCLOUD and "pc" not in added:
-                files.append({"dirs": [LIB + "/potree-core"], "subdirs": True})
-                files.append({"files": ["web/js/pointcloudlayer.js"]})
-                added.add("pc")
-
         # model loades and model files
         for manager in self.modelManagers:
             for f in manager.filesToCopy():
@@ -312,10 +307,6 @@ class ThreeJSExporter(QObject):
 
                 elif objType == "Box":
                     files.append(("./threejs/BufferGeometryUtils.js", ScriptFile.TYPE_NAMESPACE))
-
-            elif layer.type == LayerType.POINTCLOUD:
-                files.append(("./potree-core/potree.min.js", ScriptFile.TYPE_NON_MODULE))
-                files.append(("./pointcloudlayer.js", ScriptFile.TYPE_NON_MODULE))
 
         # model loaders
         for manager in self.modelManagers:

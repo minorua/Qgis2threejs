@@ -59,8 +59,6 @@ class ScriptFile:
         MESHLINE: ("lib/meshline/meshline.js", TYPE_NAMESPACE),
 
         PROJ4: ("lib/proj4js/proj4.js", TYPE_NON_MODULE),
-        POTREE: ("lib/potree-core/potree.min.js", TYPE_NON_MODULE),
-        PCLAYER: ("pointcloudlayer.js", TYPE_NON_MODULE),
         TEST: ("../../tests/gui/test.js", TYPE_NON_MODULE)
     }
 

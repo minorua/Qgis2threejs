@@ -18,8 +18,8 @@ class Q3DTreeView(QTreeView):
     LAYER_GROUP_ITEMS = ((LayerType.DEM, "DEM"),
                          (LayerType.POINT, "Point"),
                          (LayerType.LINESTRING, "Line"),
-                         (LayerType.POLYGON, "Polygon"),
-                         (LayerType.POINTCLOUD, "Point Cloud"))
+                         (LayerType.POLYGON, "Polygon"))
+                         # (LayerType.POINTCLOUD, "Point Cloud"))
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -82,13 +82,6 @@ class Q3DTreeView(QTreeView):
         self.contextMenuFP.addSeparator()
         self.contextMenuFP.addAction(self.actionRemoveLayer)
 
-        # point cloud layer
-        self.contextMenuPC = QMenu(self)
-        self.contextMenuPC.addAction(self.actionZoomToLayer)
-        self.contextMenuPC.addAction(self.actionProperties)
-        self.contextMenuPC.addSeparator()
-        self.contextMenuPC.addAction(self.actionRemoveLayer)
-
         # DEM material
         self.contextMenuMtl = QMenu(self)
         self.contextMenuMtl.addAction(self.actionProperties)
@@ -96,10 +89,6 @@ class Q3DTreeView(QTreeView):
         # DEM group
         self.contextMenuDEM = QMenu(self)
         self.contextMenuDEM.addAction(self.wnd.ui.actionAddPlane)
-
-        # point cloud group
-        self.contextMenuPCG = QMenu(self)
-        self.contextMenuPCG.addAction(self.wnd.ui.actionAddPointCloudLayer)
 
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
@@ -259,9 +248,7 @@ class Q3DTreeView(QTreeView):
         if depth == 1:
             layerId = self.model().data(idx, Qt.ItemDataRole.UserRole + 1)
             if layerId:
-                if layerId.startswith("pc:"):
-                    m = self.contextMenuPC
-                elif layerId.startswith("fp:"):
+                if layerId.startswith("fp:"):
                     m = self.contextMenuFP
                 else:
                     m = self.contextMenuLyr
@@ -270,8 +257,7 @@ class Q3DTreeView(QTreeView):
             m = self.contextMenuMtl
 
         elif depth == 0:
-            m = {LayerType.DEM: self.contextMenuDEM,
-                 LayerType.POINTCLOUD: self.contextMenuPCG}.get(self.model().data(idx, Qt.ItemDataRole.UserRole + 1))
+            m = {LayerType.DEM: self.contextMenuDEM}.get(self.model().data(idx, Qt.ItemDataRole.UserRole + 1))
 
         if m:
             m.exec(self.mapToGlobal(pos))

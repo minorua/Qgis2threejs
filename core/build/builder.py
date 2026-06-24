@@ -14,7 +14,6 @@ from ..exportsettings import ExportSettings, Layer
 from .datamanager import ImageManager
 from .dem.builder import DEMLayerBuilder
 from .vector.builder import VectorLayerBuilder
-from .pointcloud.builder import PointCloudLayerBuilder
 from ...utils.basic import noop
 from ...utils.js import int_color
 from ...utils.logging import logger
@@ -24,8 +23,7 @@ LayerBuilderFactory = {
     LayerType.DEM: DEMLayerBuilder,
     LayerType.POINT: VectorLayerBuilder,
     LayerType.LINESTRING: VectorLayerBuilder,
-    LayerType.POLYGON: VectorLayerBuilder,
-    LayerType.POINTCLOUD: PointCloudLayerBuilder
+    LayerType.POLYGON: VectorLayerBuilder
 }
 
 

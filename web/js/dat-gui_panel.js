@@ -68,8 +68,6 @@ Q3D.gui.dat = {
 				layer.visible = value;
 			});
 
-			if (p.type == "pc") return;		// point cloud layers do not support opacity changes
-
 			let mtls;
 			const mtlNames = p.mtlNames;
 			if (mtlNames && mtlNames.length > 1) {

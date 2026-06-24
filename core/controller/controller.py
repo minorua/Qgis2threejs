@@ -363,10 +363,6 @@ class Q3DController(QObject):
             elif objType == "Box":
                 files = [ScriptFile.BUFGEOMUTILS]
 
-        elif layer.type == LayerType.POINTCLOUD:
-            files = [ScriptFile.POTREE,
-                     ScriptFile.PCLAYER]
-
         if files:
             self.loadScriptFiles(files, callback=lambda: self._buildLayer(layer))
         else:

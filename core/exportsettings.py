@@ -90,16 +90,9 @@ class Layer:
 
     @classmethod
     def fromQgsMapLayer(cls, mapLayer):
-        geomType = layerTypeFromMapLayer(mapLayer)
-        lyr = Layer(mapLayer.id(), mapLayer.name(), geomType, visible=False)
+        layerType = layerTypeFromMapLayer(mapLayer)
+        lyr = Layer(mapLayer.id(), mapLayer.name(), layerType, visible=False)
         lyr.mapLayer = mapLayer
-
-        if geomType == LayerType.POINTCLOUD:
-            url = urlFromPCLayer(mapLayer)
-            if url:
-                lyr.properties["url"] = url
-            else:
-                return None
 
         return lyr
 
@@ -432,10 +425,7 @@ class ExportSettings:
            Adds layer objects newly added to the project and removes layer objects
            deleted from the project. Layer IDs are renumbered."""
 
-        # Additional point cloud layers
-        layers = [lyr for lyr in self.layers() if lyr.layerId.startswith("pc:")]
-
-        # DEM, vector and point cloud layers in QGIS project
+        # DEM and vector layers in QGIS project
         for mapLayer in getLayersInProject():
             layerType = layerTypeFromMapLayer(mapLayer)
             if layerType is None:
@@ -446,13 +436,6 @@ class ExportSettings:
                 # update layer and layer name
                 layer.mapLayer = mapLayer
                 layer.name = layer.properties.get("lineEdit_Name") or mapLayer.name()
-
-                if layerType == LayerType.POINTCLOUD:
-                    url = urlFromPCLayer(mapLayer)
-                    if url:
-                        layer.properties["url"] = url
-                    else:
-                        continue    # not supported format
             else:
                 layer = Layer.fromQgsMapLayer(mapLayer)
 
@@ -834,20 +817,3 @@ def deepcopyExcept(obj, keys_to_remove):
     elif isinstance(obj, list):
         return [deepcopyExcept(v, keys_to_remove) if isinstance(v, (dict, list)) else v for v in obj]
     return obj
-
-
-def urlFromPCLayer(mapLayer):
-    src = mapLayer.source()
-    if src.startswith("http"):
-        return ""       # not supported yet
-
-    if mapLayer.providerType() == "ept":
-        f = src
-    else:       # assume provider type is pdal
-        f = os.path.join(os.path.split(src)[0],
-                         "ept_" + os.path.splitext(os.path.basename(src))[0],
-                         "ept.json")
-        if not os.path.exists(f):
-            return ""
-
-    return QUrl.fromLocalFile(f).toString()

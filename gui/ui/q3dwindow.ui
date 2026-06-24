@@ -50,7 +50,6 @@
       <string>Add Layer</string>
      </property>
      <addaction name="actionAddPlane"/>
-     <addaction name="actionAddPointCloudLayer"/>
     </widget>
     <addaction name="actionSceneSettings"/>
     <addaction name="menuLayer"/>
@@ -362,11 +361,6 @@
   <action name="actionLoadSettings">
    <property name="text">
     <string>Load...</string>
-   </property>
-  </action>
-  <action name="actionAddPointCloudLayer">
-   <property name="text">
-    <string>Add Point Cloud Layer...</string>
    </property>
   </action>
   <action name="actionNavigationWidget">

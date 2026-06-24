@@ -1841,8 +1841,6 @@ Q3D.E = function (id) {
 					layer.visible = this.checked;
 				});
 
-				if (p.type == "pc") return;		// point cloud layers do not support opacity changes
-
 				// material dropdown
 				let select;
 				if (p.mtlNames && p.mtlNames.length > 1) {
@@ -1935,7 +1933,7 @@ class Q3DScene extends THREE.Scene {
 
 		this.autoUpdate = false;
 
-		this.mapLayers = {};    // map layers contained in this scene. key is layerId.
+		this.mapLayers = {};    // map layers. key is layerId.
 
 		this.lightGroup = new Q3DGroup();
 		this.lightGroup.name = "light";
@@ -2036,7 +2034,6 @@ class Q3DScene extends THREE.Scene {
 				else if (type == "point") layer = new Q3DPointLayer();
 				else if (type == "line") layer = new Q3DLineLayer();
 				else if (type == "polygon") layer = new Q3DPolygonLayer();
-				else if (type == "pc") layer = new Q3DPointCloudLayer();
 				else {
 					console.error("unknown layer type:" + type);
 					return;
@@ -2140,7 +2137,9 @@ class Q3DScene extends THREE.Scene {
 		var box = new THREE.Box3();
 		for (var id in this.mapLayers) {
 			if (only_visible && !this.mapLayers[id].visible) continue;
-			box.union(this.mapLayers[id].boundingBox());
+
+			const b = this.mapLayers[id].boundingBox();
+			if (b) box.union(b);
 		}
 		return box;
 	}

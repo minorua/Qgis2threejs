@@ -14,7 +14,7 @@ from qgis.core import Qgis, QgsProject, QgsApplication
 
 from .ipc.ipc_const import Command
 from .webview.const import PreviewState, WebViewType, WebViewMode
-from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage, PointCloudPropertyPage
+from .proppages import ScenePropertyPage, DEMPropertyPage, VectorPropertyPage
 from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .webview.webview import getWebViewClass
@@ -192,8 +192,8 @@ class Q3DWindow(QMainWindow):
             LayerType.DEM: QgsApplication.getThemeIcon("mIconRaster.svg"),
             LayerType.POINT: QgsApplication.getThemeIcon("mIconPointLayer.svg"),
             LayerType.LINESTRING: QgsApplication.getThemeIcon("mIconLineLayer.svg"),
-            LayerType.POLYGON: QgsApplication.getThemeIcon("mIconPolygonLayer.svg"),
-            LayerType.POINTCLOUD: QgsApplication.getThemeIcon("mIconPointCloudLayer.svg")
+            LayerType.POLYGON: QgsApplication.getThemeIcon("mIconPolygonLayer.svg")
+            # LayerType.POINTCLOUD: QgsApplication.getThemeIcon("mIconPointCloudLayer.svg")
         }
 
     def _setupMenu(self, ui):
@@ -214,7 +214,6 @@ class Q3DWindow(QMainWindow):
         ui.actionPluginSettings.triggered.connect(self.pluginSettings)
         ui.actionSceneSettings.triggered.connect(self.showScenePropertiesDialog)
         ui.actionAddPlane.triggered.connect(self.addPlane)
-        ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
         ui.actionGroupCamera.triggered.connect(self.cameraChanged)
         ui.actionNavigationWidget.toggled.connect(self.navStateChanged)
         ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
@@ -404,11 +403,7 @@ class Q3DWindow(QMainWindow):
 
     def fileDropped(self, urls):
         for url in urls:
-            filename = url.fileName()
-            if filename in ("cloud.js", "ept.json"):
-                self.addPointCloudLayer(url.toString())
-            else:
-                self.runScript(f"loadModel('{url.toString()}')")
+            self.runScript(f"loadModel('{url.toString()}')")
 
     # File menu
     def exportToWeb(self):
@@ -602,28 +597,6 @@ class Q3DWindow(QMainWindow):
         item = self.ui.treeView.addLayer(layer)
         self.ui.treeView.updateLayerMaterials(item, layer)
 
-    def showAddPointCloudLayerDialog(self):
-        dialog = AddPointCloudLayerDialog(self)
-        if dialog.exec():
-            url = dialog.ui.lineEdit_Source.text()
-            self.addPointCloudLayer(url)
-
-    def addPointCloudLayer(self, url):
-        try:
-            name = url.split("/")[-2]
-        except IndexError:
-            name = "No name"
-
-        layerId = "pc:" + name + datetime.now().strftime("%y%m%d%H%M%S")
-        properties = {"url": url}
-
-        layer = Layer(layerId, name, LayerType.POINTCLOUD, properties, visible=True)
-
-        self.settings.addLayer(layer)
-        self.controller.taskManager.addBuildLayerTask(layer)
-
-        self.ui.treeView.addLayer(layer)
-
     def reloadPage(self):
         self.controller.abort()
         self.controller.taskManager.addReloadPageTask(force_reload=True)
@@ -724,9 +697,6 @@ class PropertiesDialog(QDialog):
         self.layer = layer.clone()      # create a copy of Layer object
         if self.layer.type == LayerType.DEM:
             self.page = DEMPropertyPage(self, self.layer, self.settings, self.qgisIface.mapCanvas().mapSettings())
-
-        elif self.layer.type == LayerType.POINTCLOUD:
-            self.page = PointCloudPropertyPage(self, self.layer)
 
         else:
             self.page = VectorPropertyPage(self, self.layer, self.settings)
@@ -839,29 +809,3 @@ class HFLabelDialog(QDialog):
                                           "Footer": self.ui.textEdit_Footer.toPlainText()})
         elif role == QDialogButtonBox.ButtonRole.HelpRole:
             openHelp("dlg=hflabel")
-
-
-class AddPointCloudLayerDialog(QDialog):
-
-    def __init__(self, parent):
-        super().__init__(parent)
-
-        from .ui.addpclayerdialog import Ui_AddPointCloudLayerDialog
-        self.ui = Ui_AddPointCloudLayerDialog()
-        self.ui.setupUi(self)
-        self.ui.pushButton_Browse.clicked.connect(self.browseClicked)
-        self.ui.buttonBox.helpRequested.connect(self.helpClicked)
-
-    def browseClicked(self):
-        url = self.ui.lineEdit_Source.text()
-        if url.startswith("file:"):
-            directory = QUrl(url).toLocalFile()
-        else:
-            directory = QDir.homePath()
-        filterString = "All supported files (cloud.js ept.json);;Potree format (cloud.js);;Entwine Point Tile format (ept.json)"
-        filename, _ = QFileDialog.getOpenFileName(self, "Select a Potree supported file", directory, filterString)
-        if filename:
-            self.ui.lineEdit_Source.setText(QUrl.fromLocalFile(filename).toString())
-
-    def helpClicked(self):
-        openHelp("dlg=addpc")

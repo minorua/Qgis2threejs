@@ -29,6 +29,5 @@ This plugin is powered by the following JavaScript libraries and resources:
 | [meshline](https://github.com/pmndrs/meshline) | 3.3.1 | Thick line rendering |
 | [Proj4js](https://trac.osgeo.org/proj4js/) | - | Coordinate transformation |
 | [tween.js](https://github.com/tweenjs/tween.js/) | - | Animation |
-| [Potree Core](https://github.com/tentone/potree-core) | - | Potree data support |
 | [dat-gui](https://github.com/dataarts/dat.gui) | - | 3DViewer (dat-gui) template export |
 | [Font Awesome](https://fontawesome.com/) | - | Mobile template icons |

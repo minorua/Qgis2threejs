@@ -66,7 +66,7 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         self.channel.registerObject("bridge", self.bridge)
         self.setWebChannel(self.channel)
 
-        # security setting for billboard, model file and point cloud layer
+        # security setting for billboard and model file
         self.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
 
     def setup(self):

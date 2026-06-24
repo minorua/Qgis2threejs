@@ -24,7 +24,6 @@ except:
 from .ui.sceneproperties import Ui_ScenePropertiesWidget
 from .ui.demproperties import Ui_DEMPropertiesWidget
 from .ui.vectorproperties import Ui_VectorPropertiesWidget
-from .ui.pcproperties import Ui_PCPropertiesWidget
 
 from .propwidget import PropertyWidget
 from ..conf import DEF_SETS, PLUGIN_NAME
@@ -46,7 +45,7 @@ PAGE_SCENE = 1
 # PAGE_CONTROLS = 2
 PAGE_DEM = 3
 PAGE_VECTOR = 4
-PAGE_POINTCLOUD = 5
+# PAGE_POINTCLOUD = 5
 
 
 def is_number(val):
@@ -1074,89 +1073,3 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
     def labelToggled(self, checked):
         for grp in [self.groupBox_Position, self.groupBox_LabelText, self.groupBox_Background, self.groupBox_Conn]:
             grp.setEnabled(checked)
-
-
-class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
-
-    def __init__(self, parent, layer):
-        PropertyPage.__init__(self, parent, PAGE_POINTCLOUD)
-        Ui_PCPropertiesWidget.setupUi(self, self)
-
-        widgets = [
-            self.lineEdit_Name, self.url, self.comboBox_ColorType, self.colorButton_Color, self.spinBox_Opacity,
-            self.checkBox_BoxVisible, self.checkBox_Visible, self.checkBox_Clickable
-        ]
-        self.registerPropertyWidgets(widgets)
-
-        if layer.mapLayer:
-            self.lineEdit_Name.setPlaceholderText(layer.mapLayer.name())
-        else:
-            self.lineEdit_Name.setText(layer.name)
-            self.lineEdit_Name.setPlaceholderText(layer.name)
-
-        color_types = ["RGB", "COLOR", "HEIGHT", "INTENSITY", "INTENSITY_GRADIENT", "POINT_INDEX", "CLASSIFICATION", "RETURN_NUMBER"]
-        # ["RGB", "COLOR", "DEPTH", "HEIGHT", "INTENSITY", "INTENSITY_GRADIENT", "LOD", "POINT_INDEX",
-        #  "CLASSIFICATION", "RETURN_NUMBER", "SOURCE", "NORMAL", "PHONG", "RGB_HEIGHT", "COMPOSITE"]
-
-        for t in color_types:
-            self.comboBox_ColorType.addItem(t, t)
-
-        self.comboBox_ColorType.currentIndexChanged.connect(self.colorTypeChanged)
-        self.colorTypeChanged()
-
-        self.setWidgetsVisible([self.label_17, self.horizontalSlider_Opacity, self.spinBox_Opacity], False)     # point cloud layers do not support opacity changes for now
-
-        self.restoreProperties(layer.properties)
-
-        total_points = loaded_points = visible_points = bbox = None
-
-        url = layer.properties.get("url", "")
-        if url.startswith("file:") and url.endswith(("cloud.js", "ept.json")):
-            try:
-                with open(QUrl(url).toLocalFile(), "r") as f:
-                    d = json.load(f)
-
-                total_points = d.get("points")
-                bbox = d.get("tightBoundingBox")        # potree
-                if bbox:
-                    bbox = [bbox.get("lx"), bbox.get("ly"), bbox.get("lz"), bbox.get("ux"), bbox.get("uy"), bbox.get("uz")]
-                else:
-                    bbox = d.get("boundsConforming")    # ept
-            except:
-                pass
-
-        def updateInfoBox():
-            html = "<style>th {text-align:left;padding-right:10px;}</style><table>"
-            for name, count in [("Point", total_points), ("Loaded point", loaded_points), ("Visible point", visible_points)]:
-                fmtCount = "Unknown" if count is None else "{:,}".format(int(count))
-                html += f"<tr><th>{name} count</th><td>{fmtCount}</td></tr>"
-
-            if bbox:
-                html += """
-    <tr><th>Bounding box:</th><td>{:.3f}, {:.3f}, {:.3f} :<br>{:.3f}, {:.3f}, {:.3f}</td></tr>
-    """.format(*bbox)
-
-            html += "</table>"
-            self.textBrowser.setHtml(html)
-
-        def updateStat(name, value):
-            nonlocal loaded_points, visible_points
-
-            if name == "loaded":
-                loaded_points = value
-            elif name == "visible":
-                visible_points = value
-
-            updateInfoBox()
-
-        updateInfoBox()
-
-        wnd = self.parent().parent()
-        layer_js = f"app.scene.mapLayers[{layer.jsLayerId}]"
-        wnd.runScript(f"{layer_js}.loadedPointCount()", callback=lambda v: updateStat("loaded", v))
-        wnd.runScript(f"{layer_js}.pcg.children[0].numVisiblePoints", callback=lambda v: updateStat("visible", v))
-
-    def colorTypeChanged(self, index=None):
-        b = (self.comboBox_ColorType.currentData() == "COLOR")
-        self.label_Color.setEnabled(b)
-        self.colorButton_Color.setEnabled(b)

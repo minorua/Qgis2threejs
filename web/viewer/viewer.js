@@ -11,9 +11,6 @@ Q3D.Config.preview = {
 
 };
 
-Q3D.Config.potree.basePath = document.currentScript.src + "/../../js/lib/potree-core";
-Q3D.Config.potree.maxNodesLoading = 1;
-
 const app = Q3D.application,
 	  gui = Q3D.gui;
 

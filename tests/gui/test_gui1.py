@@ -189,17 +189,12 @@ class DialogLayoutCheck(GUITestBase):
         dlg = SettingsDialog(self.WND)
         self.checkDialog(dlg)
 
-    def test06_AddPointCloud(self):
-        from ...gui.window import AddPointCloudLayerDialog
-        dlg = AddPointCloudLayerDialog(self.WND)
-        self.checkDialog(dlg)
-
-    def test07_AddPointCloud(self):
+    def test07_NorthArrow(self):
         from ...gui.window import NorthArrowDialog
         dlg = NorthArrowDialog(self.WND, self.WND.settings.widgetProperties("NorthArrow"))
         self.checkDialog(dlg)
 
-    def test08_AddPointCloud(self):
+    def test08_HFLabel(self):
         from ...gui.window import HFLabelDialog
         dlg = HFLabelDialog(self.WND, self.WND.settings.widgetProperties("Label"))
         self.checkDialog(dlg)
