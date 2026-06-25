@@ -11,6 +11,14 @@
   left: 36px;
 }
 </style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "./threejs/three.module.min.js",
+    "three/": "./threejs/"
+  }
+}
+</script>
 ${scripts}
 </head>
 <body>
@@ -107,28 +115,24 @@ ${narration}
   <div id="nextbtn"></div>
 </div>
 
-<script>
-var app, gui;
-
-function main() {
-  app = Q3D.application;
-  gui = Q3D.gui;
+<script type="module">
+import { Q3D } from "./Qgis2threejs.js";
+${imports}
+const app = Q3D.application;
+const gui = Q3D.gui;
 
 ${options}
 
-  var container = document.getElementById("view")
-  app.init(container);       // initialize viewer
+const container = document.getElementById("view")
+app.init(container);
 
-  // load the scene
-  app.loadSceneFile("${scenefile}", function (scene) {
-    // scene file has been loaded
-    app.start();
-  }, function (scene) {
-    // all associated files have been loaded
+app.loadSceneFile("${scenefile}", function (scene) {
+  // scene file has been loaded
+  app.start();
+}, function (scene) {
+  // all associated files have been loaded
 
-  });
-}
-document.addEventListener("DOMContentLoaded", main);
+});
 </script>
 </body>
 </html>

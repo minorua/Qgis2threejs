@@ -2,15 +2,22 @@
 // SPDX-License-Identifier: MIT
 // https://github.com/minorua/Qgis2threejs
 
-"use strict";
+import * as THREE from "three";
+import { OrbitControls } from "three/controls/OrbitControls.js";
 
-var Q3D = {
+export const Q3D = {
 
 	VERSION: "3.0",
 	application: {},
 	gui: {}
 
 };
+
+window.THREE = THREE;
+window.THREE_EX = {
+	OrbitControls: OrbitControls
+};
+window.Q3D = Q3D;
 
 Q3D.Config = {
 
@@ -335,18 +342,14 @@ Q3D.E = function (id) {
 		app.buildCamera(conf.orthoCamera);
 
 		// controls
-		if (THREE_EX.OrbitControls) {
-			app.controls = new THREE_EX.OrbitControls(app.camera, app.renderer.domElement);
-
-			app.controls.addEventListener("change", function (event) {
-				app.render();
-			});
-
-			app.controls.update();
-		}
+		app.controls = new THREE_EX.OrbitControls(app.camera, app.renderer.domElement);
+		app.controls.addEventListener("change", function (event) {
+			app.render();
+		});
+		app.controls.update();
 
 		// navigation
-		if (THREE_EX.ViewHelper && conf.navigation.enabled) {
+		if (conf.navigation.enabled) {
 			app.buildViewHelper(app.container);
 		}
 
@@ -736,15 +739,15 @@ Q3D.E = function (id) {
 		app.viewHelper.location.top = Q3D.Config.navigation.top;
 		app.viewHelper.location.bottom = Q3D.Config.navigation.bottom;
 
-		if (!_pupListenerAdded) {
-			container.addEventListener("pointerup", (event) => {
-				if (app.viewHelper && app.viewHelper.handleClick(event)) {
-					anim_timer.update();
-					requestAnimationFrame(app.animate);
-				}
-			});
-			_pupListenerAdded = true;
-		}
+		if (_pupListenerAdded) return;
+
+		container.addEventListener("pointerup", event => {
+			if (app.viewHelper && app.viewHelper.handleClick(event)) {
+				anim_timer.update();
+				requestAnimationFrame(app.animate);
+			}
+		});
+		_pupListenerAdded = true;
 	};
 
 	app.currentViewUrl = function () {

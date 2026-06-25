@@ -9,21 +9,17 @@
 <script type="importmap">
 {
   "imports": {
-    "three": "../js/lib/threejs/three.module.min.js"
+    "three": "../js/lib/threejs/three.module.min.js",
+    "three/": "../js/lib/threejs/"
   }
 }
 </script>
 <script type="module">
-import * as THREE from "three";
-window.THREE = THREE;
-window.THREE_EX = {};
-
-import { OrbitControls } from "../js/lib/threejs/controls/OrbitControls.js";
-import { ViewHelper } from "../js/lib/threejs/helpers/ViewHelper.js";
-THREE_EX.OrbitControls = OrbitControls;
+import { Q3D } from "../js/Qgis2threejs.js";
+window.Q3D = Q3D;
+import { ViewHelper } from "three/helpers/ViewHelper.js";
 THREE_EX.ViewHelper = ViewHelper;
 </script>
-<script defer src="../js/Qgis2threejs.js"></script>
 <script defer src="viewer.js"></script>
 <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
 </head>

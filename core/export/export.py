@@ -177,6 +177,7 @@ class ThreeJSExporter(QObject):
             "title": self.settings.title(),
             "options": "\n".join(options),
             "scripts": self.scripts(),
+            "imports": self.imports(),
             "scenefile": "./data/{}/scene.{}".format(self.settings.outputFileTitle(), "js" if self.settings.localMode else "json"),
             "header": self.settings.headerLabel(),
             "footer": self.settings.footerLabel(),
@@ -213,14 +214,14 @@ class ThreeJSExporter(QObject):
         files = [{"dirs": [THREE]}]
 
         # controls
-        files.append({"files": [THREE + "/controls/" + self.settings.controls()], "dest": "threejs"})
+        files.append({"files": [THREE + "/controls/" + self.settings.controls()], "dest": "threejs/controls"})
 
         if self.settings.isNavigationEnabled():
-            files.append({"files": [THREE + "/helpers/ViewHelper.js"], "dest": "threejs"})
+            files.append({"files": [THREE + "/helpers/ViewHelper.js"], "dest": "threejs/helpers"})
 
         # outline effect
         if self.settings.useOutlineEffect():
-            files.append({"files": [THREE + "/effects/OutlineEffect.js"], "dest": "threejs"})
+            files.append({"files": [THREE + "/effects/OutlineEffect.js"], "dest": "threejs/effects"})
 
         # template specific files
         config = self.settings.templateConfig()
@@ -252,7 +253,7 @@ class ThreeJSExporter(QObject):
                     added.add("meshline")
 
                 elif objType == "Box" and "geomutils" not in added:
-                    files.append({"files": [THREE + "/utils/BufferGeometryUtils.js"], "dest": "threejs"})
+                    files.append({"files": [THREE + "/utils/BufferGeometryUtils.js"], "dest": "threejs/utils"})
                     added.add("geomutils")
 
         # model loades and model files
@@ -270,16 +271,6 @@ class ThreeJSExporter(QObject):
     def scripts(self):
         files = []
 
-        # controls
-        files.append(("./threejs/{}".format(self.settings.controls()), ScriptFile.TYPE_CLASS))
-
-        if self.settings.isNavigationEnabled():
-            files.append(("./threejs/ViewHelper.js", ScriptFile.TYPE_CLASS))
-
-        # outline effect
-        if self.settings.useOutlineEffect():
-            files.append(("./threejs/OutlineEffect.js", ScriptFile.TYPE_CLASS))
-
         # html template config
         config = self.settings.templateConfig()
         s = config.get("scripts", "").strip()
@@ -295,8 +286,25 @@ class ThreeJSExporter(QObject):
         if self.settings.isAnimationEnabled():
             files.append(("./tweenjs/tween.js", ScriptFile.TYPE_NON_MODULE))
 
-        # Qgis2threejs.js
-        files.append(("./Qgis2threejs.js", ScriptFile.TYPE_NON_MODULE))
+        script = ""
+        for filepath, type in list(dict.fromkeys(files)):
+            if type == ScriptFile.TYPE_NON_MODULE:
+                script += f'<script defer src="{filepath}"></script>\n'
+
+            else:
+                raise
+
+        return script
+
+    def imports(self):
+        files = []
+
+        if self.settings.isNavigationEnabled():
+            files.append(("three/helpers/ViewHelper.js", ScriptFile.TYPE_CLASS))
+
+        # outline effect
+        if self.settings.useOutlineEffect():
+            files.append(("three/effects/OutlineEffect.js", ScriptFile.TYPE_CLASS))
 
         # layer-specific dependencies
         for layer in [lyr for lyr in self.settings.layers() if lyr.visible]:
@@ -306,46 +314,26 @@ class ThreeJSExporter(QObject):
                     files.append(("./meshline/meshline.js", ScriptFile.TYPE_NAMESPACE))
 
                 elif objType == "Box":
-                    files.append(("./threejs/BufferGeometryUtils.js", ScriptFile.TYPE_NAMESPACE))
+                    files.append(("three/utils/BufferGeometryUtils.js", ScriptFile.TYPE_NAMESPACE))
 
         # model loaders
         for manager in self.modelManagers:
             files += manager.moduleFiles()
 
-        script = """<script type="importmap">
-{
-  "imports": {
-  "three": "./threejs/three.module.min.js"
-  }
-}
-</script>
-<script type="module">
-import * as THREE from "three";
-window.THREE = THREE;
-window.THREE_EX = {};
-"""
-        non_module_script = ""
-
+        script = ""
         for filepath, type in list(dict.fromkeys(files)):
-            if type == ScriptFile.TYPE_NON_MODULE:
-                non_module_script += f'<script defer src="{filepath}"></script>\n'
+            obj = filepath.split("/")[-1].split(".")[0]
+
+            if type == ScriptFile.TYPE_CLASS:
+                script += f'import {{ {obj} }} from "{filepath}";\n'
+
+            elif type == ScriptFile.TYPE_NAMESPACE:
+                script += f'import * as {obj} from "{filepath}";\n'
 
             else:
-                obj = filepath.split("/")[-1].split(".")[0]
+                raise
 
-                if type == ScriptFile.TYPE_CLASS:
-                    script += f'import {{ {obj} }} from "{filepath}";\n'
-
-                elif type == ScriptFile.TYPE_NAMESPACE:
-                    script += f'import * as {obj} from "{filepath}";\n'
-
-                else:
-                    raise
-
-                script += f'THREE_EX.{obj} = {obj};\n'
-
-        script += '</script>\n'
-        script += non_module_script
+            script += f'THREE_EX.{obj} = {obj};\n'
 
         return script
 

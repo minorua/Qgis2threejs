@@ -1,8 +1,6 @@
 // (C) 2017 Minoru Akagi
 // SPDX-License-Identifier: MIT
 
-const THREE_DIR = "../js/lib/threejs";
-
 Q3D.Config.preview = {
 
 	// showTriangleCount: debug_mode,
@@ -239,13 +237,13 @@ function loadModel(url) {
 
 	var ext = url.split(".").pop();
 	if (ext == "dae") {
-		import(THREE_DIR + "/loaders/ColladaLoader.js").then(({ ColladaLoader }) => {
+		import("three/loaders/ColladaLoader.js").then(({ ColladaLoader }) => {
 			var loader = new ColladaLoader(app.loadingManager);
 			loader.load(url, loadToScene, undefined, onError);
 		});
 	}
 	else if (ext == "gltf" || ext == "glb") {
-		import(THREE_DIR + "/loaders/GLTFLoader.js").then(({ GLTFLoader }) => {
+		import("three/loaders/GLTFLoader.js").then(({ GLTFLoader }) => {
 			var loader = new GLTFLoader(app.loadingManager);
 			loader.load(url, loadToScene, undefined, onError);
 		});
@@ -330,7 +328,7 @@ function saveModelAsGLTF(filename) {
 		binary: (filename.split(".").pop().toLowerCase() == "glb")
 	};
 
-	import(THREE_DIR + "/exporters/GLTFExporter.js").then(({ GLTFExporter }) => {
+	import("three/exporters/GLTFExporter.js").then(({ GLTFExporter }) => {
 		const gltfExporter = new GLTFExporter();
 		gltfExporter.parse(scene, (result) => {
 			const showStatus = () => {
