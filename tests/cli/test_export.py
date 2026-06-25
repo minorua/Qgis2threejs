@@ -37,12 +37,7 @@ class TestExportWeb(CLITestBase):
         self.check_webpage_capture(self.OUT_FILE)
 
 
-class TestExportWebLocalMode(TestExportWeb):
-
-    LOCAL_MODE = True
-
-
-class TestExportWebLM_datgui(TestExportWebLocalMode):
+class TestExportWebLM_datgui(TestExportWeb):
 
     TEMPLATE = "3DViewer(dat-gui).html"
 
@@ -60,7 +55,7 @@ class TestExportWebLM_datgui(TestExportWebLocalMode):
         return checker
 
 
-class TestExportWebLM_Mobile(TestExportWebLocalMode):
+class TestExportWebLM_Mobile(TestExportWeb):
 
     TEMPLATE = "Mobile.html"
 

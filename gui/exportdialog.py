@@ -253,7 +253,7 @@ th {text-align:left;}
 
         url_dir = QUrl.fromLocalFile(out_dir)
         url_data = QUrl.fromLocalFile(data_dir)
-        url_scene = QUrl.fromLocalFile(os.path.join(data_dir, "scene.js" if local_mode else "scene.json"))
+        url_scene = QUrl.fromLocalFile(os.path.join(data_dir, "scene.json"))
         url_page = QUrl.fromLocalFile(filepath)
 
         self.logHtml += f"""
