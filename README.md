@@ -30,4 +30,3 @@ This plugin is powered by the following JavaScript libraries and resources:
 | [Proj4js](https://trac.osgeo.org/proj4js/) | 2.2.1 | Coordinate transformation |
 | [tween.js](https://github.com/tweenjs/tween.js/) | 18.6.4 | Animation |
 | [dat-gui](https://github.com/dataarts/dat.gui) | 0.5.0 | 3DViewer (dat-gui) template export |
-| [Font Awesome](https://fontawesome.com/) | 5.3.1 | Mobile template icons |
