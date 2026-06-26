@@ -256,6 +256,12 @@ th {text-align:left;}
         url_scene = QUrl.fromLocalFile(os.path.join(data_dir, "scene.json"))
         url_page = QUrl.fromLocalFile(filepath)
 
+        view_link = ""
+        if os.name == "nt":
+            batch_name = os.path.splitext(filename)[0] + ".bat"
+            batch_url = QUrl.fromLocalFile(os.path.splitext(filepath)[0] + ".bat").toString()
+            view_link = f'<a href="{batch_url}" title="Run {batch_name} to start a local web server and open the exported page.">[View page]</a>'
+
         self.logHtml += f"""
 <br>
 <table>
@@ -266,7 +272,7 @@ th {text-align:left;}
 <tr><th>Scene file</th>
 <td>{url_scene.toLocalFile()}</td></tr>
 <tr><th>Web page file</th>
-<td><a href="{url_page.toString()}">{url_page.toLocalFile()}</a></td></tr>
+<td>{url_page.toLocalFile()} {view_link}</td></tr>
 </table>
 """
 

@@ -15,7 +15,8 @@ if not errorlevel 1 (
 )
 
 echo Using port %PORT%
-cd . > nul
+
+cd /d %~dp0
 
 start "Qgis2threejs Local Web Server" cmd /c "echo === Keep this window open while using the 3D view. === && echo. && python -m http.server --bind localhost %PORT%"
 
