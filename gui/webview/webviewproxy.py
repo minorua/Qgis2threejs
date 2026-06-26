@@ -62,8 +62,7 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
         QObject.__init__(self, parent)
         Q3DWebPageCommon.__init__(self, parent)
 
-        url = pluginDir("web/viewer/webengine.html").replace("\\", "/")
-        self.myUrl = QUrl.fromLocalFile(url)
+        self._url = QUrl()
 
     def setSocketServer(self, server):
         self.socketServer = server
@@ -87,10 +86,14 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
 
     def reload(self):
         self.showStatusMessage("Initializing preview in an external process...")
+        Q3DWebPageCommon.reload(self)
         self.socketServer.sendCommand(Command.RELOAD)
 
     def url(self):
-        return self.myUrl
+        return self._url
+
+    def setUrl(self, url):
+        self._url = url
 
     def runJavaScript(self, string, callback=None):
         if callback:
@@ -280,6 +283,7 @@ Exit status: {exitStatus}
         self.socketServer.sendCommand(Command.DEV_TOOLS)
 
     def showGPUInfo(self):
+        Q3DWebViewCommon.showGPUInfo(self)
         self.socketServer.sendCommand(Command.GPU_INFO)
 
     def triggerTestClick(self, pos):

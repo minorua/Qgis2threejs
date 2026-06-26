@@ -21,6 +21,9 @@ class Q3DDummyPage(Q3DWebPageCommon, QObject):
     def url(self):
         return QUrl()
 
+    def setUrl(self, url):
+        pass
+
     def runJavaScript(self, string, callback=None):
         pass
 
@@ -40,15 +43,3 @@ class Q3DDummyView(Q3DWebViewCommon, QObject):
 
         self._page = Q3DDummyPage(self)
         self._page.setObjectName("DummyPage")
-
-    def setPreviewEnabled(self, enabled):
-        pass
-
-    def showDevTools(self):
-        pass
-
-    def showGPUInfo(self):
-        pass
-
-    def triggerTestClick(self, pos):
-        pass

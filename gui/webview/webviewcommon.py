@@ -6,7 +6,7 @@
 import json
 
 # This module may be used in an external process rather than within the QGIS process.
-from PyQt6.QtCore import QEventLoop, QTimer, pyqtSignal
+from PyQt6.QtCore import QEventLoop, QTimer, QUrl, pyqtSignal
 from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import QMessageBox
 from PyQt6.QtWebEngineCore import QWebEnginePage
@@ -16,6 +16,7 @@ from .webbridge import WebBridge
 from .sendqueue import SendQueue
 from .utils import logger
 from ...core.const import ScriptFile
+from ...utils.basic import pluginDir
 from ...utils.js import js_bool
 
 
@@ -42,11 +43,16 @@ class Q3DWebPageCommon:
         self.sendQueue = self.SendQueueClass(self.bridge)
         self.bridge.dataLoaded.connect(self.sendQueue.dataLoaded)
 
+        self.previewUrl = QUrl.fromLocalFile(pluginDir("web/viewer/webengine.html").replace("\\", "/"))
+
     def setup(self):
-        pass
+        self.reload()
 
     def teardown(self):
         pass
+
+    def reload(self):
+        self.setUrl(self.previewUrl)
 
     def pageLoaded(self, _ok):
         self.loadedScripts = {}
@@ -213,14 +219,20 @@ class Q3DWebViewCommon:
     def runScript(self, string, message="", sourceID="webviewcommon.py", callback=None, wait=False):
         return self._page.runScript(string, message, sourceID, callback, wait)
 
+    def showGPUInfo(self):
+        self._page.setUrl(QUrl("chrome://gpu"))
+
     def showJSInfo(self):
         def showInfo(info):
             QMessageBox.information(self, "three.js Renderer Info", str(info))
 
         self.runScript("app.renderer.info", callback=showInfo)
 
-    # <abstract methods>
-    # def setPreviewEnabled(self, enabled):
-    # def showDevTools(self):
-    # def showGPUInfo(self):
-    # def triggerTestClick(self, pos):
+    def setPreviewEnabled(self, enabled):
+        pass
+
+    def showDevTools(self):
+        pass
+
+    def triggerTestClick(self, pos):
+        pass

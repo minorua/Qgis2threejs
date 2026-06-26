@@ -69,16 +69,9 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
         # security setting for billboard and model file
         self.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
 
-    def setup(self):
-        Q3DWebPageCommon.setup(self)
-
-        url = pluginDir("web/viewer/webengine.html").replace("\\", "/")
-        self.myUrl = QUrl.fromLocalFile(url)
-        self.reload()
-
     def reload(self):
         self.showStatusMessage("Initializing preview...")
-        self.setUrl(self.myUrl)
+        Q3DWebPageCommon.reload(self)
 
     def sendData(self, data, viaQueue=False):
         if viaQueue:
@@ -165,9 +158,6 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
 
         dlg.setLayout(v)
         dlg.show()
-
-    def showGPUInfo(self):
-        self.load(QUrl("chrome://gpu"))
 
     def triggerTestClick(self, pos):
         w = self.findChild(QWidget)
