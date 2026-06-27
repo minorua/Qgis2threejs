@@ -1174,7 +1174,7 @@ class OrbitControls extends Controls {
 
 		let needsUpdate = false;
 
-		switch ( event.code ) {
+		switch ( event.key ) {
 
 			case this.keys.UP:
 
