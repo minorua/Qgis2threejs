@@ -953,6 +953,28 @@ class OrbitControls extends Controls {
 
 	}
 
+	_lookAround( pitch, yaw ) {	// @minorua
+
+		const offset = new Vector3().subVectors( this.target, this.object.position );
+		offset.applyQuaternion( this._quat );
+
+		const spherical = new Spherical().setFromVector3( offset );
+
+		spherical.theta += pitch;
+		spherical.phi -= yaw;
+
+		// restrict theta/phi to be between desired limits
+		spherical.theta = Math.max( this.minAzimuthAngle, Math.min( this.maxAzimuthAngle, spherical.theta ) );
+		spherical.phi = Math.max( this.minPolarAngle, Math.min( this.maxPolarAngle, spherical.phi ) );
+		spherical.makeSafe();
+
+		offset.setFromSpherical( spherical );
+		offset.applyQuaternion( this._quatInverse );
+
+		this.target.copy( this.object.position ).add( offset );
+
+	}
+
 	_panLeft( distance, objectMatrix ) {
 
 		_v.setFromMatrixColumn( objectMatrix, 0 ); // get X column of objectMatrix
@@ -1170,7 +1192,7 @@ class OrbitControls extends Controls {
 
 	}
 
-	_handleKeyDown( event ) {
+	_handleKeyDown( event ) {		// @minorua: customized shiftKey and ctrlKey handling
 
 		let needsUpdate = false;
 
@@ -1178,7 +1200,15 @@ class OrbitControls extends Controls {
 
 			case this.keys.UP:
 
-				if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+				if ( event.shiftKey && event.ctrlKey ) {
+
+					this._dollyOut( this._getZoomScale() );
+
+				} else if ( event.ctrlKey ) {
+
+					this._lookAround( 0, _twoPI * this.keyRotateSpeed / this.domElement.clientHeight );
+
+				} else if ( event.metaKey || event.shiftKey ) {
 
 					if ( this.enableRotate ) {
 
@@ -1201,7 +1231,15 @@ class OrbitControls extends Controls {
 
 			case this.keys.BOTTOM:
 
-				if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+				if ( event.shiftKey && event.ctrlKey ) {
+
+					this._dollyIn( this._getZoomScale() );
+
+				} else if ( event.ctrlKey ) {
+
+					this._lookAround( 0, - _twoPI * this.keyRotateSpeed / this.domElement.clientHeight );
+
+				} else if ( event.metaKey || event.shiftKey ) {
 
 					if ( this.enableRotate ) {
 
@@ -1224,7 +1262,11 @@ class OrbitControls extends Controls {
 
 			case this.keys.LEFT:
 
-				if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+				if ( event.ctrlKey ) {
+
+					this._lookAround( _twoPI * this.keyRotateSpeed / this.domElement.clientHeight, 0 );
+
+				} else if ( event.metaKey || event.shiftKey ) {
 
 					if ( this.enableRotate ) {
 
@@ -1247,7 +1289,11 @@ class OrbitControls extends Controls {
 
 			case this.keys.RIGHT:
 
-				if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+				if ( event.ctrlKey ) {
+
+					this._lookAround( - _twoPI * this.keyRotateSpeed / this.domElement.clientHeight, 0 );
+
+				} else if ( event.metaKey || event.shiftKey ) {
 
 					if ( this.enableRotate ) {
 
