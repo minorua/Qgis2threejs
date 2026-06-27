@@ -966,6 +966,14 @@ class OrbitControls extends Controls {
 
 	}
 
+	_moveForward( distance ) {		// @minorua
+
+		const forward = new Vector3().subVectors( this.target, this.object.position )
+		this.object.position.addScaledVector( forward, distance );
+		this.target.addScaledVector( forward, distance );
+
+	}
+
 	_panLeft( distance, objectMatrix ) {
 
 		_v.setFromMatrixColumn( objectMatrix, 0 ); // get X column of objectMatrix
@@ -1209,11 +1217,7 @@ class OrbitControls extends Controls {
 
 				} else {
 
-					if ( this.enablePan ) {
-
-						this._pan( 0, this.keyPanSpeed );
-
-					}
+					this._moveForward( this.keyPanSpeed );
 
 				}
 
