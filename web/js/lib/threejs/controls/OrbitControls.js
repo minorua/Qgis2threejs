@@ -1,6 +1,7 @@
 import {
 	Controls,
 	MOUSE,
+	Euler,
 	Quaternion,
 	Spherical,
 	TOUCH,
@@ -953,23 +954,13 @@ class OrbitControls extends Controls {
 
 	}
 
-	_lookAround( pitch, yaw ) {	// @minorua
+	_lookAround( yaw, pitch ) {		// @minorua
 
-		const offset = new Vector3().subVectors( this.target, this.object.position );
-		offset.applyQuaternion( this._quat );
-
-		const spherical = new Spherical().setFromVector3( offset );
-
-		spherical.theta += pitch;
-		spherical.phi -= yaw;
-
-		// restrict theta/phi to be between desired limits
-		spherical.theta = Math.max( this.minAzimuthAngle, Math.min( this.maxAzimuthAngle, spherical.theta ) );
-		spherical.phi = Math.max( this.minPolarAngle, Math.min( this.maxPolarAngle, spherical.phi ) );
-		spherical.makeSafe();
-
-		offset.setFromSpherical( spherical );
-		offset.applyQuaternion( this._quatInverse );
+		const offset = new Vector3()
+			.subVectors( this.target, this.object.position )
+			.applyQuaternion( this._quat )
+			.applyQuaternion( new Quaternion().setFromEuler( new Euler( pitch, yaw, 0 ) ) )
+			.applyQuaternion( this._quatInverse );
 
 		this.target.copy( this.object.position ).add( offset );
 
@@ -1202,7 +1193,7 @@ class OrbitControls extends Controls {
 
 				if ( event.shiftKey && event.ctrlKey ) {
 
-					this._dollyOut( this._getZoomScale() );
+					this._dollyIn( this._getZoomScale( 100 ) );
 
 				} else if ( event.ctrlKey ) {
 
@@ -1233,7 +1224,7 @@ class OrbitControls extends Controls {
 
 				if ( event.shiftKey && event.ctrlKey ) {
 
-					this._dollyIn( this._getZoomScale() );
+					this._dollyOut( this._getZoomScale( 100 ) );
 
 				} else if ( event.ctrlKey ) {
 
