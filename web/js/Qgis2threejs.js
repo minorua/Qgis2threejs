@@ -844,14 +844,14 @@ Q3D.E = function (id) {
 
 				this.tracks.forEach(function (track) {
 
-					var t;
-					for (var p in Q3D.Tweens) {
+					let tween;
+					for (const p in Q3D.Tweens) {
 						if (Q3D.Tweens[p].type == track.type) {
-							t = Q3D.Tweens[p];
+							tween = Q3D.Tweens[p];
 							break;
 						}
 					}
-					if (t === undefined) {
+					if (tween === undefined) {
 						console.warn("unknown animation type: " + track.type);
 						return;
 					}
@@ -862,7 +862,7 @@ Q3D.E = function (id) {
 					track.currentIndex = 0;
 					track.prop_list = [];
 
-					t.init(track, layer);
+					tween.init(track, layer);
 
 					var keyframes = track.keyframes;
 
@@ -923,8 +923,8 @@ Q3D.E = function (id) {
 							track.completed = true;
 
 							var completed = true;
-							for (var i = 0; i < _this.tracks.length; i++) {
-								if (!_this.tracks[i].completed) completed = false;
+							for (const t of _this.tracks) {
+								if (!t.completed) completed = false;
 							}
 
 							if (completed) {
@@ -993,8 +993,8 @@ Q3D.E = function (id) {
 				this._pausedTweens = TWEEN.getAll();
 
 				if (this._pausedTweens.length) {
-					for (var i = 0; i < this._pausedTweens.length; i++) {
-						this._pausedTweens[i].pause();
+					for (const pt of this._pausedTweens) {
+						pt.pause();
 					}
 					this.isPaused = true;
 				}
@@ -1010,8 +1010,8 @@ Q3D.E = function (id) {
 
 				if (!this.isPaused) return;
 
-				for (var i = 0; i < this._pausedTweens.length; i++) {
-					this._pausedTweens[i].resume();
+				for (const pt of this._pausedTweens) {
+					pt.resume();
 				}
 				this._pausedTweens = null;
 
@@ -1260,12 +1260,8 @@ Q3D.E = function (id) {
 			return;
 		}
 
-		var canvasOffset = app._offset(app.renderer.domElement);
-		var objs = app.intersectObjects(e.clientX - canvasOffset.left, e.clientY - canvasOffset.top);
-
-		var obj, o, layer, layerId;
-		for (var i = 0, l = objs.length; i < l; i++) {
-			obj = objs[i];
+		const canvasOffset = app._offset(app.renderer.domElement);
+		for (const obj of app.intersectObjects(e.clientX - canvasOffset.left, e.clientY - canvasOffset.top)) {
 
 			if (app.measure.isActive) {
 				app.measure.addPoint(obj.point);
@@ -1273,7 +1269,8 @@ Q3D.E = function (id) {
 			}
 
 			// get layerId of clicked object
-			o = obj.object;
+			let o = obj.object;
+			let layerId;
 			while (o) {
 				layerId = o.userData.layerId;
 				if (layerId !== undefined) break;
@@ -1282,7 +1279,7 @@ Q3D.E = function (id) {
 
 			if (layerId === undefined) break;
 
-			layer = app.scene.mapLayers[layerId];
+			const layer = app.scene.mapLayers[layerId];
 			if (!layer.clickable) break;
 
 			app.selectedLayer = layer;
@@ -1616,8 +1613,8 @@ Q3D.E = function (id) {
 		}
 
 		// initialize modules
-		for (var i = 0; i < gui.modules.length; i++) {
-			gui.modules[i].init();
+		for (const mod of gui.modules) {
+			mod.init();
 		}
 	};
 
@@ -1958,7 +1955,7 @@ class Q3DScene extends THREE.Scene {
 	}
 
 	forEachLayer(callback) {
-		for (var layerId in this.mapLayers) {
+		for (const layerId in this.mapLayers) {
 			callback(this.mapLayers[layerId], layerId);
 		}
 	}
@@ -2067,17 +2064,16 @@ class Q3DScene extends THREE.Scene {
 	}
 
 	buildLights(lights, rotation) {
-		var p, light;
-		for (var i = 0; i < lights.length; i++) {
-			p = lights[i];
+		let light;
+		for (const p of lights) {
 			if (p.type == "ambient") {
 				light = new THREE.AmbientLight(p.color, p.intensity);
 			}
 			else if (p.type == "directional") {
 				light = new THREE.DirectionalLight(p.color, p.intensity);
 				light.position.copy(Q3D.uv.j)
-								.applyAxisAngle(Q3D.uv.i, p.altitude * Q3D.deg2rad)
-								.applyAxisAngle(Q3D.uv.k, (rotation - p.azimuth) * Q3D.deg2rad);
+							  .applyAxisAngle(Q3D.uv.i, p.altitude * Q3D.deg2rad)
+							  .applyAxisAngle(Q3D.uv.k, (rotation - p.azimuth) * Q3D.deg2rad);
 			}
 			else if (p.type == "point") {
 				light = new THREE.PointLight(p.color, p.intensity, 0, p.decay);
@@ -2273,8 +2269,8 @@ class Q3DMaterial {
 		this.loaded = true;
 
 		if (this._callbacks !== undefined) {
-			for (var i = 0; i < this._callbacks.length; i++) {
-				this._callbacks[i]();
+			for (const callback of this._callbacks) {
+				callback();
 			}
 			this._callbacks = [];
 		}
@@ -3151,8 +3147,8 @@ class Q3DDEMLayer extends Q3DMapLayer {
 	}
 
 	set opacity(value) {
-		for (var i = 0, l = this.blocks.length; i < l; i++) {
-			const m = this.blocks[i].materials[this.currentMtlIndex];
+		for (const b of this.blocks) {
+			const m = b.materials[this.currentMtlIndex];
 			if (m && m.mtl) {
 				m.mtl.opacity = value;
 				m.mtl.transparent = (value < 1);
@@ -3169,8 +3165,7 @@ class Q3DDEMLayer extends Q3DMapLayer {
 	set currentMtlIndex(mtlIndex) {
 		this.materials.removeItemsByGroupId(this.currentMtlIndex);
 
-		for (var i = 0, l = this.blocks.length; i < l; i++) {
-			const b = this.blocks[i];
+		for (const b of this.blocks) {
 			const m = b.materials[mtlIndex];
 			if (m) {
 				b.currentMtlIndex = mtlIndex;
@@ -3205,12 +3200,12 @@ class Q3DDEMLayer extends Q3DMapLayer {
 
 		var m, canvas, ctx, opt, mtl;
 		var img_from, img_to;
-		for (var i = 0; i < this.blocks.length; i++) {
+		for (const block of this.blocks) {
 
-			m = this.blocks[i].obj.material;
+			m = block.obj.material;
 
-			img_from = this.blocks[i].materials[from].mtl.map.image;
-			img_to = this.blocks[i].materials[to].mtl.map.image;
+			img_from = block.materials[from].mtl.map.image;
+			img_to = block.materials[to].mtl.map.image;
 
 			canvas = document.createElement("canvas");
 			canvas.width = (img_from.width > img_to.width) ? img_from.width : img_to.width;
@@ -3241,7 +3236,7 @@ class Q3DDEMLayer extends Q3DMapLayer {
 				img_to = imageData2Canvas(img_to);
 			}
 
-			this.blocks[i].obj.material = mtl;
+			block.obj.material = mtl;
 
 			this.materials.add(mtl);
 
@@ -3258,9 +3253,8 @@ class Q3DDEMLayer extends Q3DMapLayer {
 
 		if (this.anim === undefined) return;
 
-		var a, w, h, w0, h0, w1, h1, ew, ew1;
-		for (var i = 0; i < this.anim.length; i++) {
-			a = this.anim[i];
+		var w, h, w0, h0, w1, h1, ew, ew1;
+		for (const a of this.anim) {
 			w = a.ctx.canvas.width;
 			h = a.ctx.canvas.height;
 			w0 = a.img_from.width;
@@ -3274,7 +3268,7 @@ class Q3DDEMLayer extends Q3DMapLayer {
 											0, 0, w, h);
 				a.ctx.globalAlpha = progress;
 				a.ctx.drawImage(a.img_to, 0, 0, w1, h1,
-											0, 0, w, h);
+										  0, 0, w, h);
 			}
 			else if (effect == 2) {  // slide to left (not used)
 				if (progress === null) {
@@ -3285,7 +3279,7 @@ class Q3DDEMLayer extends Q3DMapLayer {
 					ew1 = w1 * progress;
 					ew = w * progress;
 					a.ctx.drawImage(a.img_to, w1 - ew1, 0, ew1, h1,
-											w - ew, 0, ew, h);
+											  w - ew, 0, ew, h);
 				}
 			}
 			a.tex.needsUpdate = true;
@@ -4031,10 +4025,8 @@ class Q3DLineLayer extends Q3DVectorLayer {
 			}
 		}
 		else {
-			var mtl, mtls = this.origMtls.array;
-
-			for (var i = 0; i < mtls.length; i++) {
-				mtl = mtls[i].mtl;
+			for (const origMtl of this.origMtls.array) {
+				const mtl = origMtl.mtl;
 
 				if (mtl.isLineDashedMaterial) {
 					mtl.gapSize = 1;
@@ -4263,8 +4255,7 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 		if (this.properties.objType != "Overlay") return;
 
 		this.objectGroup.children.forEach(function (parent) {
-			for (var i = 0, l = parent.children.length; i < l; i++) {
-				var obj = parent.children[i];
+			for (const obj of parent.children) {
 				if (obj instanceof THREE.Mesh) obj.visible = visible;
 			}
 		});
@@ -4311,8 +4302,8 @@ class Q3DModel {
 		this.loaded = true;
 
 		if (this._callbacks !== undefined) {
-			for (var i = 0; i < this._callbacks.length; i++) {
-				this._callbacks[i](this.model);
+			for (const callback of this._callbacks) {
+				callback(this.model);
 			}
 			this._callbacks = [];
 		}
@@ -4562,10 +4553,8 @@ Q3D.Tweens.opacity = {
 
 	init: function (track, layer) {
 
-		var keyframes = track.keyframes;
-
-		for (var i = 0; i < keyframes.length; i++) {
-			track.prop_list.push({opacity: keyframes[i].opacity});
+		for (const keyframe of track.keyframes) {
+			track.prop_list.push({opacity: keyframe.opacity});
 		}
 
 		track.onUpdate = function (obj, elapsed) {
