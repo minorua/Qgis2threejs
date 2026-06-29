@@ -2379,11 +2379,16 @@ class Q3DMaterials extends THREE.EventDispatcher {
 	}
 
 	setOpacity(opacity) {
-		var m;
-		for (var i = 0, l = this.array.length; i < l; i++) {
+		let m, t;
+		for (let i = 0, l = this.array.length; i < l; i++) {
 			m = this.array[i];
-			m.mtl.transparent = Boolean(m.origProp.t) || (opacity < 1);
 			m.mtl.opacity = opacity;
+
+			t = Boolean(m.origProp.t) || (opacity < 1);
+			if (m.mtl.transparent !== t) {
+				m.mtl.transparent = t;
+				m.mtl.needsUpdate = true;
+			}
 		}
 	}
 
