@@ -1,6 +1,7 @@
 import {
 	Controls,
 	MOUSE,
+	Euler,
 	Quaternion,
 	Spherical,
 	TOUCH,
@@ -50,7 +51,8 @@ const _STATE = {
 	TOUCH_ROTATE: 3,
 	TOUCH_PAN: 4,
 	TOUCH_DOLLY_PAN: 5,
-	TOUCH_DOLLY_ROTATE: 6
+	TOUCH_DOLLY_ROTATE: 6,
+	LOOK_AROUND: 7		// @minorua added
 };
 const _EPS = 0.000001;
 
@@ -953,6 +955,45 @@ class OrbitControls extends Controls {
 
 	}
 
+	_lookAround( yaw, pitch ) {		// @minorua added
+
+		const quatInverse = this.object.quaternion.clone().invert();
+
+		_v.subVectors( this.target, this.object.position )
+		  .applyQuaternion( quatInverse )
+		  .applyQuaternion( new Quaternion().setFromEuler( new Euler( pitch, yaw, 0, "YXZ" ) ) )
+		  .applyQuaternion( this.object.quaternion );
+
+		this.target.copy( this.object.position ).add( _v );
+
+	}
+
+	_moveForward( delta ) {		// @minorua added
+
+		_v.subVectors( this.target, this.object.position );
+
+		let dist;
+		if ( this.object.isPerspectiveCamera ) {
+
+			dist = _v.length() * Math.tan( ( this.object.fov / 2 ) * Math.PI / 180.0 );
+			dist *= 2 * delta / this.domElement.clientHeight;
+
+		} else if ( this.object.isOrthographicCamera ) {
+
+			dist = delta * ( this.object.right - this.object.left ) / this.object.zoom / this.domElement.clientWidth;
+
+		} else {
+
+			return;
+
+		}
+
+		_v.setZ( 0 ).setLength( dist );
+		this.object.position.add( _v );
+		this.target.add( _v );
+
+	}
+
 	_panLeft( distance, objectMatrix ) {
 
 		_v.setFromMatrixColumn( objectMatrix, 0 ); // get X column of objectMatrix
@@ -1085,6 +1126,12 @@ class OrbitControls extends Controls {
 
 	}
 
+	_handleMouseDownLookAround( event ) {		// @minorua added
+
+		this._rotateStart.set( event.clientX, event.clientY );
+
+	}
+
 	_handleMouseDownDolly( event ) {
 
 		this._updateZoomParameters( event.clientX, event.clientX );
@@ -1109,6 +1156,23 @@ class OrbitControls extends Controls {
 		this._rotateLeft( _twoPI * this._rotateDelta.x / element.clientHeight ); // yes, height
 
 		this._rotateUp( _twoPI * this._rotateDelta.y / element.clientHeight );
+
+		this._rotateStart.copy( this._rotateEnd );
+
+		this.update();
+
+	}
+
+	_handleMouseMoveLookAround( event ) {		// @minorua added
+
+		this._rotateEnd.set( event.clientX, event.clientY );
+
+		this._rotateDelta.subVectors( this._rotateEnd, this._rotateStart ).multiplyScalar( this.rotateSpeed );
+
+		const element = this.domElement;
+
+		this._lookAround( - _twoPI * this._rotateDelta.x / element.clientHeight,
+						  - _twoPI * this._rotateDelta.y / element.clientHeight );
 
 		this._rotateStart.copy( this._rotateEnd );
 
@@ -1170,7 +1234,7 @@ class OrbitControls extends Controls {
 
 	}
 
-	_handleKeyDown( event ) {
+	_handleKeyDown( event ) {		// @minorua customized
 
 		let needsUpdate = false;
 
@@ -1178,7 +1242,23 @@ class OrbitControls extends Controls {
 
 			case this.keys.UP:
 
-				if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+				if ( event.shiftKey && event.ctrlKey ) {
+
+					if ( this.enableZoom ) {
+
+						this._dollyIn( this._getZoomScale( 100 ) );
+
+					}
+
+				} else if ( event.ctrlKey ) {
+
+					if ( this.enableRotate ) {
+
+						this._lookAround( 0, _twoPI * this.keyRotateSpeed / this.domElement.clientHeight );
+
+					}
+
+				} else if ( event.metaKey || event.shiftKey ) {
 
 					if ( this.enableRotate ) {
 
@@ -1190,7 +1270,7 @@ class OrbitControls extends Controls {
 
 					if ( this.enablePan ) {
 
-						this._pan( 0, this.keyPanSpeed );
+						this._moveForward( this.keyPanSpeed );
 
 					}
 
@@ -1201,7 +1281,24 @@ class OrbitControls extends Controls {
 
 			case this.keys.BOTTOM:
 
-				if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+				if ( event.shiftKey && event.ctrlKey ) {
+
+					if ( this.enableZoom ) {
+
+						this._dollyOut( this._getZoomScale( 100 ) );
+
+					}
+
+				} else if ( event.ctrlKey ) {
+
+					if ( this.enableRotate ) {
+
+						this._lookAround( 0, - _twoPI * this.keyRotateSpeed / this.domElement.clientHeight );
+
+					}
+
+
+				} else if ( event.metaKey || event.shiftKey ) {
 
 					if ( this.enableRotate ) {
 
@@ -1213,7 +1310,7 @@ class OrbitControls extends Controls {
 
 					if ( this.enablePan ) {
 
-						this._pan( 0, - this.keyPanSpeed );
+						this._moveForward( - this.keyPanSpeed );
 
 					}
 
@@ -1224,7 +1321,15 @@ class OrbitControls extends Controls {
 
 			case this.keys.LEFT:
 
-				if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+				if ( event.ctrlKey ) {
+
+					if ( this.enableRotate ) {
+
+						this._lookAround( _twoPI * this.keyRotateSpeed / this.domElement.clientHeight, 0 );
+
+					}
+
+				} else if ( event.metaKey || event.shiftKey ) {
 
 					if ( this.enableRotate ) {
 
@@ -1247,7 +1352,15 @@ class OrbitControls extends Controls {
 
 			case this.keys.RIGHT:
 
-				if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+				if ( event.ctrlKey ) {
+
+					if ( this.enableRotate ) {
+
+						this._lookAround( - _twoPI * this.keyRotateSpeed / this.domElement.clientHeight, 0 );
+
+					}
+
+				} else if ( event.metaKey || event.shiftKey ) {
 
 					if ( this.enableRotate ) {
 
@@ -1678,11 +1791,11 @@ function onMouseDown( event ) {
 
 			if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
 
-				if ( this.enablePan === false ) return;
+				if ( this.enableRotate === false ) return;
 
-				this._handleMouseDownPan( event );
+				this._handleMouseDownLookAround( event );		// @minorua replaced pan with look around
 
-				this.state = _STATE.PAN;
+				this.state = _STATE.LOOK_AROUND;
 
 			} else {
 
@@ -1757,6 +1870,14 @@ function onMouseMove( event ) {
 			if ( this.enablePan === false ) return;
 
 			this._handleMouseMovePan( event );
+
+			break;
+
+		case _STATE.LOOK_AROUND:		// @minorua added
+
+			if ( this.enableRotate === false ) return;
+
+			this._handleMouseMoveLookAround( event );
 
 			break;
 

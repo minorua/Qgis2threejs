@@ -343,7 +343,8 @@ Q3D.E = function (id) {
 
 		// controls
 		app.controls = new THREE_EX.OrbitControls(app.camera, app.renderer.domElement);
-		app.controls.addEventListener("change", function (event) {
+		app.controls.listenToKeyEvents(window);
+		app.controls.addEventListener("change", (event) => {
 			app.render();
 		});
 		app.controls.update();
@@ -741,7 +742,7 @@ Q3D.E = function (id) {
 
 		if (_pupListenerAdded) return;
 
-		container.addEventListener("pointerup", event => {
+		container.addEventListener("pointerup", (event) => {
 			if (app.viewHelper && app.viewHelper.handleClick(event)) {
 				anim_timer.update();
 				requestAnimationFrame(app.animate);
