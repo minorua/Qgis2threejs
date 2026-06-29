@@ -303,11 +303,11 @@ Q3D.E = function (id) {
 		// scene
 		app.scene = new Q3DScene();
 
-		app.scene.addEventListener("renderRequest", function (event) {
+		app.scene.addEventListener("renderRequest", (event) => {
 			app.render();
 		});
 
-		app.scene.addEventListener("cameraUpdateRequest", function (event) {
+		app.scene.addEventListener("cameraUpdateRequest", (event) => {
 			app.camera.position.copy(event.pos);
 			app.camera.lookAt(event.focal);
 			if (app.controls.target !== undefined) app.controls.target.copy(event.focal);
@@ -320,7 +320,7 @@ Q3D.E = function (id) {
 			app.camera.updateProjectionMatrix();
 		});
 
-		app.scene.addEventListener("lightChanged", function (event) {
+		app.scene.addEventListener("lightChanged", (event) => {
 			if (event.light == "point") {
 				app.scene.add(app.camera);
 				app.camera.add(app.scene.lightGroup);
@@ -331,7 +331,7 @@ Q3D.E = function (id) {
 			}
 		});
 
-		app.scene.addEventListener("mapRotationChanged", function (event) {
+		app.scene.addEventListener("mapRotationChanged", (event) => {
 			if (app.scene2) {
 				app.scene2.lightGroup.clear();
 				app.scene2.buildLights(Q3D.Config.lights.directional, event.rotation);
@@ -379,7 +379,7 @@ Q3D.E = function (id) {
 		app.initLoadingManager();
 
 		// event listeners
-		app.addEventListener("sceneLoaded", function () {
+		app.addEventListener("sceneLoaded", () => {
 			E("progressbar").classList.add("fadeout");
 
 			app.adjustCameraNearFar();
@@ -413,7 +413,7 @@ Q3D.E = function (id) {
 	app.parseUrlParameters = function () {
 		var p, vars = {};
 		var params = window.location.search.substring(1).split('&').concat(window.location.hash.substring(1).split('&'));
-		params.forEach(function (param) {
+		params.forEach((param) => {
 			p = param.split('=');
 			vars[p[0]] = p[1];
 		});
@@ -421,7 +421,7 @@ Q3D.E = function (id) {
 	};
 
 	app.initLoadingManager = function () {
-		app.loadingManager = new THREE.LoadingManager(function () {   // onLoad
+		app.loadingManager = new THREE.LoadingManager(() => {   // onLoad
 			app.loadingManager.isLoading = false;
 			app.sceneLoaded = true;
 			app.dispatchEvent({type: "sceneLoaded"});
@@ -473,7 +473,7 @@ Q3D.E = function (id) {
 	};
 
 	app.loadJSONFile = function (url, callback) {
-		app.loadFile(url, "json", function (data) {
+		app.loadFile(url, "json", (data) => {
 			app.loadData(data);
 			if (callback) callback(data);
 		});
@@ -488,7 +488,7 @@ Q3D.E = function (id) {
 		};
 
 		if (sceneLoadedCallback) {
-			app.addEventListener("sceneLoaded", function () {
+			app.addEventListener("sceneLoaded", () => {
 				sceneLoadedCallback(app.scene);
 			});
 		}
@@ -526,12 +526,11 @@ Q3D.E = function (id) {
 
 		app.loadingManager.itemStart("M" + url);
 
-		loader.load(url, function (model) {
+		loader.load(url, (model) => {
 			if (callback) callback(model);
 			app.loadingManager.itemEnd("M" + url);
 		},
-		undefined,
-		function (e) {
+		undefined, (e) => {
 			console.warn("Failed to load model: " + url);
 			app.loadingManager.itemError("M" + url);
 		});
@@ -544,9 +543,9 @@ Q3D.E = function (id) {
 			if (callback) callback(model);
 		}
 		else if (ext == "gltf" || ext == "glb") {
-			new THREE_EX.GLTFLoader(app.loadingManager).parse(data, resourcePath, function (model) {
+			new THREE_EX.GLTFLoader(app.loadingManager).parse(data, resourcePath, (model) => {
 				if (callback) callback(model);
-			}, function (e) {
+			}, (e) => {
 				console.warn("Failed to load a glTF model: " + e);
 			});
 		}
@@ -837,12 +836,12 @@ Q3D.E = function (id) {
 
 			start: function () {
 
-				var _this = this,
-					e = E("narrativebox"),
-					btn = E("nextbtn"),
-					currentNarElem;
+				const _this = this;
+				const narBox = E("narrativebox");
+				const btn = E("nextbtn");
+				let currentNarElem;
 
-				this.tracks.forEach(function (track) {
+				this.tracks.forEach((track) => {
 
 					let tween;
 					for (const p in Q3D.Tweens) {
@@ -869,7 +868,7 @@ Q3D.E = function (id) {
 					var showNBox = function (idx) {
 						// narrative box
 						var n = keyframes[idx].narration;
-						if (n && e) {
+						if (n && narBox) {
 							if (currentNarElem) {
 								currentNarElem.classList.remove("visible");
 							}
@@ -893,9 +892,9 @@ Q3D.E = function (id) {
 								}
 							}
 
-							setTimeout(function () {
+							setTimeout(() => {
 								_this.pause();
-								e.classList.add("visible");
+								narBox.classList.add("visible");
 							}, 0);
 						}
 					};
@@ -906,8 +905,8 @@ Q3D.E = function (id) {
 						app.dispatchEvent({type: "tweenStarted", index: track.currentIndex});
 
 						// pause if narrative box is shown
-						if (e && e.classList.contains("visible")) {
-							e.classList.remove("visible");
+						if (narBox && narBox.classList.contains("visible")) {
+							narBox.classList.remove("visible");
 						}
 					};
 
@@ -933,7 +932,7 @@ Q3D.E = function (id) {
 								}
 
 								if (conf.animation.repeat) {
-									setTimeout(function () {
+									setTimeout(() => {
 										_this.start();
 									}, 0);
 								}
@@ -1240,7 +1239,7 @@ Q3D.E = function (id) {
 		var s = (layer.type == Q3D.LayerType.Point) ? 1.01 : 1;
 
 		var clone = object.clone();
-		clone.traverse(function (obj) {
+		clone.traverse((obj) => {
 			obj.material = app.highlightMaterial;
 		});
 		if (s != 1) clone.scale.multiplyScalar(s);
@@ -1537,7 +1536,7 @@ Q3D.E = function (id) {
 
 	gui.init = function () {
 		// tool buttons
-		ON_CLICK("layerbtn", function () {
+		ON_CLICK("layerbtn", () => {
 			if (!gui.layerPanel.initialized) gui.layerPanel.init();
 
 			if (gui.layerPanel.isVisible()) {
@@ -1551,7 +1550,7 @@ Q3D.E = function (id) {
 			}
 		});
 
-		ON_CLICK("infobtn", function () {
+		ON_CLICK("infobtn", () => {
 			gui.layerPanel.hide();
 
 			if (gui.popup.isVisible() && gui.popup.content == "pageinfo") gui.popup.hide();
@@ -1588,21 +1587,21 @@ Q3D.E = function (id) {
 
 		// popup
 		ON_CLICK("closebtn", app.cleanView);
-		ON_CLICK("zoomtolayer", function () {
+		ON_CLICK("zoomtolayer", () => {
 			app.cameraAction.zoomToLayer(app.selectedLayer);
 		});
-		ON_CLICK("zoomtopoint", function () {
+		ON_CLICK("zoomtopoint", () => {
 			app.cameraAction.zoom();
 		});
-		ON_CLICK("orbitbtn", function () {
+		ON_CLICK("orbitbtn", () => {
 			app.cameraAction.orbit();
 		});
-		ON_CLICK("measurebtn", function () {
+		ON_CLICK("measurebtn", () => {
 			app.measure.start();
 		});
 
 		// narrative box
-		ON_CLICK("nextbtn", function () {
+		ON_CLICK("nextbtn", () => {
 			app.animation.keyframes.resume();
 		});
 
@@ -1651,7 +1650,7 @@ Q3D.E = function (id) {
 			if (e) e.classList.remove(VIS);
 
 			var content = E("popupcontent");
-			[content, E("queryresult"), E("pageinfo")].forEach(function (e) {
+			[content, E("queryresult"), E("pageinfo")].forEach((e) => {
 				if (e) e.classList.remove(VIS);
 			});
 
@@ -1677,9 +1676,7 @@ Q3D.E = function (id) {
 			}
 
 			if (duration) {
-				this.timerId = setTimeout(function () {
-					gui.popup.hide();
-				}, duration);
+				this.timerId = setTimeout(() => gui.popup.hide(), duration);
 			}
 		},
 
@@ -1811,9 +1808,7 @@ Q3D.E = function (id) {
 
 		ok.onclick = function () {
 			gui.popup.show("Rendering...");
-			window.setTimeout(function () {
-				app.saveCanvasImage(width.value, height.value, bg.checked);
-			}, 10);
+			window.setTimeout(() => app.saveCanvasImage(width.value, height.value, bg.checked), 10);
 		};
 
 		cancel.onclick = app.cleanView;
@@ -1831,7 +1826,7 @@ Q3D.E = function (id) {
 
 		init: function () {
 			const panel = E("layerpanel");
-			app.scene.forEachLayer(function (layer, layerId) {
+			app.scene.forEachLayer((layer, layerId) => {
 				const p = layer.properties;
 				const item = CE("div", panel);
 				item.className = "layer";
@@ -2021,9 +2016,7 @@ class Q3DScene extends THREE.Scene {
 
 			// load layers
 			if (data.layers !== undefined) {
-				data.layers.forEach(function (layer) {
-					this.loadData(layer);
-				}, this);
+				data.layers.forEach(layer => this.loadData(layer));
 			}
 		}
 		else if (data.type == "layer") {
@@ -2173,10 +2166,9 @@ class Q3DMaterial {
 
 		// texture
 		if (m.image !== undefined) {
-			var _this = this;
 			if (m.image.url !== undefined) {
-				opt.map = Q3D.application.loadTextureFile(m.image.url, function () {
-					_this._loadCompleted(callback);
+				opt.map = Q3D.application.loadTextureFile(m.image.url, () => {
+					this._loadCompleted(callback);
 				});
 				defer = true;
 			}
@@ -2347,19 +2339,18 @@ class Q3DMaterials extends THREE.EventDispatcher {
 	}
 
 	addFromObject3D(object) {
-		var mtls = [];
+		const materials = new Set();
 
-		object.traverse(function (obj) {
+		object.traverse((obj) => {
 			if (obj.material === undefined) return;
-			((Array.isArray(obj.material)) ? obj.material : [obj.material]).forEach(function (mtl) {
-				if (mtls.indexOf(mtl) == -1) {
-					mtls.push(mtl);
-				}
-			});
+
+			for (const material of (Array.isArray(obj.material) ? obj.material : [obj.material])) {
+				materials.add(material);
+			}
 		});
 
-		for (var i = 0, l = mtls.length; i < l; i++) {
-			this.array.push(new Q3DMaterial().set(mtls[i]));
+		for (const material of materials) {
+			this.array.push(new Q3DMaterial().set(material));
 		}
 	}
 
@@ -2512,7 +2503,7 @@ class Q3DDEMBlockBase {
 			m = data.materials[i];
 
 			mtl = new Q3DMaterial();
-			mtl.loadData(m, function () {
+			mtl.loadData(m, () => {
 				layer.requestRender();
 			});
 			this.materials[m.mtlIndex] = mtl;
@@ -2657,14 +2648,10 @@ class Q3DDEMBlockBase {
 			[[x0, y1, grid_values[grid_values.length - w]],
 			 [x1, y1, grid_values[grid_values.length - 1]],
 			 [x1, y0, grid_values[w - 1]],
-			 [x0, y0, grid_values[0]]].forEach(function (v) {
-
-				vl.push([v[0], v[1], v[2], v[0], v[1], z0]);
-
-			});
+			 [x0, y0, grid_values[0]]].forEach(v => vl.push([v[0], v[1], v[2], v[0], v[1], z0]));
 		}
 
-		vl.forEach(function (v) {
+		vl.forEach((v) => {
 
 			var geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
 			var obj = new THREE.Line(geom, material);
@@ -2739,7 +2726,7 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 		};
 
 		if (grid.url !== undefined) {
-			Q3D.application.loadFile(grid.url, "arraybuffer", function (buf) {
+			Q3D.application.loadFile(grid.url, "arraybuffer", (buf) => {
 				grid.values = new Float32Array(buf);
 				buildGeometry(grid);
 			});
@@ -2880,9 +2867,7 @@ class Q3DClippedDEMBlock extends Q3DDEMBlockBase {
 		};
 
 		if (data.geom.url !== undefined) {
-			Q3D.application.loadFile(data.geom.url, "json", function (obj) {
-				buildGeometry(obj);
-			});
+			Q3D.application.loadFile(data.geom.url, "json", obj => buildGeometry(obj));
 		}
 		else {    // local mode or WebKit Bridge
 			buildGeometry(data.geom);
@@ -2951,10 +2936,9 @@ class Q3DMapLayer extends THREE.EventDispatcher {
 		object.userData.layerId = this.id;
 		this.objectGroup.add(object);
 
-		var o = this.objects;
-		object.traverse(function (obj) {
-			o.push(obj);
-		});
+		const o = this.objects;
+		object.traverse(obj => o.push(obj));
+
 		return this.objectGroup.children.length - 1;
 	}
 
@@ -2966,7 +2950,7 @@ class Q3DMapLayer extends THREE.EventDispatcher {
 
 	clearObjects() {
 		// dispose of geometries
-		this.objectGroup.traverse(function (obj) {
+		this.objectGroup.traverse((obj) => {
 			if (obj.geometry) obj.geometry.dispose();
 		});
 
@@ -3074,9 +3058,9 @@ class Q3DDEMLayer extends Q3DMapLayer {
 			this._loadAuxiliaryMaterials(data.properties);
 
 			if (data.body !== undefined && data.body.blocks !== undefined) {
-				data.body.blocks.forEach(function (block) {
+				data.body.blocks.forEach((block) => {
 					this.buildBlock(block, scene, this);
-				}, this);
+				});
 			}
 		}
 		else if (data.type == "block") {
@@ -3085,18 +3069,17 @@ class Q3DDEMLayer extends Q3DMapLayer {
 	}
 
 	_loadAuxiliaryMaterials(p) {
-		["sides", "edges", "wireframe"].forEach(function (a) {
+		["sides", "edges", "wireframe"].forEach((a) => {
 			if (!p[a]) return;
 
 			const m = new Q3DMaterial();
 			m.loadData(p[a].mtl);
 			this.materials.add(m);
 			this.auxiliaryMtl[a] = m;
-		}, this);
+		});
 	}
 
 	buildBlock(data, scene, layer) {
-		const _this = this;
 
 		let block = this.blocks[data.block];
 		if (block === undefined) {
@@ -3112,19 +3095,19 @@ class Q3DDEMLayer extends Q3DMapLayer {
 			this.blocks[data.block] = block;
 		}
 
-		block.loadData(data, this, function (mesh) {
+		block.loadData(data, this, (mesh) => {
 			// add auxiliary objects
 			if (layer.properties.sides) {	// sides and bottom
-				block.buildSides(_this, mesh, layer.auxiliaryMtl.sides.mtl, layer.properties.sides.bottom);
-				_this.sideVisible = true;
+				block.buildSides(this, mesh, layer.auxiliaryMtl.sides.mtl, layer.properties.sides.bottom);
+				this.sideVisible = true;
 			}
 
 			if (layer.properties.edges) {
-				block.addEdges(_this, mesh, layer.auxiliaryMtl.edges.mtl, (layer.properties.sides) ? layer.properties.sides.bottom : undefined);
+				block.addEdges(this, mesh, layer.auxiliaryMtl.edges.mtl, (layer.properties.sides) ? layer.properties.sides.bottom : undefined);
 			}
 
 			if (layer.properties.wireframe) {
-				block.addWireframe(_this, mesh, layer.auxiliaryMtl.wireframe.mtl);
+				block.addWireframe(this, mesh, layer.auxiliaryMtl.wireframe.mtl);
 
 				mesh.material.polygonOffset = true;
 				mesh.material.polygonOffsetFactor = 1;
@@ -3133,7 +3116,7 @@ class Q3DDEMLayer extends Q3DMapLayer {
 
 			delete data.grid;	// no longer needed
 
-			_this.requestRender();
+			this.requestRender();
 		});
 	}
 
@@ -3178,7 +3161,7 @@ class Q3DDEMLayer extends Q3DMapLayer {
 
 	setSideVisible(visible) {
 		this.sideVisible = visible;
-		this.objectGroup.traverse(function (obj) {
+		this.objectGroup.traverse((obj) => {
 			if (obj.name == "side" || obj.name == "bottom") obj.visible = visible;
 		});
 	}
@@ -3319,8 +3302,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 	buildLabels(features, getPointsFunc) {
 		if (this.properties.label === undefined || getPointsFunc === undefined) return;
 
-		var _this = this,
-			p = this.properties,
+		var p = this.properties,
 			label = p.label,
 			bs = this.sceneData.baseExtent.width * 0.016,
 			sc = bs * Math.pow(1.2, label.size);
@@ -3363,7 +3345,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 			if (!text) continue;
 
 			partIdx = 0;
-			getPointsFunc(f).forEach(function (pt) {
+			getPointsFunc(f).forEach((pt) => {
 
 				// label position
 				vec = new THREE.Vector3(pt[0], pt[1], (label.relative) ? pt[2] + f.lh : f.lh);
@@ -3399,7 +3381,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 				ctx.fillText(text, x, y);
 
 				mtl = new THREE.SpriteMaterial({
-					map: new THREE.TextureLoader(Q3D.application.loadingManager).load(canvas.toDataURL(), function () { _this.requestRender(); }),
+					map: new THREE.TextureLoader(Q3D.application.loadingManager).load(canvas.toDataURL(), () => this.requestRender()),
 					transparent: true
 				});
 
@@ -3443,7 +3425,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 					}
 				}
 				partIdx++;
-			}, this);
+			});
 		}
 	}
 
@@ -3477,13 +3459,13 @@ class Q3DVectorLayer extends Q3DMapLayer {
 				this.materials.loadData(data.body.materials);
 			}
 
-			(data.body.blocks || []).forEach(function (block) {
+			(data.body.blocks || []).forEach((block) => {
 				if (block.url !== undefined) Q3D.application.loadJSONFile(block.url);
 				else {
 					this.build(block.features, block.startIndex);
 					if (this.properties.label !== undefined) this.buildLabels(block.features);
 				}
-			}, this);
+			});
 		}
 		else if (data.type == "block") {
 			this.build(data.features, data.startIndex);
@@ -3518,12 +3500,10 @@ class Q3DPointLayer extends Q3DVectorLayer {
 	loadData(data, scene) {
 		if (data.type == "layer" && data.properties.objType == "3D Model" && data.body !== undefined) {
 			if (this.models === undefined) {
-				var _this = this;
-
 				this.models = new Q3DModels();
-				this.models.addEventListener("modelLoaded", function (event) {
-					_this.materials.addFromObject3D(event.model.scene);
-					_this.requestRender();
+				this.models.addEventListener("modelLoaded", (event) => {
+					this.materials.addFromObject3D(event.model.scene);
+					this.requestRender();
 				});
 			}
 			else {
@@ -3663,7 +3643,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 			callbackOnLoad: function () {}
 		};
 
-		features.forEach(function (f, fidx) {
+		features.forEach((f, fidx) => {
 
 			var material = (f.mtl) ? this.materials.get(f.mtl.idx) : errMtl;
 
@@ -3681,7 +3661,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 				sprites.push(sprite);
 			}
 
-			material.callbackOnLoad(function () {
+			material.callbackOnLoad(() => {
 				var img = material.mtl.map.image;
 				for (var i = 0; i < sprites.length; i++) {
 					sprites[i].scale.set(f.geom.size,
@@ -3692,7 +3672,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 			});
 
 			this.addFeature(fidx + startIndex, f, sprites);
-		}, this);
+		});
 	}
 
 	buildModels(features, startIndex) {
@@ -3700,7 +3680,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 			e = new THREE.Euler(),
 			deg2rad = Q3D.deg2rad;
 
-		features.forEach(function (f, fidx) {
+		features.forEach((f, fidx) => {
 
 			var model = this.models.get(f.model);
 			if (!model) {
@@ -3720,7 +3700,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 				groups.push(group);
 			}
 
-			model.callbackOnLoad(function (m) {
+			model.callbackOnLoad((m) => {
 				var group, obj;
 				for (var i = 0; i < groups.length; i++) {
 					group = groups[i];
@@ -3749,11 +3729,11 @@ class Q3DPointLayer extends Q3DVectorLayer {
 			});
 
 			this.addFeature(fidx + startIndex, f, groups);
-		}, this);
+		});
 	}
 
 	buildLabels(features) {
-		super.buildLabels(features, function (f) { return f.geom.pts; });
+		super.buildLabels(features, f => f.geom.pts);
 	}
 
 }
@@ -4042,14 +4022,11 @@ class Q3DLineLayer extends Q3DVectorLayer {
 				this.materials.add(mtl);
 			}
 
-			var _this = this;
-			this.objectGroup.traverse(function (obj) {
-
+			this.objectGroup.traverse((obj) => {
 				if (obj.userData.mtl !== undefined) {
-					obj.material = _this.materials.mtl(obj.userData.mtl.idx);
+					obj.material = this.materials.mtl(obj.userData.mtl.idx);
 					computeLineDistances(obj);
 				}
-
 			});
 		}
 	}
@@ -4236,13 +4213,13 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 	}
 
 	buildLabels(features) {
-		super.buildLabels(features, function (f) { return f.geom.centroids; });
+		super.buildLabels(features, f => f.geom.centroids);
 	}
 
 	setBorderVisible(visible) {
 		if (this.properties.objType != "Overlay") return;
 
-		this.objectGroup.children.forEach(function (parent) {
+		this.objectGroup.children.forEach((parent) => {
 			for (var i = 0, l = parent.children.length; i < l; i++) {
 				var obj = parent.children[i];
 				if (obj instanceof THREE.Line) obj.visible = visible;
@@ -4254,7 +4231,7 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 	setSideVisible(visible) {
 		if (this.properties.objType != "Overlay") return;
 
-		this.objectGroup.children.forEach(function (parent) {
+		this.objectGroup.children.forEach((parent) => {
 			for (const obj of parent.children) {
 				if (obj instanceof THREE.Mesh) obj.visible = visible;
 			}
@@ -4273,18 +4250,16 @@ class Q3DModel {
 
 	// callback is called when model has been completely loaded
 	load(url, callback) {
-		var _this = this;
-		Q3D.application.loadModelFile(url, function (model) {
-			_this.model = model;
-			_this._loadCompleted(callback);
+		Q3D.application.loadModelFile(url, (model) => {
+			this.model = model;
+			this._loadCompleted(callback);
 		});
 	}
 
 	loadBytes(data, ext, resourcePath, callback) {
-		var _this = this;
-		Q3D.application.loadModelData(data, ext, resourcePath, function (model) {
-			_this.model = model;
-			_this._loadCompleted(callback);
+		Q3D.application.loadModelData(data, ext, resourcePath, (model) => {
+			this.model = model;
+			this._loadCompleted(callback);
 		});
 	}
 
