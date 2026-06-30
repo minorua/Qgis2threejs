@@ -3176,6 +3176,7 @@ class Q3DDEMLayer extends Q3DMapLayer {
 			opt = {};
 			opt.map = new THREE.CanvasTexture(canvas);
 			opt.map.anisotropy = Q3D.Config.texture.anisotropy;
+			opt.map.colorSpace = THREE.SRGBColorSpace;
 			opt.transparent = true;
 
 			mtl = undefined;
@@ -3356,6 +3357,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 					map: new THREE.TextureLoader(Q3D.application.loadingManager).load(canvas.toDataURL(), () => this.requestRender()),
 					transparent: true
 				});
+				mtl.map.colorSpace = THREE.SRGBColorSpace;
 
 				sprite = new THREE.Sprite(mtl);
 				if (hasUnderline) {
