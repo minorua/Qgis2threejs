@@ -3963,7 +3963,7 @@ class Q3DLineLayer extends Q3DVectorLayer {
 		}
 		else {
 			for (const origMtl of this.origMtls.array) {
-				const mtl = origMtl.mtl;
+				let mtl = origMtl.mtl;
 
 				if (mtl.isLineDashedMaterial) {
 					mtl.gapSize = 1;
