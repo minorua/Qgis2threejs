@@ -1316,23 +1316,16 @@ Q3D.E = function (id) {
 		var saveBlob = function (blob) {
 			var filename = "image.png";
 
-			// ie
-			if (window.navigator.msSaveBlob !== undefined) {
-				window.navigator.msSaveBlob(blob, filename);
-				gui.popup.hide();
-			}
-			else {
-				if (app._canvasImageUrl) URL.revokeObjectURL(app._canvasImageUrl);
-				app._canvasImageUrl = URL.createObjectURL(blob);
+			if (app._canvasImageUrl) URL.revokeObjectURL(app._canvasImageUrl);
+			app._canvasImageUrl = URL.createObjectURL(blob);
 
-				// display a link to save the image
-				var e = document.createElement("a");
-				e.className = "download-link";
-				e.href = app._canvasImageUrl;
-				e.download = filename;
-				e.innerHTML = "Save";
-				gui.popup.show("Click to save the image to a file." + e.outerHTML, "Image is ready");
-			}
+			// display a link to save the image
+			var e = document.createElement("a");
+			e.className = "download-link";
+			e.href = app._canvasImageUrl;
+			e.download = filename;
+			e.innerHTML = "Save";
+			gui.popup.show("Click to save the image to a file." + e.outerHTML, "Image is ready");
 		};
 
 		var saveCanvasImage = saveImageFunc || function (canvas) {
