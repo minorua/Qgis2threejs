@@ -89,18 +89,19 @@ class AnimationPanel(QWidget):
             self.playAnimation(repeat=self.ui.checkBoxLoop.isChecked())
 
     def playAnimation(self, items=None, repeat=False):
-        self.wnd.settings.setAnimationData(self.data())
+        settings = self.wnd.settings
+        settings.setAnimationData(self.data())
 
         self._warnings = []
 
         dataList = []
         if items is None:
-            for track in self.wnd.settings.enabledValidTracks(warning_log=self._log):
+            for track in settings.enabledValidTracks(warning_log=self._log):
                 layerId = track.get("layerId")
                 if layerId is None:
                     dataList.append(track)
                 else:
-                    layer = self.wnd.settings.getLayerByJSLayerId(layerId)
+                    layer = settings.getLayerByJSLayerId(layerId)
                     if layer:
                         t = track.get("type")
                         if t in (ATConst.ITEM_TRK_TEXTURE, ATConst.ITEM_TRK_GROWING_LINE):
@@ -118,7 +119,7 @@ class AnimationPanel(QWidget):
                     mapLayerId = None
 
                 if mapLayerId:
-                    layer = self.wnd.settings.getLayer(mapLayerId)
+                    layer = settings.getLayer(mapLayerId)
                     self._updateLayer(layer, t)
 
                 data = self.tree.transitionData(item, exclude_narration=bool(t & ATConst.ITEM_MBR))
@@ -566,7 +567,7 @@ class AnimationTreeWidget(QTreeWidget):
         d = {
             "type": track.type(),
             "name": track.text(0),
-            "enabled": bool(track.checkState(0)),
+            "enabled": bool(track.checkState(0) == Qt.CheckState.Checked),
             "keyframes": [self.keyframe(item) for item in items]
         }
 
