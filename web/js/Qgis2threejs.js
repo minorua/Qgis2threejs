@@ -1845,7 +1845,7 @@ Q3D.E = function (id) {
 					label.innerHTML = opacity + " %";
 				};
 
-				const o = parseInt(layer.opacity * 100);
+				const o = Math.round(layer.opacity * 100);
 				slider.value = o;
 				setLabel(o);
 
@@ -1860,7 +1860,7 @@ Q3D.E = function (id) {
 				if (select) {
 					select.addEventListener("change", function () {
 						layer.currentMtlIndex = this.value;
-						const o = parseInt(layer.opacity * 100);
+						const o = Math.round(layer.opacity * 100);
 						slider.value = o;
 						setLabel(o);
 					});
