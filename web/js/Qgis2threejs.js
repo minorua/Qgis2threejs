@@ -1893,12 +1893,14 @@ class Q3DGroup extends THREE.Group {
 	add(object) {
 		super.add(object);
 		object.updateMatrixWorld();
+		return this;
 	}
 
 	clear() {
 		for (var i = this.children.length - 1; i >= 0; i--) {
 			this.remove(this.children[i]);
 		}
+		return this;
 	}
 
 }
@@ -1937,6 +1939,7 @@ class Q3DScene extends THREE.Scene {
 	add(object) {
 		super.add(object);
 		object.updateMatrixWorld();
+		return this;
 	}
 
 	forEachLayer(callback) {
