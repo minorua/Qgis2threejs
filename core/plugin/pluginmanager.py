@@ -4,6 +4,7 @@
 # begin: 2015-05-22
 
 import importlib
+import re
 import sys
 
 from qgis.PyQt.QtCore import QDir, QSettings
@@ -42,13 +43,16 @@ class PluginManager:
             plugins = p.split(",") if p else []
 
         for name in plugins:
+            name = name.strip()
+            if not name or not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', name):
+                continue
             try:
-                modname = "Qgis2threejs.plugins." + str(name)
+                modname = "Qgis2threejs.plugins." + name
                 module = importlib.reload(sys.modules[modname]) if modname in sys.modules else importlib.import_module(modname)
                 self.modules.append(module)
                 self.plugins.append(getattr(module, "plugin_class"))
             except ImportError:
-                logger.error("Failed to load plugin: " + str(name))
+                logger.error("Failed to load plugin: " + name)
 
     def demProviderPlugins(self):
         plugins = []
