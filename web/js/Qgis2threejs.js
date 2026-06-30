@@ -3292,7 +3292,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 
 		canvas.height = ch;
 
-		var f, text, partIdx, vec, sprite, mtl, geom, conn, x, y, j, sc;
+		var f, text, partIdx, vec, sprite, mtl, geom, conn, x, y, j;
 		var underline;
 
 		for (var i = 0, l = features.length; i < l; i++) {
