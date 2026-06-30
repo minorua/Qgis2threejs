@@ -1139,7 +1139,6 @@ Q3D.E = function (id) {
 		var vec2 = new THREE.Vector2((offsetX / app.width) * 2 - 1,
 								    -(offsetY / app.height) * 2 + 1);
 		var ray = new THREE.Raycaster();
-		ray.linePrecision = 0.2;
 		ray.setFromCamera(vec2, app.camera);
 		return ray.intersectObjects(app.scene.visibleObjects(app.labelVisible));
 	};
