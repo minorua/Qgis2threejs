@@ -2,6 +2,7 @@
 # (C) 2022 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import os
 from qgis.PyQt.QtCore import QDir, QProcess, QSettings, QUrl
 from qgis.PyQt.QtGui import QDesktopServices
 from qgis.PyQt.QtWidgets import QFileDialog
@@ -29,7 +30,7 @@ def openUrl(url):
     if url.fileName().endswith((".html", ".htm")):
         settings = QSettings()
         browserPath = settings.value("/Qgis2threejs/browser", "", type=str)
-        if browserPath:
+        if browserPath and os.path.isfile(browserPath) and os.access(browserPath, os.X_OK):
             if QProcess.startDetached(browserPath, [url.toString()]):
                 return
             else:
