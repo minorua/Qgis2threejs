@@ -2172,11 +2172,6 @@ class Q3DMaterial {
 				});
 				defer = true;
 			}
-			else if (m.image.object !== undefined) {    // WebKit Bridge
-				opt.map = new THREE.Texture(m.image.object.toImageData());
-				opt.map.needsUpdate = true;
-				delete m.image.object;
-			}
 			else {    // base64
 				opt.map = new THREE.TextureLoader(Q3D.application.loadingManager).load(m.image.base64);
 				defer = true;
@@ -2737,10 +2732,6 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 				grid.values = new Float32Array(bytes.buffer);
 				delete grid.base64;
 			}
-			else if (grid.binary !== undefined) {
-				// WebKit Bridge
-				grid.values = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
-			}
 			buildGeometry(grid);
 		}
 
@@ -2794,10 +2785,6 @@ class Q3DDEMTileBlock extends Q3DDEMBlockBase {
 				var bytes = Q3D.Utils.base64ToUint8Array(grid.base64);
 				grid.values = new Float32Array(bytes.buffer);
 				delete grid.base64;
-			}
-			else if (grid.binary !== undefined) {
-				// WebKit Bridge
-				grid.values = new Float32Array(grid.binary.buffer, 0, grid.width * grid.height);
 			}
 			buildGeometry(grid);
 		}
@@ -2869,7 +2856,7 @@ class Q3DClippedDEMBlock extends Q3DDEMBlockBase {
 		if (data.geom.url !== undefined) {
 			Q3D.application.loadFile(data.geom.url, "json", obj => buildGeometry(obj));
 		}
-		else {    // local mode or WebKit Bridge
+		else {    // preview
 			buildGeometry(data.geom);
 		}
 
@@ -3169,16 +3156,6 @@ class Q3DDEMLayer extends Q3DMapLayer {
 	// texture animation
 	prepareTexAnimation(from, to) {
 
-		function imageData2Canvas(img) {
-			var cnvs = document.createElement("canvas");
-			cnvs.width = img.width;
-			cnvs.height = img.height;
-
-			var ctx = cnvs.getContext("2d");
-			ctx.putImageData(img, 0, 0);
-			return cnvs;
-		}
-
 		this.anim = [];
 
 		var m, canvas, ctx, opt, mtl;
@@ -3212,11 +3189,6 @@ class Q3DDEMLayer extends Q3DMapLayer {
 			}
 			if (mtl === undefined) {
 				mtl = new THREE.MeshLambertMaterial(opt);
-			}
-
-			if (img_from instanceof ImageData) {    // WebKit Bridge
-				img_from = imageData2Canvas(img_from);
-				img_to = imageData2Canvas(img_to);
 			}
 
 			block.obj.material = mtl;

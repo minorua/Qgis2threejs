@@ -35,8 +35,8 @@
   height: 64px;
   left: 50%;
   top: 50%;
-  -webkit-filter: grayscale(1);
-  -webkit-transform: translate3d(-50%, -50%, 0);
+  filter: grayscale(1);
+  transform: translate(-50%, -50%);
 }
 
 #msgbar {
