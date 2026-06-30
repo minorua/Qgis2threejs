@@ -208,11 +208,10 @@ Q3D.E = function (id) {
 	/*
 	Q3D.application
 	*/
-	var listeners = {};
+	const listeners = {};
 	app.dispatchEvent = function (event) {
-		var ls = listeners[event.type] || [];
-		for (var i = 0; i < ls.length; i++) {
-			ls[i](event);
+		for (const listener of listeners[event.type] || []) {
+			listener(event);
 		}
 	};
 
@@ -411,12 +410,11 @@ Q3D.E = function (id) {
 	};
 
 	app.parseUrlParameters = function () {
-		var p, vars = {};
-		var params = window.location.search.substring(1).split('&').concat(window.location.hash.substring(1).split('&'));
-		params.forEach((param) => {
-			p = param.split('=');
+		const vars = {};
+		for (const param of window.location.search.substring(1).split('&').concat(window.location.hash.substring(1).split('&'))) {
+			const p = param.split('=');
 			vars[p[0]] = p[1];
-		});
+		}
 		return vars;
 	};
 
@@ -2313,22 +2311,23 @@ class Q3DMaterials extends THREE.EventDispatcher {
 	}
 
 	loadData(data) {
-		var _this = this, iterated = false;
-		var callback = function () {
-			if (iterated) _this.dispatchEvent({type: "renderRequest"});
+		let iterated = false;
+
+		const callback = () => {
+			if (iterated) this.dispatchEvent({type: "renderRequest"});
 		};
 
-		for (var i = 0, l = data.length; i < l; i++) {
-			var mtl = new Q3DMaterial();
-			mtl.loadData(data[i], callback);
+		for (const m of data) {
+			const mtl = new Q3DMaterial();
+			mtl.loadData(m, callback);
 			this.add(mtl);
 		}
 		iterated = true;
 	}
 
 	dispose() {
-		for (var i = 0, l = this.array.length; i < l; i++) {
-			this.array[i].dispose();
+		for (const m of this.array) {
+			m.dispose();
 		}
 		this.array = [];
 	}
@@ -2353,20 +2352,18 @@ class Q3DMaterials extends THREE.EventDispatcher {
 	opacity() {
 		if (this.array.length == 0) return 1;
 
-		var sum = 0;
-		for (var i = 0, l = this.array.length; i < l; i++) {
-			sum += this.array[i].mtl.opacity;
+		let sum = 0;
+		for (const m of this.array) {
+			sum += m.mtl.opacity;
 		}
 		return sum / this.array.length;
 	}
 
 	setOpacity(opacity) {
-		let m, t;
-		for (let i = 0, l = this.array.length; i < l; i++) {
-			m = this.array[i];
+		for (const m of this.array) {
 			m.mtl.opacity = opacity;
 
-			t = Boolean(m.origProp.t) || (opacity < 1);
+			const t = Boolean(m.origProp.t) || (opacity < 1);
 			if (m.mtl.transparent !== t) {
 				m.mtl.transparent = t;
 				m.mtl.needsUpdate = true;
@@ -2376,9 +2373,7 @@ class Q3DMaterials extends THREE.EventDispatcher {
 
 	// wireframe: boolean
 	setWireframeMode(wireframe) {
-		var m;
-		for (var i = 0, l = this.array.length; i < l; i++) {
-			m = this.array[i];
+		for (const m of this.array) {
 			if (m.origProp.w || m.mtl instanceof THREE.LineBasicMaterial) continue;
 			m.mtl.wireframe = wireframe;
 		}
@@ -2493,14 +2488,9 @@ class Q3DDEMBlockBase {
 		this.data = data;
 
 		// load material
-		var m, mtl;
-		for (var i = 0, l = (data.materials || []).length; i < l; i++) {
-			m = data.materials[i];
-
-			mtl = new Q3DMaterial();
-			mtl.loadData(m, () => {
-				layer.requestRender();
-			});
+		for (const m of data.materials || []) {
+			const mtl = new Q3DMaterial();
+			mtl.loadData(m, () => layer.requestRender());
 			this.materials[m.mtlIndex] = mtl;
 
 			if (m.useNow) {
@@ -2646,14 +2636,12 @@ class Q3DDEMBlockBase {
 			 [x0, y0, grid_values[0]]].forEach(v => vl.push([v[0], v[1], v[2], v[0], v[1], z0]));
 		}
 
-		vl.forEach((v) => {
-
-			var geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-			var obj = new THREE.Line(geom, material);
+		for (const v of vl) {
+			const geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+			const obj = new THREE.Line(geom, material);
 			obj.name = "frame";
 			parent.add(obj);
-
-		});
+		}
 
 		parent.updateMatrixWorld();
 	}
