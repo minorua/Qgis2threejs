@@ -120,6 +120,15 @@ Q3D.Config = {
 		k: 0.2    // size factor for ortho camera
 	},
 
+	tmarker: {
+		enabled: true,
+		radius: 0.01,
+		details: 1,
+		color: 0xff0000,
+		opacity: 0.4,
+		k: 0.2    // size factor for ortho camera
+	},
+
 	measure: {
 		marker: {
 			radius: 0.004,
@@ -361,8 +370,8 @@ Q3D.E = function (id) {
 		// labels
 		app.labelVisible = conf.label.visible;
 
-		// create a marker for queried point
-		var opt = conf.qmarker;
+		// query marker (identify marker)
+		let opt = conf.qmarker;
 		app.queryMarker = new THREE.Mesh(new THREE.SphereGeometry(opt.radius, 32, 32),
 										 new THREE.MeshLambertMaterial({color: opt.color, opacity: opt.opacity, transparent: (opt.opacity < 1)}));
 		app.queryMarker.name = "marker";
@@ -373,6 +382,69 @@ Q3D.E = function (id) {
 		};
 
 		app.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5, side: THREE.DoubleSide});
+
+		// camera target marker (focus marker)
+		opt = conf.tmarker;
+		if (opt.enabled) {
+
+			function createCross(size = 32, color = "#cc6666", canvasSize = 64, lineWidth = 6, gap = 8, length = 30) {
+				const canvas = document.createElement("canvas");
+				canvas.width = canvas.height = canvasSize;
+
+				const ctx = canvas.getContext("2d");
+				ctx.strokeStyle = color;
+				ctx.lineWidth = lineWidth;
+
+				const hs = canvasSize / 2;
+
+				ctx.beginPath();
+
+				ctx.moveTo(hs - length, hs);
+				ctx.lineTo(hs - gap, hs);
+
+				ctx.moveTo(hs + gap, hs);
+				ctx.lineTo(hs + length, hs);
+
+				ctx.moveTo(hs, hs - length);
+				ctx.lineTo(hs, hs - gap);
+
+				ctx.moveTo(hs, hs + gap);
+				ctx.lineTo(hs, hs + length);
+
+				ctx.stroke();
+
+				const geometry = new THREE.BufferGeometry();
+				geometry.setAttribute("position", new THREE.Float32BufferAttribute([0, 0, 0], 3));
+
+				const material = new THREE.PointsMaterial({
+					map: new THREE.CanvasTexture(canvas),
+					size: size,
+					sizeAttenuation: false,
+					transparent: true
+				});
+				return new THREE.Points(geometry, material);
+			}
+
+			app.targetMarker = createCross();
+			app.targetMarker.name = "target";
+			app.targetMarker.visible = false;
+
+			app.controls.addEventListener("change", (event) => {
+				if (app.controls.autoRotate) return;
+
+				app.targetMarker.position.copy(app.controls.target);
+				app.targetMarker.updateMatrixWorld();
+
+				app.targetMarker.material.opacity = 1;
+
+				if (!app.targetMarker.visible) {
+					app.targetMarker.visible = true;
+					requestAnimationFrame(app.animate);
+				}
+			});
+
+			app.scene.add(app.targetMarker);
+		}
 
 		// loading manager
 		app.initLoadingManager();
@@ -774,16 +846,36 @@ Q3D.E = function (id) {
 	app.animate = function () {
 
 		if (app.animation.isActive) {
+
 			requestAnimationFrame(app.animate);
 
 			if (app.animation.keyframes.isActive) TWEEN.update();
 			else if (app.controls.enabled) app.controls.update();
-		}
-		else if (app.viewHelper && app.viewHelper.animating) {
+
+		} else if (app.viewHelper && app.viewHelper.animating) {
+
 			requestAnimationFrame(app.animate);
 
 			anim_timer.update();
 			app.viewHelper.update(anim_timer.getDelta());
+
+		} else if (app.targetMarker && app.targetMarker.visible) {
+
+			let opacity = app.targetMarker.material.opacity;
+			opacity = Math.max(0, opacity - 0.00001) ** 2;
+
+			if (opacity > 0.3) {
+
+				app.targetMarker.material.opacity = opacity;
+				requestAnimationFrame(app.animate);
+
+			}
+			else {
+
+				app.targetMarker.visible = false;
+
+			}
+
 		}
 
 		app.render(true);
