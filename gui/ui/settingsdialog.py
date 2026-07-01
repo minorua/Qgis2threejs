@@ -12,26 +12,9 @@ from qgis.PyQt import QtCore, QtGui, QtWidgets
 class Ui_SettingsDialog(object):
     def setupUi(self, SettingsDialog):
         SettingsDialog.setObjectName("SettingsDialog")
-        SettingsDialog.resize(475, 434)
+        SettingsDialog.resize(475, 385)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(SettingsDialog)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.groupBox = QtWidgets.QGroupBox(parent=SettingsDialog)
-        self.groupBox.setObjectName("groupBox")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.groupBox)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.label = QtWidgets.QLabel(parent=self.groupBox)
-        self.label.setObjectName("label")
-        self.verticalLayout_2.addWidget(self.label)
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.lineEdit_BrowserPath = QtWidgets.QLineEdit(parent=self.groupBox)
-        self.lineEdit_BrowserPath.setObjectName("lineEdit_BrowserPath")
-        self.horizontalLayout.addWidget(self.lineEdit_BrowserPath)
-        self.pushButton_Browse = QtWidgets.QPushButton(parent=self.groupBox)
-        self.pushButton_Browse.setObjectName("pushButton_Browse")
-        self.horizontalLayout.addWidget(self.pushButton_Browse)
-        self.verticalLayout_2.addLayout(self.horizontalLayout)
-        self.verticalLayout_3.addWidget(self.groupBox)
         self.groupBox_2 = QtWidgets.QGroupBox(parent=SettingsDialog)
         self.groupBox_2.setObjectName("groupBox_2")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.groupBox_2)
@@ -68,16 +51,11 @@ class Ui_SettingsDialog(object):
         self.buttonBox.accepted.connect(SettingsDialog.accept) # type: ignore
         self.buttonBox.rejected.connect(SettingsDialog.reject) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(SettingsDialog)
-        SettingsDialog.setTabOrder(self.lineEdit_BrowserPath, self.pushButton_Browse)
-        SettingsDialog.setTabOrder(self.pushButton_Browse, self.tableWidget_Plugins)
         SettingsDialog.setTabOrder(self.tableWidget_Plugins, self.textBrowser_Plugin)
 
     def retranslateUi(self, SettingsDialog):
         _translate = QtCore.QCoreApplication.translate
         SettingsDialog.setWindowTitle(_translate("SettingsDialog", "Qgis2threejs Exporter Settings"))
-        self.groupBox.setTitle(_translate("SettingsDialog", "General"))
-        self.label.setText(_translate("SettingsDialog", "Web browser path"))
-        self.pushButton_Browse.setText(_translate("SettingsDialog", "Browse..."))
         self.groupBox_2.setTitle(_translate("SettingsDialog", "Optional Features"))
         self.label_2.setText(_translate("SettingsDialog", "Description"))
         self.label_3.setText(_translate("SettingsDialog", "The changes will take effect after restarting the exporter."))

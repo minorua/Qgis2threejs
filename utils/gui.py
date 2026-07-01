@@ -21,20 +21,11 @@ def openFile(file_path):
 
 
 def openUrl(url):
-    """Open a URL using a configured browser if set, otherwise the default browser.
+    """Open a URL using the default browser.
 
     Args:
         url: QUrl object.
     """
-    if url.fileName().endswith((".html", ".htm")):
-        settings = QSettings()
-        browserPath = settings.value("/Qgis2threejs/browser", "", type=str)
-        if browserPath:
-            if QProcess.startDetached(browserPath, [url.toString()]):
-                return
-            else:
-                logger.warning("Incorrect web browser path. Open URL using default web browser.")
-
     QDesktopServices.openUrl(url)
 
 

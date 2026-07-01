@@ -20,16 +20,11 @@ class SettingsDialog(QDialog):
     def __init__(self, parent):
         QDialog.__init__(self, parent)
 
-        # Set up the user interface from Designer.
         self.ui = ui = Ui_SettingsDialog()
         ui.setupUi(self)
-        ui.lineEdit_BrowserPath.setPlaceholderText("Leave this empty to use the default browser.")
-        ui.pushButton_Browse.clicked.connect(self.browseClicked)
         ui.buttonBox.helpRequested.connect(self.helpClicked)
 
         # load settings
-        settings = QSettings()
-        ui.lineEdit_BrowserPath.setText(settings.value("/Qgis2threejs/browser", "", type=str))
         enabled_plugins = QSettings().value("/Qgis2threejs/plugins", "", type=str).split(",")
 
         # initialize plugin table widget
@@ -73,9 +68,6 @@ class SettingsDialog(QDialog):
     def accept(self):
         settings = QSettings()
 
-        # general settings
-        settings.setValue("/Qgis2threejs/browser", self.ui.lineEdit_BrowserPath.text())
-
         # plugins
         enabled_plugins = []
         for i, metadata in enumerate(self.plugin_metadata):
@@ -86,11 +78,6 @@ class SettingsDialog(QDialog):
         settings.setValue("/Qgis2threejs/plugins", ",".join(enabled_plugins))
 
         QDialog.accept(self)
-
-    def browseClicked(self):
-        filename, _ = QFileDialog.getOpenFileName(self, self.tr("Select browser"))
-        if filename != "":
-            self.ui.lineEdit_BrowserPath.setText(filename)
 
     def helpClicked(self):
         openHelp(f"dlg=settings")

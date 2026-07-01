@@ -7,43 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>475</width>
-    <height>434</height>
+    <height>385</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Qgis2threejs Exporter Settings</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
-   <item>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>General</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Web browser path</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QLineEdit" name="lineEdit_BrowserPath"/>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_Browse">
-          <property name="text">
-           <string>Browse...</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
@@ -93,18 +63,16 @@
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Help|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Help|QDialogButtonBox::StandardButton::Ok</set>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
  <tabstops>
-  <tabstop>lineEdit_BrowserPath</tabstop>
-  <tabstop>pushButton_Browse</tabstop>
   <tabstop>tableWidget_Plugins</tabstop>
   <tabstop>textBrowser_Plugin</tabstop>
  </tabstops>
