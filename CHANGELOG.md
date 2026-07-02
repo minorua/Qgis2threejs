@@ -1,5 +1,14 @@
 ## CHANGELOG
 
+### Version 3.1
+- Updated three.js library to r184
+- Replaced meshline library with pmndrs/meshline v3.3.1
+- Switched polygon triangulation to QgsTessellator using the Earcut algorithm
+- Removed Potree data support
+- Removed local mode option from export dialog
+- Removed Mobile template
+- Removed browser path setting from plugin settings dialog
+
 ### Version 3.0
 - The preview now runs in a separate process
 - Dropped support for QWebView (WebKit) and PyQt5

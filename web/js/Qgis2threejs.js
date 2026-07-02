@@ -7,7 +7,7 @@ import { OrbitControls } from "three/controls/OrbitControls.js";
 
 export const Q3D = {
 
-	VERSION: "3.0",
+	VERSION: "3.1",
 	application: {},
 	gui: {}
 
