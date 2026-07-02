@@ -3162,6 +3162,7 @@ class Q3DDEMLayer extends Q3DMapLayer {
 			opt.map = new THREE.CanvasTexture(canvas);
 			opt.map.anisotropy = Q3D.Config.texture.anisotropy;
 			opt.map.colorSpace = THREE.SRGBColorSpace;
+			opt.side = THREE.DoubleSide;
 			opt.transparent = true;
 
 			mtl = undefined;

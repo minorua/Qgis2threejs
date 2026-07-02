@@ -204,11 +204,13 @@ class MaterialManager(DataManager):
         return self._indexCol(self.WIREFRAME, color, opacity)
 
     def getMapImageIndex(self, width, height, extent, opacity=1, transp_background=False, shading=True, format="PNG"):
-        mtl = (self.MAP_IMAGE, None, opacity, True, ((width, height, extent, transp_background, format), shading))
+        doubleSide = True
+        mtl = (self.MAP_IMAGE, None, opacity, doubleSide, ((width, height, extent, transp_background, format), shading))
         return self._index(mtl)
 
     def getLayerImageIndex(self, layerids, width, height, extent, opacity=1, transp_background=False, shading=True, format="PNG"):
-        mtl = (self.LAYER_IMAGE, None, opacity, True, ((layerids, width, height, extent, transp_background, format), shading))
+        doubleSide = True
+        mtl = (self.LAYER_IMAGE, None, opacity, doubleSide, ((layerids, width, height, extent, transp_background, format), shading))
         return self._index(mtl)
 
     def getImageFileIndex(self, path, opacity=1, transp_background=False, doubleSide=False, shading=True):
