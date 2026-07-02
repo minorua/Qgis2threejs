@@ -132,6 +132,8 @@ function loadData(data, viaQueue) {
 	else if (data.type == "signal") {
 		if (data.name = "queueCompleted") {
 			tasksAndLoadingFinalized(data.success, data.is_scene);
+			setTimeout(() => app.render(), 300);	// Temporary workaround: schedule a delayed redraw to ensure changes
+													// to the scene are rendered even on low-performance systems.
 		}
 	}
 	else if (data.type == "labels") {
