@@ -1,0 +1,10 @@
+.valign-top td {
+    vertical-align: top;
+}
+
+#content img.inline-icon {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0;
+    width: 16px;
+}
