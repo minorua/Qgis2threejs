@@ -1,0 +1,216 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2014, Minoru Akagi
+# This file is distributed under the same license as the Qgis2threejs Plugin
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2022.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Qgis2threejs Plugin 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-03-22 09:50+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../../source/WebViewerTemplates.rst:2
+msgid "Web Viewer Templates"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:7
+msgid ""
+"In Export to Web dialog, you can choose one from following available web "
+"viewer templates:"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:10
+msgid ":ref:`3dviewer-template`"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:11
+msgid ":ref:`3dviewer-dat-gui-template`"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:12
+msgid ":ref:`mobile-template`"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:16
+msgid "Common Functions"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:18
+msgid ""
+"There is a list of mouse/keyboard controls in about box. Press ``I`` key "
+"to show the box."
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:22
+msgid "Identifying Features"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:24
+msgid ""
+"When you click on a 3D object, layer name that the object belongs to and "
+"the clicked coordinates (in order of x, y, z) are displayed. If "
+"``Latitude and longitude (WGS84)`` option in World Settings is selected, "
+"longitude and latitude are in DMS format (degrees, minutes and seconds). "
+"If ``Export attributes`` option of each vector layer is selected, "
+"attribute values of the clicked feature follows them."
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:33
+msgid "Rotate Animation (Orbiting)"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:35
+msgid ""
+"Pressing ``R`` key starts/stops rotate animation. Camera rotates around "
+"the camera target clockwise."
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:39
+msgid "Save Image"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:41
+msgid ""
+"Press ``Shift + S`` to show save image dialog, then enter image size and "
+"click the OK button. In addition, with some web browsers, you need to "
+"click a link to save image. The image file format is PNG. To change label"
+" color and/or adjust label size, edit ``Qgis2threejs.css`` (``print-"
+"label`` class)."
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:46
+msgid "A known issue: Wrong image output if the size is too large (`issue #42`__)"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:52
+msgid "URL Parameters"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:54
+msgid ""
+"You can get current view URL in the about box, and later restore the view"
+" by entering the URL in the URL box of web browser."
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:57
+msgid "Parameters used in view URL:"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:59
+msgid "cx, cy, cz: camera position"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:60
+msgid "tx, ty, tz: camera target"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:62
+msgid ""
+"For example, "
+"file:///D:/example.html#cx=-64.8428840144039&cy=-40.75234765087484&cz=24.603200058346065"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:65
+msgid "Other parameters:"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:67
+msgid "width: canvas width (pixels)"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:68
+msgid "height: canvas height (pixels)"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:69
+msgid "popup: pop up another window with specified width and height"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:75
+msgid "3D Viewer Template"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:77
+msgid ""
+"This template is a simple 3D viewer. Ragardless of \"Visible on load\" "
+"layer setting, all exported layers are displayed on page load."
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:86
+msgid "3D Viewer(dat-gui) Template"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:88
+msgid ""
+"This template has a dat-gui panel, which allows changing layer visibility"
+" and opacity, and adding a horizontal plane."
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:94
+msgid "Controls Box"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:95
+msgid "The controls box has:"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:97
+msgid "layer sub menus"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:99
+msgid "Each sub menu has:"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:101
+msgid "a check box to toggle layer visibility"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:102
+msgid "a slider to change layer opacity"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:104
+msgid "sub menu to control a vertically movable plane"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:105
+msgid "help button to show the about box"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:111
+msgid "Mobile Template"
+msgstr ""
+
+#: ../../source/WebViewerTemplates.rst:113
+msgid ""
+"This is a template for mobile devices, which has mobile friendly GUI and "
+"experimental AR feature. In order to use the AR feature (Camera and GPS),"
+" you need to upload exported files to a web server supporting SSL."
+msgstr ""
+
+#: ../../source/replace_images.txt:3
+msgid "plugin_icon"
+msgstr ""
+
+#: ../../source/replace_images.txt:4
+msgid "crs_icon"
+msgstr ""
+
+#: ../../source/replace_images.txt
+msgid "Mt_Fuji"
+msgstr ""
+
+#: ../../source/replace_images.txt
+msgid "ForestBasins"
+msgstr ""
+

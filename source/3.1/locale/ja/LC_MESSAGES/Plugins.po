@@ -1,0 +1,74 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Qgis2threejs plugin 1.4-dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-03-22 09:50+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../../source/Plugins.rst:2
+msgid "Optional Feature"
+msgstr "オプションの機能"
+
+#: ../../source/Plugins.rst:10
+msgid ""
+"To use this feature, you need to go to the settings dialog and activate "
+"the feature."
+msgstr "この機能を使用するには設定ダイアログで機能を有効化する必要があります。"
+
+#: ../../source/Plugins.rst:14
+msgid "GSI Elevation Tile Provider (DEM Provider)"
+msgstr "地理院標高タイルプロバイダ (DEMプロバイダ)"
+
+#: ../../source/Plugins.rst:16
+#, fuzzy
+msgid ""
+"This DEM provider fetchs GSI Tiles elevation data from web server of "
+"Geospatial Information Authority of Japan, and provides elevation data to"
+" Qgis2threejs. The tiled elevation data is based on the popular map tile "
+"system known as \"XYZ tile\", and each tile data is provided in the "
+"format of CSV. It covers the area of Japan in zoom levels from 0 to 14. "
+"Read and follow `Geospatial Information Authority of Japan Website Terms "
+"of Use <https://www.gsi.go.jp/ENGLISH/page_e30286.html>`__."
+msgstr ""
+"このDEMプロバイダは国土地理院のWebサーバから地理院標高タイルをダウンロードしてQgis2threejsに標高データを供給します。タイル化された標高データは\"XYZタイル\"として知られる一般的な地図タイルにもとづいており、それぞれのタイルデータはCSV形式で提供されます。日本の領域をズームレベル0～14でカバーします。利用にあたっては"
+" `国土地理院コンテンツ利用規約 "
+"<http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html>`__ "
+"をよく読んで、それに従って下さい。"
+
+#: ../../source/Plugins.rst:24
+msgid "Technical information (in Japanese):"
+msgstr "技術情報:"
+
+#: ../../source/Plugins.rst:26
+#, fuzzy
+msgid ""
+"Specification of elevation tile: "
+"https://maps.gsi.go.jp/development/demtile.html"
+msgstr "標高タイルの詳細仕様: http://maps.gsi.go.jp/development/demtile.html "
+
+#: ../../source/replace_images.txt:3
+msgid "plugin_icon"
+msgstr ""
+
+#: ../../source/replace_images.txt:4
+msgid "crs_icon"
+msgstr ""
+
+#: ../../source/replace_images.txt
+msgid "Mt_Fuji"
+msgstr ""
+
+#: ../../source/replace_images.txt
+msgid "ForestBasins"
+msgstr ""
+
+#~ msgid "Now being updated for Qgis2threejs version 2.0."
+#~ msgstr ""
+

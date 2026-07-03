@@ -1,0 +1,152 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Qgis2threejs plugin 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-10-30 13:58+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../source/WebViewer.rst:2
+msgid "Web Viewer"
+msgstr ""
+
+#: ../../source/WebViewer.rst:4
+msgid "Now being updated for coming Qgis2threejs version 2.2."
+msgstr ""
+
+#: ../../source/WebViewer.rst:7
+msgid "Controls"
+msgstr ""
+
+#: ../../source/WebViewer.rst:9
+msgid ""
+"Mouse and keyboard operation method depends on the control selected in the "
+"export settings. There is list of mouse buttons and keys in the about box. "
+"Press ``I`` key to show the box."
+msgstr ""
+
+#: ../../source/WebViewer.rst:14
+msgid "Identifying Features"
+msgstr ""
+
+#: ../../source/WebViewer.rst:16
+msgid ""
+"When you click on a 3D object, layer name that the object belongs to and the"
+" clicked coordinates (in order of x, y, z) are displayed. If ``Latitude and "
+"longitude (WGS84)`` option in World Settings is selected, longitude and "
+"latitude are in DMS format (degrees, minutes and seconds). If ``Export "
+"attributes`` option of each vector layer is selected, attribute values of "
+"the clicked feature follows them."
+msgstr ""
+
+#: ../../source/WebViewer.rst:24
+msgid "Controls Box"
+msgstr ""
+
+#: ../../source/WebViewer.rst:26
+msgid "This feature is available with **3DViewer(dat-gui) template**."
+msgstr ""
+
+#: ../../source/WebViewer.rst:28
+msgid "The controls box has:"
+msgstr ""
+
+#: ../../source/WebViewer.rst:30
+msgid "layer sub menus"
+msgstr ""
+
+#: ../../source/WebViewer.rst:32
+msgid "Each sub menu has:"
+msgstr ""
+
+#: ../../source/WebViewer.rst:34
+msgid "a check box to toggle layer visibility"
+msgstr ""
+
+#: ../../source/WebViewer.rst:35
+msgid "a slider to adjust layer transparency"
+msgstr ""
+
+#: ../../source/WebViewer.rst:37
+msgid "sub menu to control a vertically movable plane"
+msgstr ""
+
+#: ../../source/WebViewer.rst:38
+msgid "help button to show the about box"
+msgstr ""
+
+#: ../../source/WebViewer.rst:41
+msgid "Rotate Animation (Orbiting)"
+msgstr ""
+
+#: ../../source/WebViewer.rst:43
+msgid ""
+"Pressing ``R`` key starts/stops rotate animation. Camera rotates around the "
+"camera target clockwise."
+msgstr ""
+
+#: ../../source/WebViewer.rst:47
+msgid "Save Image"
+msgstr ""
+
+#: ../../source/WebViewer.rst:49
+msgid ""
+"Press ``Shift + S`` to show save image dialog, then enter image size and "
+"click the OK button. In addition, with some web browsers, you need to click "
+"a link to save image. The image file format is PNG. To change label color "
+"and/or adjust label size, edit ``Qgis2threejs.css`` (``print-label`` class)."
+msgstr ""
+
+#: ../../source/WebViewer.rst:54
+msgid ""
+"A known issue: Wrong image output if the size is too large (`issue #42`__)"
+msgstr ""
+
+#: ../../source/WebViewer.rst:60
+msgid "URL Parameters"
+msgstr ""
+
+#: ../../source/WebViewer.rst:62
+msgid ""
+"You can get current view URL in the about box, and later restore the view by"
+" entering the URL in the URL box of web browser."
+msgstr ""
+
+#: ../../source/WebViewer.rst:65
+msgid "Parameters used in view URL:"
+msgstr ""
+
+#: ../../source/WebViewer.rst:67
+msgid "cx, cy, cz: camera position"
+msgstr ""
+
+#: ../../source/WebViewer.rst:68
+msgid "tx, ty, tz: camera target"
+msgstr ""
+
+#: ../../source/WebViewer.rst:70
+msgid ""
+"For example, "
+"file:///D:/example.html#cx=-64.8428840144039&cy=-40.75234765087484&cz=24.603200058346065"
+msgstr ""
+
+#: ../../source/WebViewer.rst:73
+msgid "Other parameters:"
+msgstr ""
+
+#: ../../source/WebViewer.rst:75
+msgid "width: canvas width (pixels)"
+msgstr ""
+
+#: ../../source/WebViewer.rst:76
+msgid "height: canvas height (pixels)"
+msgstr ""
+
+#: ../../source/WebViewer.rst:77
+msgid "popup: pop up another window with specified width and height"
+msgstr ""
