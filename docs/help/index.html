@@ -6,10 +6,17 @@
     <meta name="robots" content="noindex">
     <script>
         (function () {
-            const docVersions = ["2.8", "2.9", "2.10"];
+            const docVersions = ["2.8", "2.9", "2.10", "3.1"];
+            const versionMap = {
+                "3.0": "2.10"
+            };
 
             const params = new URLSearchParams(window.location.search);
-            const version = params.get("version").split(".").slice(0, 2).join(".");
+            let version = params.get("version").split(".").slice(0, 2).join(".");
+
+            if (versionMap[version]) {
+                version = versionMap[version];
+            }
 
             if (docVersions.includes(version)) {
                 const dlg = params.get("dlg") || "";
