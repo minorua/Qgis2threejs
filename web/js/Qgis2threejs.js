@@ -4384,36 +4384,23 @@ Q3D.Utils.createWallGeometry = (vert, bzFunc) => {
 	return geom;
 };
 
-Q3D.Utils.arrayToVec2Array = function (points) {
-	var pt, pts = [];
-	for (var i = 0, l = points.length; i < l; i++) {
-		pt = points[i];
-		pts.push(new THREE.Vector2(pt[0], pt[1]));
-	}
-	return pts;
+Q3D.Utils.arrayToVec2Array = (points) => {
+	return points.map(([x, y]) => new THREE.Vector2(x, y));
 };
 
-Q3D.Utils.flatArrayToVec2Array = function (vertices, itemSize) {
+Q3D.Utils.flatArrayToVec2Array = (vertices, itemSize) => {
 	itemSize = itemSize || 2;
-	var pts = [];
-	for (var i = 0, l = vertices.length; i < l; i += itemSize) {
+	const pts = [];
+	for (let i = 0; i < vertices.length; i += itemSize) {
 		pts.push(new THREE.Vector2(vertices[i], vertices[i + 1]));
 	}
 	return pts;
 };
 
-Q3D.Utils.setGeometryUVs = function (geom, base_width, base_height) {
-	var face, v, uvs = [];
-	for (var i = 0, l = geom.vertices.length; i < l; i++) {
-		v = geom.vertices[i];
-		uvs.push(new THREE.Vector2(v.x / base_width + 0.5, v.y / base_height + 0.5));
-	}
+Q3D.Utils.setGeometryUVs = (geom, baseWidth, baseHeight) => {
+	const uvs = geom.vertices.map(({ x, y }) => new THREE.Vector2(x / baseWidth + 0.5, y / baseHeight + 0.5));
 
-	geom.faceVertexUvs[0] = [];
-	for (var i = 0, l = geom.faces.length; i < l; i++) {
-		face = geom.faces[i];
-		geom.faceVertexUvs[0].push([uvs[face.a], uvs[face.b], uvs[face.c]]);
-	}
+	geom.faceVertexUvs[0] = geom.faces.map(({ a, b, c }) => [uvs[a], uvs[b], uvs[c]]);
 };
 
 Q3D.Utils.base64ToUint8Array = (base64) => {
