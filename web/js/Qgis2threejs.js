@@ -2853,29 +2853,25 @@ class Q3DClippedDEMBlock extends Q3DDEMBlockBase {
 	}
 
 	buildSides(layer, parent, material, z0) {
-		const polygons = this.data.polygons;
 		const bzFunc = (_x, _y) => z0;
 
 		// make back-side material for bottom
-		var mat_back = material.clone();
+		const mat_back = material.clone();
 		mat_back.side = THREE.BackSide;
 		layer.materials.add(mat_back);
 
-		var geom, mesh, shape;
-		for (var i = 0, l = polygons.length; i < l; i++) {
-			var bnds = polygons[i];
-
+		let geom, mesh, shape;
+		for (const bnds of this.data.polygons) {
 			// sides
-			for (var j = 0, m = bnds.length; j < m; j++) {
-				geom = Q3D.Utils.createWallGeometry(bnds[j], bzFunc);
+			for (const bnd of bnds) {
+				geom = Q3D.Utils.createWallGeometry(bnd, bzFunc);
 				mesh = new THREE.Mesh(geom, material);
 				mesh.name = "side";
 				parent.add(mesh);
 			}
-
 			// bottom
 			shape = new THREE.Shape(Q3D.Utils.flatArrayToVec2Array(bnds[0], 3));
-			for (j = 1, m = bnds.length; j < m; j++) {
+			for (let j = 1, m = bnds.length; j < m; j++) {
 				shape.holes.push(new THREE.Path(Q3D.Utils.flatArrayToVec2Array(bnds[j], 3)));
 			}
 			geom = new THREE.ShapeGeometry(shape);
@@ -2919,8 +2915,8 @@ class Q3DMapLayer extends THREE.EventDispatcher {
 	}
 
 	addObjects(objects) {
-		for (var i = 0; i < objects.length; i++) {
-			this.addObject(objects[i]);
+		for (const obj of objects) {
+			this.addObject(obj);
 		}
 	}
 
@@ -3243,8 +3239,8 @@ class Q3DVectorLayer extends Q3DMapLayer {
 	addFeature(featureIdx, f, objs) {
 		super.addObjects(objs);
 
-		for (var i = 0; i < objs.length; i++) {
-			objs[i].userData.featureIdx = featureIdx;
+		for (const obj of objs) {
+			obj.userData.featureIdx = featureIdx;
 		}
 		f.objs = objs;
 
@@ -3494,21 +3490,22 @@ class Q3DPointLayer extends Q3DVectorLayer {
 			[unitGeom, transform] = this.geomAndTransformFunc(objType);
 		}
 
-		var f, mtl, pts, i, l, mesh, meshes;
-		for (var fidx = 0; fidx < features.length; fidx++) {
-			f = features[fidx];
-			pts = f.geom.pts;
-			mtl = this.materials.mtl(f.mtl.idx);
+		for (let fidx = 0; fidx < features.length; fidx++) {
+			const f = features[fidx];
+			const { pts } = f.geom;
+			const material = this.materials.mtl(f.mtl.idx);
 
-			meshes = [];
-			for (i = 0, l = pts.length; i < l; i++) {
-				mesh = new THREE.Mesh(unitGeom, mtl);
-				transform(mesh, f.geom, pts[i]);
+			const meshes = [];
 
+			for (const pt of pts) {
+				const mesh = new THREE.Mesh(unitGeom, material);
+
+				transform(mesh, f.geom, pt);
 				mesh.userData.properties = f.prop;
 
 				meshes.push(mesh);
 			}
+
 			this.addFeature(fidx + startIndex, f, meshes);
 		}
 
@@ -3594,23 +3591,24 @@ class Q3DPointLayer extends Q3DVectorLayer {
 
 	buildBillboards(features, startIndex) {
 
-		var errMtl = {
+		const errMtl = {
 			mtl: new THREE.SpriteMaterial({color: 0xffffff}),
-			callbackOnLoad: function () {}
+			callbackOnLoad: () => {}
 		};
 
 		features.forEach((f, fidx) => {
 
-			var material = (f.mtl) ? this.materials.get(f.mtl.idx) : errMtl;
+			const material = (f.mtl) ? this.materials.get(f.mtl.idx) : errMtl;
 
 			if (!f.mtl) {
 				console.warn("[" + this.properties.name + "] Billboard: There is a missing material.");
 			}
 
-			var sprite, sprites = [];
-			for (var i = 0; i < f.geom.pts.length; i++) {
-				sprite = new THREE.Sprite(material.mtl);
-				sprite.position.fromArray(f.geom.pts[i]);
+			const sprites = [];
+			for (const pt of f.geom.pts) {
+				const sprite = new THREE.Sprite(material.mtl);
+
+				sprite.position.fromArray(pt);
 				sprite.scale.set(f.geom.size, f.geom.size, 1);
 				sprite.userData.properties = f.prop;
 
@@ -3618,12 +3616,12 @@ class Q3DPointLayer extends Q3DVectorLayer {
 			}
 
 			material.callbackOnLoad(() => {
-				var img = material.mtl.map.image;
-				for (var i = 0; i < sprites.length; i++) {
-					sprites[i].scale.set(f.geom.size,
-										 f.geom.size * img.height / img.width,
-										 1);
-					sprites[i].updateMatrixWorld();
+				const { image } = material.mtl.map;
+				const scaleY = f.geom.size * image.height / image.width;
+
+				for (const sprite of sprites) {
+					sprite.scale.set(f.geom.size, scaleY, 1);
+					sprite.updateMatrixWorld();
 				}
 			});
 
@@ -3632,54 +3630,63 @@ class Q3DPointLayer extends Q3DVectorLayer {
 	}
 
 	buildModels(features, startIndex) {
-		var q = new THREE.Quaternion(),
-			e = new THREE.Euler(),
-			deg2rad = Q3D.deg2rad;
+		const q = new THREE.Quaternion(),
+			  e = new THREE.Euler(),
+			  deg2rad = Q3D.deg2rad;
 
 		features.forEach((f, fidx) => {
+			const model = this.models.get(f.model);
 
-			var model = this.models.get(f.model);
 			if (!model) {
-				console.warn("[" + this.properties.name + "] 3D Model: There is a missing model.");
+				console.warn(`[${this.properties.name}] 3D Model: There is a missing model.`);
 				return;
 			}
 
-			var groups = [];
-			var pts = f.geom.pts;
-			for (var i = 0; i < pts.length; i++) {
-				var group = new Q3DGroup();
-				group.position.fromArray(pts[i]);
-				group.scale.set(1, 1, this.sceneData.zScale);
+			const groups = [];
 
+			for (const pt of f.geom.pts) {
+				const group = new Q3DGroup();
+
+				group.position.fromArray(pt);
+				group.scale.set(1, 1, this.sceneData.zScale);
 				group.userData.properties = f.prop;
 
 				groups.push(group);
 			}
 
-			model.callbackOnLoad((m) => {
-				var group, obj;
-				for (var i = 0; i < groups.length; i++) {
-					group = groups[i];
+			model.callbackOnLoad((loadedModel) => {
+				const {
+					scale,
+					rotateX,
+					rotateY,
+					rotateZ,
+					rotateO = "XYZ"
+				} = f.geom;
 
-					obj = m.scene.clone();
-					obj.scale.setScalar(f.geom.scale);
+				for (const group of groups) {
+					const obj = loadedModel.scene.clone();
+
+					obj.scale.setScalar(scale);
+
+					q.setFromEuler(
+						e.set(
+							rotateX * deg2rad,
+							rotateY * deg2rad,
+							rotateZ * deg2rad,
+							rotateO
+						)
+					);
 
 					if (obj.rotation.x) {
-						// reset coordinate system to z-up and specified rotation
+						// Reset coordinate system to z-up and apply the specified rotation.
 						obj.rotation.set(0, 0, 0);
-						obj.quaternion.multiply(q.setFromEuler(e.set(f.geom.rotateX * deg2rad,
-																		f.geom.rotateY * deg2rad,
-																		f.geom.rotateZ * deg2rad,
-																		f.geom.rotateO || "XYZ")));
-					}
-					else {
-						// y-up to z-up and specified rotation
-						obj.quaternion.multiply(q.setFromEuler(e.set(f.geom.rotateX * deg2rad,
-																		f.geom.rotateY * deg2rad,
-																		f.geom.rotateZ * deg2rad,
-																		f.geom.rotateO || "XYZ")));
+						obj.quaternion.multiply(q);
+					} else {
+						// Convert y-up to z-up and apply the specified rotation.
+						obj.quaternion.multiply(q);
 						obj.quaternion.multiply(q.setFromEuler(e.set(Math.PI / 2, 0, 0)));
 					}
+
 					group.add(obj);
 				}
 			});
@@ -3715,21 +3722,21 @@ class Q3DLineLayer extends Q3DVectorLayer {
 
 		if (this._lastObjType !== this.properties.objType) this._createObject = null;
 
-		var createObject = this._createObject || this.createObjFunc(this.properties.objType);
+		const createObject = this._createObject || this.createObjFunc(this.properties.objType);
 
-		var f, i, lines, obj, objs;
-		for (var fidx = 0; fidx < features.length; fidx++) {
-			f = features[fidx];
-			lines = f.geom.lines;
+		for (let fidx = 0; fidx < features.length; fidx++) {
+			const f = features[fidx];
+			const objs = [];
 
-			objs = [];
-			for (i = 0; i < lines.length; i++) {
-				obj = createObject(f, lines[i]);
+			for (const line of f.geom.lines) {
+				const obj = createObject(f, line);
+
 				obj.userData.properties = f.prop;
 				obj.userData.mtl = f.mtl;
 
 				objs.push(obj);
 			}
+
 			this.addFeature(fidx + startIndex, f, objs);
 		}
 
@@ -3924,15 +3931,15 @@ class Q3DLineLayer extends Q3DVectorLayer {
 
 		if (this.origMtls !== undefined) return;
 
-		function computeLineDistances(obj) {
+		const computeLineDistances = (obj) => {
 			if (!obj.material.isLineDashedMaterial) return;
 
 			obj.computeLineDistances();
 
-			var dists = obj.geometry.attributes.lineDistance.array;
+			const dists = obj.geometry.attributes.lineDistance.array;
 			obj.lineLength = dists[dists.length - 1];
 
-			for (var i = 0; i < dists.length; i++) {
+			for (let i = 0; i < dists.length; i++) {
 				dists[i] /= obj.lineLength;
 			}
 		}
@@ -3943,10 +3950,9 @@ class Q3DLineLayer extends Q3DVectorLayer {
 		this.materials.array = [];
 
 		if (sequential) {
-			var f, m, mtl, j;
-			for (var i = 0; i < this.features.length; i++) {
-				f = this.features[i];
-				m = f.objs[0].material;
+			for (const f of this.features) {
+				const m = f.objs[0].material;
+				let mtl;
 
 				if (m.isMeshLineMaterial) {
 					mtl = new THREE_EX.meshline.MeshLineMaterial();
@@ -3961,15 +3967,19 @@ class Q3DLineLayer extends Q3DVectorLayer {
 						mtl = m.clone();
 					}
 					else {
-						mtl = new THREE.LineDashedMaterial({color: m.color, opacity: m.opacity});
+						mtl = new THREE.LineDashedMaterial({
+							color: m.color,
+							opacity: m.opacity
+						});
 					}
 					mtl.gapSize = 1;
 				}
 
-				for (j = 0; j < f.objs.length; j++) {
-					f.objs[j].material = mtl;
-					computeLineDistances(f.objs[j]);
+				for (const obj of f.objs) {
+					obj.material = mtl;
+					computeLineDistances(obj);
 				}
+
 				this.materials.add(mtl);
 			}
 		}
@@ -3985,47 +3995,44 @@ class Q3DLineLayer extends Q3DVectorLayer {
 					mtl.transparent = true;
 				}
 				else if (mtl.isLineBasicMaterial) {
-					mtl = new THREE.LineDashedMaterial({color: mtl.color, opacity: mtl.opacity});
+					mtl = new THREE.LineDashedMaterial({
+						color: mtl.color,
+						opacity: mtl.opacity
+					});
 				}
 
 				this.materials.add(mtl);
 			}
 
 			this.objectGroup.traverse((obj) => {
-				if (obj.userData.mtl !== undefined) {
-					obj.material = this.materials.mtl(obj.userData.mtl.idx);
-					computeLineDistances(obj);
-				}
+				if (obj.userData.mtl === undefined) return;
+
+				obj.material = this.materials.mtl(obj.userData.mtl.idx);
+				computeLineDistances(obj);
 			});
 		}
 	}
 
 	// length: number [0 - 1]
 	setLineLength(length, featureIdx) {
-
 		if (this.origMtls === undefined) return;
 
-		var mtl;
+		const setLength = (m) => {
+			if (m.isLineDashedMaterial) {
+				m.dashSize = length;
+			}
+			else if (m.isMeshLineMaterial) {
+				m.uniforms.dashOffset.value = -length;
+			}
+		};
+
 		if (featureIdx === undefined) {
-			var mtls = this.materials.array;
-			for (var i = 0; i < mtls.length; i++) {
-				mtl = mtls[i].mtl;
-				if (mtl.isLineDashedMaterial) {
-					mtl.dashSize = length;
-				}
-				else if (mtl.isMeshLineMaterial) {
-					mtl.uniforms.dashOffset.value = -length;
-				}
+			for (const { mtl } of this.materials.array) {
+				setLength(mtl);
 			}
 		}
 		else {
-			mtl = this.features[featureIdx].objs[0].material;
-			if (mtl.isLineDashedMaterial) {
-				mtl.dashSize = length;
-			}
-			else if (mtl.isMeshLineMaterial) {
-				mtl.uniforms.dashOffset.value = -length;
-			}
+			setLength(this.features[featureIdx].objs[0].material);
 		}
 	}
 
@@ -4076,50 +4083,48 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 		}
 		else if (objType == "Extruded") {
 			const createSubObject = (f, polygon, z) => {
-				var i, l, j, m;
+				const shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
 
-				var shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
-				for (i = 1, l = polygon.length; i < l; i++) {
+				for (let i = 1; i < polygon.length; i++) {
 					shape.holes.push(new THREE.Path(Q3D.Utils.arrayToVec2Array(polygon[i])));
 				}
 
-				// extruded geometry
-				var geom = new THREE.ExtrudeGeometry(shape, {bevelEnabled: false, depth: f.geom.h});
-				var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
+				const { h } = f.geom;
+
+				const mesh = new THREE.Mesh(
+					new THREE.ExtrudeGeometry(shape, {
+						bevelEnabled: false,
+						depth: h
+					}),
+					materials.mtl(f.mtl.idx)
+				);
 				mesh.position.z = z;
 
 				if (f.mtl.edge !== undefined) {
-					// edge
-					var edge, bnd, v,
-						h = f.geom.h,
-						mtl = materials.mtl(f.mtl.edge);
+					const edgeMtl = materials.mtl(f.mtl.edge);
 
-					for (i = 0, l = polygon.length; i < l; i++) {
-						bnd = polygon[i];
+					for (const boundary of polygon) {
+						const v = [];
 
-						v = [];
-						for (j = 0, m = bnd.length; j < m; j++) {
-							v.push(bnd[j][0], bnd[j][1], 0);
+						for (const point of boundary) {
+							v.push(point[0], point[1], 0);
 						}
 
-						geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+						const hGeom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
 
-						edge = new THREE.Line(geom, mtl);
-						mesh.add(edge);
+						const bottomEdge = new THREE.Line(hGeom, edgeMtl);
+						mesh.add(bottomEdge);
 
-						edge = new THREE.Line(geom, mtl);
-						edge.position.z = h;
-						mesh.add(edge);
+						const topEdge = new THREE.Line(hGeom, edgeMtl);
+						topEdge.position.z = h;
+						mesh.add(topEdge);
 
-						// vertical lines
-						for (j = 0, m = bnd.length - 1; j < m; j++) {
-							v = [bnd[j][0], bnd[j][1], 0,
-									bnd[j][0], bnd[j][1], h];
+						// vertical edges
+						for (let i = 0; i < boundary.length - 1; i++) {
+							const [x, y] = boundary[i];
 
-							geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-
-							edge = new THREE.Line(geom, mtl);
-							mesh.add(edge);
+							const vGeom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute([x, y, 0, x, y, h], 3));
+							mesh.add(new THREE.Line(vGeom, edgeMtl));
 						}
 					}
 				}
@@ -4145,14 +4150,14 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 		else if (objType == "Overlay") {
 
 			return (f) => {
-				var geom = new THREE.BufferGeometry();
+				const geom = new THREE.BufferGeometry();
 				geom.setIndex(f.geom.triangles.f);
 				geom.setAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
 				geom.computeVertexNormals();
 
-				var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
+				const mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
 
-				var rotation = this.sceneData.baseExtent.rotation;
+				const { rotation } = this.sceneData.baseExtent;
 				if (rotation) {
 					// rotate around center of base extent
 					mesh.position.copy(this.sceneData.pivot).negate();
@@ -4163,13 +4168,13 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 
 				// borders
 				if (f.geom.brdr !== undefined) {
-					var bnds, i, l, j, m;
-					for (i = 0, l = f.geom.brdr.length; i < l; i++) {
-						bnds = f.geom.brdr[i];
-						for (j = 0, m = bnds.length; j < m; j++) {
-							geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(bnds[j], 3));
+					const bMtl = materials.mtl(f.mtl.brdr);
 
-							mesh.add(new THREE.Line(geom, materials.mtl(f.mtl.brdr)));
+					for (const boundaries of f.geom.brdr) {
+						for (const vertices of boundaries) {
+							const bGeom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+
+							mesh.add(new THREE.Line(bGeom, bMtl));
 						}
 					}
 				}
@@ -4276,19 +4281,20 @@ class Q3DModels extends THREE.EventDispatcher {
 			this.dispatchEvent({type: "modelLoaded", model: model});
 		};
 
-		var model, url;
-		for (var i = 0, l = data.length; i < l; i++) {
+		for (const modelData of data) {
+			const { url } = modelData;
 
-			url = data[i].url;
-			if (url !== undefined && this.cache[url] !== undefined) {
-				model = this.cache[url];
-			}
-			else {
+			let model = this.cache[url];
+
+			if (model === undefined) {
 				model = new Q3DModel();
-				model.loadData(data[i], callback);
+				model.loadData(modelData, callback);
 
-				if (url !== undefined) this.cache[url] = model;
+				if (url !== undefined) {
+					this.cache[url] = model;
+				}
 			}
+
 			this.models.push(model);
 		}
 	}
