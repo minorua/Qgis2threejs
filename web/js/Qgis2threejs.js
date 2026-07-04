@@ -3304,9 +3304,10 @@ class Q3DVectorLayer extends Q3DMapLayer {
 
 				if (label.bgcolor !== undefined) {
 					ctx.fillStyle = label.bgcolor;
-					ctx.roundRect((cw - tw) / 2, (ch - th) / 2, tw, th, 4).fill();
+					ctx.beginPath();
+					ctx.roundRect((cw - tw) / 2, (ch - th) / 2, tw, th, 4);
+					ctx.fill();
 				}
-
 				ctx.font = font;
 				ctx.textAlign = "center";
 				ctx.textBaseline = "middle";
@@ -4594,19 +4595,4 @@ Q3D.Tweens.lineGrowing = {
 		layer.setLineLength(0);
 	}
 
-};
-
-
-// https://stackoverflow.com/a/7838871
-CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-	if (w < 2 * r) r = w / 2;
-	if (h < 2 * r) r = h / 2;
-	this.beginPath();
-	this.moveTo(x + r, y);
-	this.arcTo(x + w, y, x + w, y + h, r);
-	this.arcTo(x + w, y + h, x, y + h, r);
-	this.arcTo(x, y + h, x, y, r);
-	this.arcTo(x, y, x + w, y, r);
-	this.closePath();
-	return this;
 };
