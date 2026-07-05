@@ -1,6 +1,11 @@
 {
   "compilerOptions": {
     "checkJs": true,
-    "strict": false
+    "strict": false,
+
+    "paths": {
+      "three": ["./web/js/lib/threejs/three.module.min.js"],
+      "three/*": ["./web/js/lib/threejs/*"]
+    }
   }
 }
