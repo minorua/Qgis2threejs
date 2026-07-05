@@ -18,3 +18,4 @@ pyrightconfig.json
 docs/build
 tests/cache
 tests/output
+web/js/types

@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+
+    "rootDir": "web/js",
+    "outDir": "web/js/types",
+
+    "paths": {
+      "three": ["./web/js/lib/threejs/three.module.min.js"],
+      "three/*": ["./web/js/lib/threejs/*"]
+    }
+  },
+  "include": [
+    "web/js/**/*.js"
+  ],
+  "exclude": [
+    "web/js/lib"
+  ]
+}
