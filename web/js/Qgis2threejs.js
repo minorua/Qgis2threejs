@@ -149,6 +149,9 @@ export const Q3D = {
 	}
 };
 
+export const deg2rad = Math.PI / 180;
+export const E = Q3D.E = (id) => document.getElementById(id);
+
 window["THREE"] = THREE;
 window["THREE_EX"] = THREE_EX;
 window["Q3D"] = Q3D;
@@ -195,17 +198,12 @@ Q3D.uv = {
 
 };
 
-Q3D.deg2rad = Math.PI / 180;
-
 Q3D.ua = window.navigator.userAgent.toLowerCase();
 Q3D.isTouchDevice = ("ontouchstart" in window);
 
-Q3D.E = (id) => document.getElementById(id);
-
 const app = Q3D.application;
-const gui = Q3D.gui;
 const conf = Q3D.Config;
-const E = Q3D.E;
+const gui = Q3D.gui;
 
 (function () {
 	const vec3 = new THREE.Vector3();
@@ -338,7 +336,7 @@ const E = Q3D.E;
 		app.scene.addEventListener("mapRotationChanged", (event) => {
 			if (app.scene2) {
 				app.scene2.lightGroup.clear();
-				app.scene2.buildLights(Q3D.Config.lights.directional, event.rotation);
+				app.scene2.buildLights(conf.lights.directional, event.rotation);
 			}
 		});
 
@@ -731,7 +729,7 @@ const E = Q3D.E;
 		});
 
 		const mesh = new THREE.Mesh(geometry, material);
-		if (declination) mesh.rotation.z = -declination * Q3D.deg2rad;
+		if (declination) mesh.rotation.z = -declination * deg2rad;
 
 		app.scene2.add(mesh);
 	};
@@ -742,8 +740,8 @@ const E = Q3D.E;
 		app.viewHelper = new THREE_EX.ViewHelper(app.camera, container);
 		app.viewHelper.center = app.controls.target;
 		app.viewHelper.setLabels("X", "Y", "Z");
-		app.viewHelper.location.top = Q3D.Config.navigation.top;
-		app.viewHelper.location.bottom = Q3D.Config.navigation.bottom;
+		app.viewHelper.location.top = conf.navigation.top;
+		app.viewHelper.location.bottom = conf.navigation.bottom;
 
 		if (_pupListenerAdded) return;
 
@@ -825,7 +823,7 @@ const E = Q3D.E;
 			easingFunction: function (easing) {
 				if (easing == 1) return TWEEN.Easing.Linear.None;
 				if (easing > 1) {
-					const f = TWEEN.Easing[Q3D.Config.animation.easingCurve];
+					const f = TWEEN.Easing[conf.animation.easingCurve];
 					if (easing == 2) return f["InOut"];
 					else if (easing == 3) return f["In"];
 					else return f["Out"];   // easing == 4
@@ -1953,7 +1951,7 @@ class Q3DScene extends THREE.Scene {
 				const rotation0 = (this.userData.baseExtent) ? this.userData.baseExtent.rotation : 0;
 				if (p.light != this.userData.light || p.baseExtent.rotation != rotation0) {
 					this.lightGroup.clear();
-					this.buildLights(Q3D.Config.lights[p.light] || Q3D.Config.lights.directional, p.baseExtent.rotation);
+					this.buildLights(conf.lights[p.light] || conf.lights.directional, p.baseExtent.rotation);
 					this.dispatchEvent({type: "lightChanged", light: p.light});
 				}
 
@@ -1964,15 +1962,15 @@ class Q3DScene extends THREE.Scene {
 				if (this.userData.origin === undefined) {
 
 					const s = be.width;
-					let v = Q3D.Config.viewpoint;
+					let v = conf.viewpoint;
 					let pos, focal;
 
 					if (v.pos === undefined) {
 						v = v.default;
 						if (be.rotation) {
 							v = {
-								pos: v.pos.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad),
-								lookAt: v.lookAt.clone().applyAxisAngle(Q3D.uv.k, be.rotation * Q3D.deg2rad)
+								pos: v.pos.clone().applyAxisAngle(Q3D.uv.k, be.rotation * deg2rad),
+								lookAt: v.lookAt.clone().applyAxisAngle(Q3D.uv.k, be.rotation * deg2rad)
 							};
 						}
 						pos = v.pos.clone().multiplyScalar(s).add(p.pivot);
@@ -2048,8 +2046,8 @@ class Q3DScene extends THREE.Scene {
 			else if (p.type == "directional") {
 				light = new THREE.DirectionalLight(p.color, p.intensity);
 				light.position.copy(Q3D.uv.j)
-							  .applyAxisAngle(Q3D.uv.i, p.altitude * Q3D.deg2rad)
-							  .applyAxisAngle(Q3D.uv.k, (rotation - p.azimuth) * Q3D.deg2rad);
+							  .applyAxisAngle(Q3D.uv.i, p.altitude * deg2rad)
+							  .applyAxisAngle(Q3D.uv.k, (rotation - p.azimuth) * deg2rad);
 			}
 			else if (p.type == "point") {
 				light = new THREE.PointLight(p.color, p.intensity, 0, p.decay);
@@ -2157,17 +2155,17 @@ class Q3DMaterial {
 		// texture
 		if (m.image !== undefined) {
 			if (m.image.url !== undefined) {
-				opt.map = Q3D.application.loadTextureFile(m.image.url, () => {
+				opt.map = app.loadTextureFile(m.image.url, () => {
 					this._loadCompleted(callback);
 				});
 				defer = true;
 			}
 			else {    // base64
-				opt.map = new THREE.TextureLoader(Q3D.application.loadingManager).load(m.image.base64);
+				opt.map = new THREE.TextureLoader(app.loadingManager).load(m.image.base64);
 				defer = true;
 				delete m.image.base64;
 			}
-			opt.map.anisotropy = Q3D.Config.texture.anisotropy;
+			opt.map.anisotropy = conf.texture.anisotropy;
 			opt.map.colorSpace = THREE.SRGBColorSpace;
 		}
 
@@ -2201,8 +2199,8 @@ class Q3DMaterial {
 		else if (m.type == Q3D.MaterialType.Line) {
 
 			if (m.dashed) {
-				opt.dashSize = Q3D.Config.line.dash.dashSize;
-				opt.gapSize = Q3D.Config.line.dash.gapSize;
+				opt.dashSize = conf.line.dash.dashSize;
+				opt.gapSize = conf.line.dash.gapSize;
 				this.mtl = new THREE.LineDashedMaterial(opt);
 			}
 			else {
@@ -2222,11 +2220,11 @@ class Q3DMaterial {
 
 			this.mtl = new THREE_EX.meshline.MeshLineMaterial(opt);
 			this._updateAspect = () => {
-				this.mtl.resolution.set(Q3D.application.width, Q3D.application.height);
+				this.mtl.resolution.set(app.width, app.height);
 			};
 
 			this._updateAspect();
-			Q3D.application.addEventListener("canvasSizeChanged", this._updateAspect);
+			app.addEventListener("canvasSizeChanged", this._updateAspect);
 		}
 		else if (m.type == Q3D.MaterialType.Sprite) {
 			opt.color = 0xffffff;
@@ -2270,7 +2268,7 @@ class Q3DMaterial {
 		this.mtl = null;
 
 		if (this._updateAspect) {
-			Q3D.application.removeEventListener("canvasSizeChanged", this._updateAspect);
+			app.removeEventListener("canvasSizeChanged", this._updateAspect);
 			this._updateAspect = undefined;
 		}
 	}
@@ -2699,7 +2697,7 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 
 		const grid = data.grid;
 		if (grid.url !== undefined) {
-			Q3D.application.loadFile(grid.url, "arraybuffer", (buf) => {
+			app.loadFile(grid.url, "arraybuffer", (buf) => {
 				grid.values = new Float32Array(buf);
 				buildGeometry(grid);
 			});
@@ -2753,7 +2751,7 @@ class Q3DDEMTileBlock extends Q3DDEMBlockBase {
 		};
 
 		if (grid.url !== undefined) {
-			Q3D.application.loadFile(grid.url, "arraybuffer", (buf) => {
+			app.loadFile(grid.url, "arraybuffer", (buf) => {
 				grid.values = new Float32Array(buf);
 				buildGeometry(grid);
 			});
@@ -2833,7 +2831,7 @@ class Q3DClippedDEMBlock extends Q3DDEMBlockBase {
 		};
 
 		if (data.geom.url !== undefined) {
-			Q3D.application.loadFile(data.geom.url, "json", obj => buildGeometry(obj));
+			app.loadFile(data.geom.url, "json", obj => buildGeometry(obj));
 		}
 		else {    // preview
 			buildGeometry(data.geom);
@@ -2936,7 +2934,7 @@ class Q3DMapLayer extends THREE.EventDispatcher {
 			// properties
 			if (data.properties !== undefined) {
 				this.properties = data.properties;
-				this.objectGroup.visible = (data.properties.visible || Q3D.Config.allVisible) ? true : false;
+				this.objectGroup.visible = (data.properties.visible || conf.allVisible) ? true : false;
 			}
 
 			this.sceneData = scene.userData;
@@ -3006,15 +3004,15 @@ class Q3DDEMLayer extends Q3DMapLayer {
 				if (rotation) {
 					// rotate around center of base extent
 					this.objectGroup.position.copy(p.pivot).negate();
-					this.objectGroup.position.applyAxisAngle(Q3D.uv.k, rotation * Q3D.deg2rad);
+					this.objectGroup.position.applyAxisAngle(Q3D.uv.k, rotation * deg2rad);
 					this.objectGroup.position.add(p.pivot);
-					this.objectGroup.rotateOnAxis(Q3D.uv.k, rotation * Q3D.deg2rad);
+					this.objectGroup.rotateOnAxis(Q3D.uv.k, rotation * deg2rad);
 				}
 			}
 			else {
 				this.objectGroup.position.copy(p.pivot);
 				this.objectGroup.position.z *= p.zScale;
-				this.objectGroup.rotation.z = rotation * Q3D.deg2rad;
+				this.objectGroup.rotation.z = rotation * deg2rad;
 			}
 			this.objectGroup.updateMatrixWorld();
 
@@ -3143,7 +3141,7 @@ class Q3DDEMLayer extends Q3DMapLayer {
 			const ctx = canvas.getContext("2d");
 
 			const tex = new THREE.CanvasTexture(canvas);
-			tex.anisotropy = Q3D.Config.texture.anisotropy;
+			tex.anisotropy = conf.texture.anisotropy;
 			tex.colorSpace = THREE.SRGBColorSpace;
 
 			const opt = {
@@ -3277,7 +3275,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 		const canvas = document.createElement("canvas");
 		const ctx = canvas.getContext("2d");
 
-		const th = Q3D.Config.label.canvasHeight;
+		const th = conf.label.canvasHeight;
 		const ch = th;
 		const font = th + "px " + (label.font || "sans-serif");
 
@@ -3326,7 +3324,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 				ctx.fillStyle = label.color;
 				ctx.fillText(text, x, y);
 
-				const tex = new THREE.TextureLoader(Q3D.application.loadingManager).load(canvas.toDataURL(), () => this.requestRender());
+				const tex = new THREE.TextureLoader(app.loadingManager).load(canvas.toDataURL(), () => this.requestRender());
 				tex.colorSpace = THREE.SRGBColorSpace;
 
 				const mtl = new THREE.SpriteMaterial({
@@ -3352,7 +3350,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 
 				this.labelGroup.add(sprite);
 
-				if (Q3D.Config.label.clickable) this.labels.push(sprite);
+				if (conf.label.clickable) this.labels.push(sprite);
 
 				if (hasConn) {
 					// a connector
@@ -3409,7 +3407,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 			}
 
 			(data.body.blocks || []).forEach((block) => {
-				if (block.url !== undefined) Q3D.application.loadJSONFile(block.url);
+				if (block.url !== undefined) app.loadJSONFile(block.url);
 				else {
 					this.build(block.features, block.startIndex);
 					if (this.properties.label !== undefined) this.buildLabels(block.features);
@@ -3508,7 +3506,6 @@ class Q3DPointLayer extends Q3DVectorLayer {
 
 	geomAndTransformFunc(objType) {
 
-		const deg2rad = Q3D.deg2rad;
 		const rx = 90 * deg2rad;
 
 		if (objType == "Sphere") {
@@ -3623,8 +3620,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 
 	buildModels(features, startIndex) {
 		const q = new THREE.Quaternion(),
-			  e = new THREE.Euler(),
-			  deg2rad = Q3D.deg2rad;
+			  e = new THREE.Euler();
 
 		features.forEach((f, fidx) => {
 			const model = this.models.get(f.model);
@@ -4153,9 +4149,9 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 				if (rotation) {
 					// rotate around center of base extent
 					mesh.position.copy(this.sceneData.pivot).negate();
-					mesh.position.applyAxisAngle(Q3D.uv.k, rotation * Q3D.deg2rad);
+					mesh.position.applyAxisAngle(Q3D.uv.k, rotation * deg2rad);
 					mesh.position.add(this.sceneData.pivot);
-					mesh.rotateOnAxis(Q3D.uv.k, rotation * Q3D.deg2rad);
+					mesh.rotateOnAxis(Q3D.uv.k, rotation * deg2rad);
 				}
 
 				// borders
@@ -4213,14 +4209,14 @@ class Q3DModel {
 
 	// callback is called when model has been completely loaded
 	load(url, callback) {
-		Q3D.application.loadModelFile(url, (model) => {
+		app.loadModelFile(url, (model) => {
 			this.model = model;
 			this._loadCompleted(callback);
 		});
 	}
 
 	loadBytes(data, ext, resourcePath, callback) {
-		Q3D.application.loadModelData(data, ext, resourcePath, (model) => {
+		app.loadModelData(data, ext, resourcePath, (model) => {
 			this.model = model;
 			this._loadCompleted(callback);
 		});
@@ -4331,7 +4327,7 @@ Q3D.Utils.putStick = (x, y, zFunc, h) => {
 		new THREE.Vector3(x, y, z)
 	]);
 	const stick = new THREE.Line(geom, Q3D.Utils._stick_mat);
-	Q3D.application.scene.add(stick);
+	app.scene.add(stick);
 };
 
 // convert latitude and longitude in degrees to the following format
@@ -4416,7 +4412,6 @@ Q3D.Tweens.cameraMotion = {
 	curveFactor: 0,
 
 	init: function (track) {
-		const app = Q3D.application;
 		const { origin, zScale } = app.scene.userData;
 		const { keyframes } = track;
 		const propList = [];

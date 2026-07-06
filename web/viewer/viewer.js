@@ -9,8 +9,10 @@ Q3D.Config.preview = {
 
 };
 
-const app = Q3D.application,
-	  gui = Q3D.gui;
+const app = Q3D.application;
+const gui = Q3D.gui;
+const conf = Q3D.Config;
+const E = Q3D.E;
 
 const preview = {
 
@@ -30,15 +32,15 @@ const preview = {
 //// initialization
 function init(off_screen, debug_mode, qgis_version) {
 
-	Q3D.Config.debugMode = debug_mode;
-	Q3D.Config.qgisVersion = qgis_version;
+	conf.debugMode = debug_mode;
+	conf.qgisVersion = qgis_version;
 
 	new QWebChannel(qt.webChannelTransport, function(channel) {
 		window.pyObj = channel.objects.bridge;
 		pyObj.sendData.connect(function (data, viaQueue) {
 			var result = loadData(data, viaQueue);
 
-			if (Q3D.Config.debugMode) {
+			if (conf.debugMode) {
 				var dataType = data.type || "unknown";
 				console.debug("↓" + dataType + " data " + (result ? "loaded" : "loading error"), data);
 			}
@@ -51,11 +53,11 @@ function init(off_screen, debug_mode, qgis_version) {
 
 function _init(off_screen) {
 
-	var container = Q3D.E("view");
+	var container = E("view");
 	app.init(container);
 
 	if (off_screen) {
-		Q3D.E("progress").style.display = "none";
+		E("progress").style.display = "none";
 		var renderOffscreen = app.render;
 		app.render = function () {};		// No need to render the scene before it has fully loaded.
 		app.addEventListener("sceneLoaded", function () {
@@ -66,7 +68,7 @@ function _init(off_screen) {
 		});
 	}
 	else {
-		Q3D.E("closemsgbar").onclick = closeMessageBar;
+		E("closemsgbar").onclick = closeMessageBar;
 	}
 
 	app.addEventListener("loadComplete", function () {
@@ -92,11 +94,11 @@ function _init(off_screen) {
 		pyObj.emitAnimationStopped();
 	});
 
-	if (Q3D.Config.debugMode) {
+	if (conf.debugMode) {
 		showTriangleCount();
 	}
 
-	if (Q3D.Config.preview.showFPS) {
+	if (conf.preview.showFPS) {
 		showFPS();
 	}
 
@@ -109,7 +111,7 @@ var appLoadDataTypes = ["scene", "layer", "block"];
 function loadData(data, viaQueue) {
 	var result = true;
 
-	if (Q3D.Config.debugMode) {
+	if (conf.debugMode) {
 		console.debug("Loading " + (data.type || "unknown") + " data...");
 	}
 
@@ -137,8 +139,8 @@ function loadData(data, viaQueue) {
 		}
 	}
 	else if (data.type == "labels") {
-		Q3D.E("header").innerHTML = data.Header || "";
-		Q3D.E("footer").innerHTML = data.Footer || "";
+		E("header").innerHTML = data.Header || "";
+		E("footer").innerHTML = data.Footer || "";
 	}
 	else if (data.type == "cameraState") {
 		setCameraState(data.state);
@@ -263,7 +265,7 @@ function hideLayer(layerId, remove_obj) {
 var progressFadeoutSet = false;
 function tasksAndLoadingFinalized(success, is_scene) {
 	// hide progress bar
-	Q3D.E("progressbar").classList.add("fadeout");
+	E("progressbar").classList.add("fadeout");
 	progressFadeoutSet = true;
 
 	if (success && is_scene) {
@@ -278,9 +280,9 @@ function tasksAndLoadingFinalized(success, is_scene) {
 
 function updateProgressBar(loaded, total) {
 	total = total || 100;
-	Q3D.E("progressbar").style.width = (loaded / total * 100) + "%";
+	E("progressbar").style.width = (loaded / total * 100) + "%";
 	if (progressFadeoutSet) {
-		Q3D.E("progressbar").classList.remove("fadeout");
+		E("progressbar").classList.remove("fadeout");
 		progressFadeoutSet = false;
 	}
 }
@@ -289,7 +291,7 @@ function showTriangleCount() {
 	window.setInterval(function () {
 		var triangles = app.renderer.info.render.triangles;
 		if (triangles != preview.lastTriangleCount) {
-			Q3D.E("triangles").innerHTML = "Triangles: " + app.renderer.info.render.triangles.toLocaleString();
+			E("triangles").innerHTML = "Triangles: " + app.renderer.info.render.triangles.toLocaleString();
 			preview.lastTriangleCount = triangles;
 		}
 	}, 1000);
@@ -304,7 +306,7 @@ function showFPS() {
 			fps = Math.round(preview.timer.tickCount / elapsed * 1000);
 
 		if (fps != preview.lastFPS) {
-			Q3D.E("fps").innerHTML = "FPS: " + fps;
+			E("fps").innerHTML = "FPS: " + fps;
 			preview.lastFPS = fps;
 		}
 
@@ -410,9 +412,9 @@ function showMessageBar(message, timeout_ms, warning) {
 		barTimerId = setTimeout(closeMessageBar, timeout_ms);
 	}
 
-	Q3D.E("msgcontent").innerHTML = message;
+	E("msgcontent").innerHTML = message;
 
-	var e = Q3D.E("msgbar");
+	var e = E("msgbar");
 	e.style.display = "block";
 	if (warning) {
 		e.classList.add("warning");
@@ -423,7 +425,7 @@ function showMessageBar(message, timeout_ms, warning) {
 }
 
 function closeMessageBar() {
-	Q3D.E("msgbar").style.display = "none";
+	E("msgbar").style.display = "none";
 	barTimerId = null;
 }
 
@@ -437,7 +439,7 @@ function clearStatusMessage() {
 }
 
 function setPreviewEnabled(enabled) {
-	var e = Q3D.E("cover");
+	var e = E("cover");
 
 	if (enabled) {
 		app.resume();
@@ -524,7 +526,7 @@ function setCameraState(s) {
 }
 
 function adjustCameraPos() {
-	if (Q3D.Config.autoAdjustCameraPos) {
+	if (conf.autoAdjustCameraPos) {
 		app.adjustCameraPosition();
 	}
 	app.render();
@@ -533,7 +535,7 @@ function adjustCameraPos() {
 //// lights
 function changeLight(type) {
 	app.scene.lightGroup.clear();
-	app.scene.buildLights(Q3D.Config.lights[type], app.scene.userData.baseExtent.rotation);
+	app.scene.buildLights(conf.lights[type], app.scene.userData.baseExtent.rotation);
 	app.scene.dispatchEvent({type: "lightChanged", light: type});
 	app.render();
 }
@@ -556,16 +558,16 @@ function setNavigationEnabled(enabled) {
 }
 
 function setNorthArrowVisible(visible) {
-	Q3D.E("northarrow").style.display = (visible) ? "block" : "none";
+	E("northarrow").style.display = (visible) ? "block" : "none";
 	if (visible && app.scene2 === undefined) {
-		app.buildNorthArrow(Q3D.E("northarrow"), 0, app.scene.userData.baseExtent.rotation);
+		app.buildNorthArrow(E("northarrow"), 0, app.scene.userData.baseExtent.rotation);
 		app.render();
 	}
 }
 
 function setNorthArrowColor(color) {
 	if (app.scene2 === undefined) {
-		Q3D.Config.northArrow.color = color;
+		conf.northArrow.color = color;
 	}
 	else {
 		app.scene2.children[app.scene2.children.length - 1].material.color = new THREE.Color(color);
@@ -581,7 +583,7 @@ function loadKeyframeGroups(groups) {
 
 function startAnimation(groups, repeat) {
 	if (groups) loadKeyframeGroups(groups);
-	Q3D.Config.animation.repeat = Boolean(repeat);
+	conf.animation.repeat = Boolean(repeat);
 
 	loadScriptFile("../js/lib/tweenjs/tween.js", function () {
 		app.animation.keyframes.start();
@@ -594,15 +596,15 @@ function stopAnimation() {
 }
 
 function showNarrativeBox(content) {
-	Q3D.E("narbody").innerHTML = content;
-	Q3D.E("narrativebox").classList.add("visible");
-	var e = Q3D.E("nextbtn");
+	E("narbody").innerHTML = content;
+	E("narrativebox").classList.add("visible");
+	var e = E("nextbtn");
 	e.className = "";
 	e.innerHTML = "Close";
 }
 
 function closeNarrativeBox() {
-	Q3D.E("narrativebox").classList.remove("visible");
+	E("narrativebox").classList.remove("visible");
 }
 
 function setLayerOpacity(layerId, opacity) {

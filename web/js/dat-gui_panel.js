@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import * as THREE from "three";
-import { Q3D } from "./Qgis2threejs.js";
+import { Q3D, deg2rad } from "./Qgis2threejs.js";
 
 Q3D.gui.dat = {
 
@@ -111,7 +111,7 @@ Q3D.gui.dat = {
 			var geometry = new THREE.PlaneGeometry(p.baseExtent.width, p.baseExtent.height, 1, 1),
 				material = _this.customPlaneMaterial(color);
 			_this.customPlane = new THREE.Mesh(geometry, material);
-			_this.customPlane.rotation.z = p.baseExtent.rotation * Q3D.deg2rad;
+			_this.customPlane.rotation.z = p.baseExtent.rotation * deg2rad;
 			scene.add(_this.customPlane);
 			app.render();
 		};
