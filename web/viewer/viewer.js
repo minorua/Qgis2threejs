@@ -35,13 +35,13 @@ function init(off_screen, debug_mode, qgis_version) {
 	conf.debugMode = debug_mode;
 	conf.qgisVersion = qgis_version;
 
-	new QWebChannel(qt.webChannelTransport, function(channel) {
+	new QWebChannel(qt.webChannelTransport, (channel) => {
 		window.pyObj = channel.objects.bridge;
-		pyObj.sendData.connect(function (data, viaQueue) {
-			var result = loadData(data, viaQueue);
+		pyObj.sendData.connect((data, viaQueue) => {
+			const result = loadData(data, viaQueue);
 
 			if (conf.debugMode) {
-				var dataType = data.type || "unknown";
+				const dataType = data.type || "unknown";
 				console.debug("↓" + dataType + " data " + (result ? "loaded" : "loading error"), data);
 			}
 		});
@@ -53,14 +53,14 @@ function init(off_screen, debug_mode, qgis_version) {
 
 function _init(off_screen) {
 
-	var container = E("view");
+	const container = E("view");
 	app.init(container);
 
 	if (off_screen) {
 		E("progress").style.display = "none";
-		var renderOffscreen = app.render;
-		app.render = function () {};		// No need to render the scene before it has fully loaded.
-		app.addEventListener("sceneLoaded", function () {
+		const renderOffscreen = app.render;
+		app.render = () => {};		// No need to render the scene before it has fully loaded.
+		app.addEventListener("sceneLoaded", () => {
 			app.adjustCameraNearFar();
 
 			app.render = renderOffscreen;
@@ -71,26 +71,26 @@ function _init(off_screen) {
 		E("closemsgbar").onclick = closeMessageBar;
 	}
 
-	app.addEventListener("loadComplete", function () {
+	app.addEventListener("loadComplete", () => {
 		preview.isDataLoading = false;
 		pyObj.emitDataLoaded();
 
 		app.render();
 	});
 
-	app.addEventListener("loadError", function () {
+	app.addEventListener("loadError", () => {
 		pyObj.emitDataLoadError();
 	});
 
-	app.addEventListener("sceneLoaded", function () {
+	app.addEventListener("sceneLoaded", () => {
 		pyObj.emitSceneLoaded();
 	});
 
-	app.addEventListener("tweenStarted", function (e) {
+	app.addEventListener("tweenStarted", (e) => {
 		pyObj.emitTweenStarted(e.index);
 	});
 
-	app.addEventListener("animationStopped", function () {
+	app.addEventListener("animationStopped", () => {
 		pyObj.emitAnimationStopped();
 	});
 
@@ -106,10 +106,10 @@ function _init(off_screen) {
 }
 
 //// load functions
-var appLoadDataTypes = ["scene", "layer", "block"];
+const appLoadDataTypes = ["scene", "layer", "block"];
 
 function loadData(data, viaQueue) {
-	var result = true;
+	let result = true;
 
 	if (conf.debugMode) {
 		console.debug("Loading " + (data.type || "unknown") + " data...");
@@ -161,19 +161,19 @@ function loadData(data, viaQueue) {
 
 function _requestCameraUpdate(sp) {
 	// update camera position - keep relative position to base extent
-	var lastP = app.scene.userData,
-		lastBE = lastP.baseExtent;
+	const lastP = app.scene.userData;
+	const lastBE = lastP.baseExtent;
 	if (lastBE === undefined) return;
 
-	var be = sp.baseExtent,
-		v0 = new THREE.Vector3(lastBE.cx, lastBE.cy, 0).sub(lastP.origin),
-		v1 = new THREE.Vector3(be.cx, be.cy, 0).sub(sp.origin),
-		s = be.width / lastBE.width;
+	const be = sp.baseExtent;
+	const v0 = new THREE.Vector3(lastBE.cx, lastBE.cy, 0).sub(lastP.origin);
+	const v1 = new THREE.Vector3(be.cx, be.cy, 0).sub(sp.origin);
+	const s = be.width / lastBE.width;
 
-	var pos = new THREE.Vector3().copy(app.camera.position).sub(v0).multiplyScalar(s).add(v1),
-		focal = new THREE.Vector3().copy(app.controls.target).sub(v0).multiplyScalar(s).add(v1);
+	const pos = new THREE.Vector3().copy(app.camera.position).sub(v0).multiplyScalar(s).add(v1);
+	const focal = new THREE.Vector3().copy(app.controls.target).sub(v0).multiplyScalar(s).add(v1);
 
-	var near, far;
+	let near, far;
 	if (s != 1) {
 		near = 0.001 * be.width;
 		far = 100 * be.width;
@@ -195,16 +195,15 @@ function loadScriptFile(path, callback, isModule=false, isNamespace=false) {
 		return;
 	}
 
-	var url = new URL(path, document.baseURI);
-	var elms = document.head.getElementsByTagName("script");
-	for (var i = 0; i < elms.length; i++) {
-		if (elms[i].src == url) {
+	const url = new URL(path, document.baseURI);
+	for (const elm of document.head.getElementsByTagName("script")) {
+		if (elm.src == url) {
 			if (callback) callback();
 			return false;
 		}
 	}
 
-	var s = document.createElement("script");
+	const s = document.createElement("script");
 	s.src = url;
 	if (callback) s.onload = callback;
 	document.head.appendChild(s);
@@ -213,11 +212,11 @@ function loadScriptFile(path, callback, isModule=false, isNamespace=false) {
 
 function loadModel(url) {
 
-	var loadToScene = function (res) {
-		var boxsize = new THREE.Box3().setFromObject(res.scene).getSize(),
-				scale = 50 / Math.max(boxsize.x, boxsize.y, boxsize.z);
+	const loadToScene = (res) => {
+		const boxsize = new THREE.Box3().setFromObject(res.scene).getSize();
+		const scale = 50 / Math.max(boxsize.x, boxsize.y, boxsize.z);
 
-		var parent = new THREE.Group();
+		const parent = new THREE.Group();
 		parent.scale.set(scale, scale, scale);
 		parent.rotation.x = Math.PI / 2;
 		parent.add(res.scene);
@@ -225,8 +224,8 @@ function loadModel(url) {
 
 		app.render();
 
-		var sceneScale = app.scene.userData.scale,
-			objScale = scale / sceneScale;
+		const sceneScale = app.scene.userData.scale;
+		const objScale = scale / sceneScale;
 
 		console.log("Model " + url + " loaded.");
 		console.log("scale: " + scale + " (obj: " + objScale + " x scene: " + sceneScale + ")");
@@ -234,35 +233,35 @@ function loadModel(url) {
 
 		showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', 3000);
 	};
-	var onError = function (e) {
+	const onError = (e) => {
 		console.warn(e.message);
 		showMessageBar('Model preview: Failed to load "' + url.split("/").pop() + '". See console for details.', 5000, true);
 	};
 
-	var ext = url.split(".").pop();
+	const ext = url.split(".").pop();
 	if (ext == "dae") {
 		import("three/loaders/ColladaLoader.js").then(({ ColladaLoader }) => {
-			var loader = new ColladaLoader(app.loadingManager);
+			const loader = new ColladaLoader(app.loadingManager);
 			loader.load(url, loadToScene, undefined, onError);
 		});
 	}
 	else if (ext == "gltf" || ext == "glb") {
 		import("three/loaders/GLTFLoader.js").then(({ GLTFLoader }) => {
-			var loader = new GLTFLoader(app.loadingManager);
+			const loader = new GLTFLoader(app.loadingManager);
 			loader.load(url, loadToScene, undefined, onError);
 		});
 	}
 }
 
 function hideLayer(layerId, remove_obj) {
-	var layer = app.scene.mapLayers[layerId];
-	if (layer !== undefined) {
-		layer.visible = false;
-		if (remove_obj) layer.clearObjects();
-	}
+	const layer = app.scene.mapLayers[layerId];
+	if (layer === undefined) return;
+
+	layer.visible = false;
+	if (remove_obj) layer.clearObjects();
 }
 
-var progressFadeoutSet = false;
+let progressFadeoutSet = false;
 function tasksAndLoadingFinalized(success, is_scene) {
 	// hide progress bar
 	E("progressbar").classList.add("fadeout");
@@ -289,7 +288,7 @@ function updateProgressBar(loaded, total) {
 
 function showTriangleCount() {
 	window.setInterval(function () {
-		var triangles = app.renderer.info.render.triangles;
+		const triangles = app.renderer.info.render.triangles;
 		if (triangles != preview.lastTriangleCount) {
 			E("triangles").innerHTML = "Triangles: " + app.renderer.info.render.triangles.toLocaleString();
 			preview.lastTriangleCount = triangles;
@@ -301,9 +300,9 @@ function showFPS() {
 	preview.timer.last = Date.now();
 
 	window.setInterval(function () {
-		var now = Date.now(),
-			elapsed = now - preview.timer.last,
-			fps = Math.round(preview.timer.tickCount / elapsed * 1000);
+		const now = Date.now();
+		const elapsed = now - preview.timer.last;
+		const fps = Math.round(preview.timer.tickCount / elapsed * 1000);
 
 		if (fps != preview.lastFPS) {
 			E("fps").innerHTML = "FPS: " + fps;
@@ -318,10 +317,10 @@ function showFPS() {
 function saveModelAsGLTF(filename) {
 	showStatusMessage('Saving the model to "' + filename + '"...');
 
-	var scene = new THREE.Scene(), layer, group;
-	for (var k in app.scene.mapLayers) {
-		layer = app.scene.mapLayers[k];
-		group = layer.objectGroup;
+	const scene = new THREE.Scene();
+	for (const id in app.scene.mapLayers) {
+		const layer = app.scene.mapLayers[id];
+		const group = layer.objectGroup;
 		group.rotation.set(-Math.PI / 2, 0, 0);
 		group.name = layer.properties.name;
 		scene.add(group);
@@ -347,8 +346,8 @@ function saveModelAsGLTF(filename) {
 			}
 
 			// restore preview
-			for (var k in app.scene.mapLayers) {
-				layer = app.scene.mapLayers[k];
+			for (const id in app.scene.mapLayers) {
+				layer = app.scene.mapLayers[id];
 				group = layer.objectGroup;
 				group.rotation.set(0, 0, 0);
 				app.scene.add(group);
@@ -402,7 +401,7 @@ function requestRendering() {
 	});
 }
 
-var barTimerId = null;
+let barTimerId = null;
 function showMessageBar(message, timeout_ms, warning) {
 	if (barTimerId !== null) {
 		clearTimeout(barTimerId);
@@ -414,7 +413,7 @@ function showMessageBar(message, timeout_ms, warning) {
 
 	E("msgcontent").innerHTML = message;
 
-	var e = E("msgbar");
+	const e = E("msgbar");
 	e.style.display = "block";
 	if (warning) {
 		e.classList.add("warning");
@@ -439,7 +438,7 @@ function clearStatusMessage() {
 }
 
 function setPreviewEnabled(enabled) {
-	var e = E("cover");
+	const e = E("cover");
 
 	if (enabled) {
 		app.resume();
@@ -453,7 +452,7 @@ function setPreviewEnabled(enabled) {
 
 function setOutlineEffectEnabled(enabled) {
 	if (enabled) {
-		loadScriptFile("../js/lib/threejs/effects/OutlineEffect.js", function () {
+		loadScriptFile("../js/lib/threejs/effects/OutlineEffect.js", () => {
 			app.effect = new THREE_EX.OutlineEffect(app.renderer);
 		}, true);
 	}
@@ -468,7 +467,7 @@ function setBackgroundColor(color, alpha) {
 }
 
 function verifySize(width, height) {
-	var vec2 = new THREE.Vector2();
+	const vec2 = new THREE.Vector2();
 	app.renderer.getSize(vec2);
 	return (vec2.x == width && vec2.y == height);
 }
@@ -482,7 +481,7 @@ function switchCamera(is_ortho) {
 	console.log("Camera switched to " + ((is_ortho) ? "orthographic" : "perspective") + " camera.");
 
 	// change parent of light
-	var p = app.scene.userData;
+	const p = app.scene.userData;
 	if (p.light) {
 		app.scene.dispatchEvent({type: "lightChanged", light: p.light});
 	}
@@ -498,8 +497,8 @@ function switchCamera(is_ortho) {
 
 // current camera position and its target
 function cameraState(flat) {
-	var p = app.scene.toMapCoordinates(app.camera.position),
-			t = app.scene.toMapCoordinates(app.controls.target);
+	const p = app.scene.toMapCoordinates(app.camera.position),
+		  t = app.scene.toMapCoordinates(app.controls.target);
 	if (flat) {
 		return {
 			x: p.x, y: p.y, z: p.z, fx: t.x, fy: t.y, fz: t.z
@@ -585,7 +584,7 @@ function startAnimation(groups, repeat) {
 	if (groups) loadKeyframeGroups(groups);
 	conf.animation.repeat = Boolean(repeat);
 
-	loadScriptFile("../js/lib/tweenjs/tween.js", function () {
+	loadScriptFile("../js/lib/tweenjs/tween.js", () => {
 		app.animation.keyframes.start();
 	});
 }
@@ -598,7 +597,7 @@ function stopAnimation() {
 function showNarrativeBox(content) {
 	E("narbody").innerHTML = content;
 	E("narrativebox").classList.add("visible");
-	var e = E("nextbtn");
+	const e = E("nextbtn");
 	e.className = "";
 	e.innerHTML = "Close";
 }
@@ -612,13 +611,13 @@ function setLayerOpacity(layerId, opacity) {
 }
 
 function saveCanvasImage(width, height) {
-	app._saveCanvasImage(width, height, true, function (canvas) {
+	app._saveCanvasImage(width, height, true, (canvas) => {
 		pyObj.saveImage(canvas.toDataURL("image/png"));
 	});
 }
 
 function copyCanvasToClipboard(width, height) {
-	app._saveCanvasImage(width, height, true, function (canvas) {
+	app._saveCanvasImage(width, height, true, (canvas) => {
 		pyObj.copyToClipboard(canvas.toDataURL("image/png"));
 	});
 }
@@ -629,10 +628,10 @@ app._initLoadingManager = app.initLoadingManager;
 app._render = app.render;
 app._saveCanvasImage = app.saveCanvasImage;
 
-app.initLoadingManager = function () {
+app.initLoadingManager = () => {
 	app._initLoadingManager();
 
-	app.loadingManager.onLoad = function () {
+	app.loadingManager.onLoad = () => {
 		app.loadingManager.isLoading = false;
 		app.dispatchEvent({type: "loadComplete"});	// dispath loadComplete instead of sceneLoaded
 	};
@@ -640,7 +639,7 @@ app.initLoadingManager = function () {
 	app.loadingManager.onProgress = undefined;
 };
 
-app.render = function (immediate) {
+app.render = (immediate) => {
 	if (!preview.renderEnabled) return;
 	if (preview.noRenderDuringLoad && preview.isDataLoading) return;
 
@@ -649,8 +648,8 @@ app.render = function (immediate) {
 	if (immediate) preview.timer.tickCount++;
 };
 
-app.saveCanvasImage = function (width, height, fill_background) {
-	var saveCanvasImage = function (canvas) {
+app.saveCanvasImage = (width, height, fill_background) => {
+	const saveCanvasImage = (canvas) => {
 		pyObj.saveImage(canvas.toDataURL("image/png"));
 		gui.popup.hide();
 	};
