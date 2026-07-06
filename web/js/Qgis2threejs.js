@@ -200,9 +200,7 @@ Q3D.deg2rad = Math.PI / 180;
 Q3D.ua = window.navigator.userAgent.toLowerCase();
 Q3D.isTouchDevice = ("ontouchstart" in window);
 
-Q3D.E = function (id) {
-	return document.getElementById(id);
-};
+Q3D.E = (id) => document.getElementById(id);
 
 const app = Q3D.application;
 const gui = Q3D.gui;
@@ -216,13 +214,13 @@ const E = Q3D.E;
 	Q3D.application
 	*/
 	const listeners = {};
-	app.dispatchEvent = function (event) {
+	app.dispatchEvent = (event) => {
 		for (const listener of listeners[event.type] || []) {
 			listener(event);
 		}
 	};
 
-	app.addEventListener = function (type, listener, prepend) {
+	app.addEventListener = (type, listener, prepend) => {
 		listeners[type] = listeners[type] || [];
 		if (prepend) {
 			listeners[type].unshift(listener);
@@ -232,7 +230,7 @@ const E = Q3D.E;
 		}
 	};
 
-	app.removeEventListener = function (type, listener) {
+	app.removeEventListener = (type, listener) => {
 		const array = listeners[type];
 		if (!array) return;
 
@@ -240,7 +238,7 @@ const E = Q3D.E;
 		if (idx !== -1) array.splice(idx, 1);
 	};
 
-	app.init = function (container) {
+	app.init = (container) => {
 
 		app.container = container;
 		app.sceneLoaded = false;
@@ -416,7 +414,7 @@ const E = Q3D.E;
 		gui.init();
 	};
 
-	app.parseUrlParameters = function () {
+	app.parseUrlParameters = () => {
 		const vars = {};
 		for (const param of window.location.search.substring(1).split('&').concat(window.location.hash.substring(1).split('&'))) {
 			const p = param.split('=');
@@ -425,33 +423,34 @@ const E = Q3D.E;
 		return vars;
 	};
 
-	app.initLoadingManager = function () {
-		app.loadingManager = new THREE.LoadingManager(() => {   // onLoad
+	app.initLoadingManager = () => {
+		app.loadingManager = new THREE.LoadingManager(
+		() => {   // onLoad
 			app.loadingManager.isLoading = false;
 			app.sceneLoaded = true;
 			app.dispatchEvent({type: "sceneLoaded"});
 		},
-		function (url, loaded, total) {   // onProgress
+		(url, loaded, total) => {   // onProgress
 			E("progressbar").style.width = (loaded / total * 100) + "%";
 		},
-		function () {   // onError
+		() => {   // onError
 			app.loadingManager.isLoading = false;
 			app.dispatchEvent({type: "loadError"});
 		});
 
 		app.loadingManager.isLoading = false;
 
-		app.loadingManager.onStart = function () {
+		app.loadingManager.onStart = () => {
 			app.loadingManager.isLoading = true;
 		};
 	};
 
-	app.loadFile = function (url, type, callback) {
+	app.loadFile = (url, type, callback) => {
 
 		const loader = new THREE.FileLoader(app.loadingManager);
 		loader.setResponseType(type);
 
-		const onError = function (e) {
+		const onError = (e) => {
 			if (location.protocol == "file:") {
 				gui.popup.show("This browser doesn't allow loading local files via Ajax. See <a href='https://github.com/minorua/Qgis2threejs/wiki/Browser-Support'>plugin wiki page</a> for details.", "Error", true);
 			}
@@ -465,7 +464,7 @@ const E = Q3D.E;
 		}
 	};
 
-	app.loadData = function (data) {
+	app.loadData = (data) => {
 		try {
 			app.scene.loadData(data);
 			if (data.animation !== undefined) app.animation.keyframes.load(data.animation.tracks);
@@ -477,16 +476,16 @@ const E = Q3D.E;
 		}
 	};
 
-	app.loadJSONFile = function (url, callback) {
+	app.loadJSONFile = (url, callback) => {
 		app.loadFile(url, "json", (data) => {
 			app.loadData(data);
 			if (callback) callback(data);
 		});
 	};
 
-	app.loadSceneFile = function (url, sceneFileLoadedCallback, sceneLoadedCallback) {
+	app.loadSceneFile = (url, sceneFileLoadedCallback, sceneLoadedCallback) => {
 
-		const onload = function () {
+		const onload = () => {
 			if (sceneFileLoadedCallback) sceneFileLoadedCallback(app.scene);
 
 			app.loadingManager.itemEnd("scenefile");
@@ -512,11 +511,11 @@ const E = Q3D.E;
 		}
 	};
 
-	app.loadTextureFile = function (url, callback) {
+	app.loadTextureFile = (url, callback) => {
 		return new THREE.TextureLoader(app.loadingManager).load(url, callback);
 	};
 
-	app.loadModelFile = function (url, callback) {
+	app.loadModelFile = (url, callback) => {
 		const ext = url.split(".").pop();
 
 		let loader;
@@ -543,7 +542,7 @@ const E = Q3D.E;
 		});
 	};
 
-	app.loadModelData = function (data, ext, resourcePath, callback) {
+	app.loadModelData = (data, ext, resourcePath, callback) => {
 
 		if (ext == "dae") {
 			const model = new THREE_EX.ColladaLoader(app.loadingManager).parse(data, resourcePath);
@@ -628,7 +627,7 @@ const E = Q3D.E;
 
 	};
 
-	app.setCanvasSize = function (width, height) {
+	app.setCanvasSize = (width, height) => {
 		const changed = (app.width != width || app.height != height);
 
 		app.width = width;
@@ -640,7 +639,7 @@ const E = Q3D.E;
 		if (changed) app.dispatchEvent({type: "canvasSizeChanged"});
 	};
 
-	app.buildCamera = function (is_ortho) {
+	app.buildCamera = (is_ortho) => {
 		if (is_ortho) {
 			app.camera = new THREE.OrthographicCamera(-app.width / 10, app.width / 10, app.height / 10, -app.height / 10);
 		}
@@ -661,7 +660,7 @@ const E = Q3D.E;
 	};
 
 	// adjusts camera's near and far based on the scene's bounding box
-	app.adjustCameraNearFar = function () {
+	app.adjustCameraNearFar = () => {
 		const bbox = app.scene.boundingBox();
 		if (!bbox.isEmpty()) {
 			const sphere = bbox.getBoundingSphere(new THREE.Sphere());
@@ -675,7 +674,7 @@ const E = Q3D.E;
 	};
 
 	// moves camera target to center of scene
-	app.adjustCameraPosition = function (force) {
+	app.adjustCameraPosition = (force) => {
 		if (!force) {
 			app.render(true);
 
@@ -691,7 +690,7 @@ const E = Q3D.E;
 	};
 
 	// declination: clockwise from +y, in degrees
-	app.buildNorthArrow = function (container, declination) {
+	app.buildNorthArrow = (container, declination) => {
 		container.style.display = "block";
 
 		app.renderer2 = new THREE.WebGLRenderer({alpha: true, antialias: true});
@@ -739,7 +738,7 @@ const E = Q3D.E;
 
 	const anim_timer = new THREE.Timer();
 	let _pupListenerAdded = false;
-	app.buildViewHelper = function (container) {
+	app.buildViewHelper = (container) => {
 		app.viewHelper = new THREE_EX.ViewHelper(app.camera, container);
 		app.viewHelper.center = app.controls.target;
 		app.viewHelper.setLabels("X", "Y", "Z");
@@ -757,7 +756,7 @@ const E = Q3D.E;
 		_pupListenerAdded = true;
 	};
 
-	app.currentViewUrl = function () {
+	app.currentViewUrl = () => {
 		const c = app.scene.toMapCoordinates(app.camera.position);
 		const t = app.scene.toMapCoordinates(app.controls.target);
 
@@ -770,21 +769,21 @@ const E = Q3D.E;
 	};
 
 	// enable the controls
-	app.start = function () {
+	app.start = () => {
 		if (app.controls) app.controls.enabled = true;
 	};
 
-	app.pause = function () {
+	app.pause = () => {
 		app.animation.isActive = false;
 		if (app.controls) app.controls.enabled = false;
 	};
 
-	app.resume = function () {
+	app.resume = () => {
 		if (app.controls) app.controls.enabled = true;
 	};
 
 	// animation loop
-	app.animate = function () {
+	app.animate = () => {
 
 		if (app.animation.isActive) {
 			requestAnimationFrame(app.animate);
@@ -847,7 +846,6 @@ const E = Q3D.E;
 
 			start: function () {
 
-				const _this = this;
 				const narBox = E("narrativebox");
 				const btn = E("nextbtn");
 				let currentNarElem;
@@ -876,7 +874,7 @@ const E = Q3D.E;
 
 					const keyframes = track.keyframes;
 
-					const showNBox = function (idx) {
+					const showNBox = (idx) => {
 						// narrative box
 						const n = keyframes[idx].narration;
 						if (n && narBox) {
@@ -904,13 +902,13 @@ const E = Q3D.E;
 							}
 
 							setTimeout(() => {
-								_this.pause();
+								this.pause();
 								narBox.classList.add("visible");
 							}, 0);
 						}
 					};
 
-					const onStart = function () {
+					const onStart = () => {
 						if (track.onStart) track.onStart();
 
 						app.dispatchEvent({type: "tweenStarted", index: track.currentIndex});
@@ -921,7 +919,7 @@ const E = Q3D.E;
 						}
 					};
 
-					const onComplete = function (obj) {
+					const onComplete = (obj) => {
 						if (!keyframes[track.currentIndex].easing) {
 							track.onUpdate(obj, 1);
 						}
@@ -933,7 +931,7 @@ const E = Q3D.E;
 							track.completed = true;
 
 							let completed = true;
-							for (const t of _this.tracks) {
+							for (const t of this.tracks) {
 								if (!t.completed) completed = false;
 							}
 
@@ -944,11 +942,11 @@ const E = Q3D.E;
 
 								if (conf.animation.repeat) {
 									setTimeout(() => {
-										_this.start();
+										this.start();
 									}, 0);
 								}
 								else {
-									_this.stop();
+									this.stop();
 								}
 							}
 						}
@@ -964,7 +962,7 @@ const E = Q3D.E;
 										 .to(track.prop_list[i + 1], keyframes[i].duration).onComplete(onComplete);
 
 						if (keyframes[i].easing) {
-							t2.easing(_this.easingFunction(keyframes[i].easing)).onUpdate(track.onUpdate);
+							t2.easing(this.easingFunction(keyframes[i].easing)).onUpdate(track.onUpdate);
 						}
 
 						if (i == 0) {
@@ -1052,19 +1050,19 @@ const E = Q3D.E;
 		}
 	};
 
-	app.updateControlsAndRender = function () {
+	app.updateControlsAndRender = () => {
 		app.controls.update();
 		app.render();
 	};
 
 	let rafId = null;
 
-	const renderImmediately = function () {
+	const renderImmediately = () => {
 		app.render(true);
 		rafId = null;
 	};
 
-	app.render = function (immediate) {
+	app.render = (immediate) => {
 		if (!immediate) {
 			if (rafId === null) {
 				rafId = requestAnimationFrame(renderImmediately);
@@ -1101,14 +1099,14 @@ const E = Q3D.E;
 
 	(function () {
 		let dly, rpt, times, id = null;
-		const func = function () {
+		const func = () => {
 			app.render();
 			if (rpt <= ++times) {
 				clearInterval(id);
 				id = null;
 			}
 		};
-		app.setIntervalRender = function (delay, repeat) {
+		app.setIntervalRender = (delay, repeat) => {
 			if (id === null || delay != dly) {
 				if (id !== null) {
 					clearInterval(id);
@@ -1121,14 +1119,14 @@ const E = Q3D.E;
 		};
 	})();
 
-	app.setLabelVisible = function (visible) {
+	app.setLabelVisible = (visible) => {
 		app.labelVisible = visible;
 		app.scene.labelGroup.visible = visible;
 		app.scene.labelConnectorGroup.visible = visible;
 		app.render();
 	};
 
-	app.setRotateAnimationMode = function (enabled) {
+	app.setRotateAnimationMode = (enabled) => {
 		if (enabled) {
 			app.animation.orbit.start();
 		}
@@ -1137,7 +1135,7 @@ const E = Q3D.E;
 		}
 	};
 
-	app.setWireframeMode = function (wireframe) {
+	app.setWireframeMode = (wireframe) => {
 		if (wireframe == app._wireframeMode) return;
 
 		for (const id in app.scene.mapLayers) {
@@ -1148,7 +1146,7 @@ const E = Q3D.E;
 		app.render();
 	};
 
-	app.intersectObjects = function (offsetX, offsetY) {
+	app.intersectObjects = (offsetX, offsetY) => {
 		const vec2 = new THREE.Vector2((offsetX / app.width) * 2 - 1,
 									  -(offsetY / app.height) * 2 + 1);
 		const ray = new THREE.Raycaster();
@@ -1158,7 +1156,7 @@ const E = Q3D.E;
 		return ray.intersectObjects(app.scene.visibleObjects(app.labelVisible));
 	};
 
-	app._offset = function (elm) {
+	app._offset = (elm) => {
 		let top = 0, left = 0;
 		do {
 			top += elm.offsetTop || 0; left += elm.offsetLeft || 0; elm = elm.offsetParent;
@@ -1216,7 +1214,7 @@ const E = Q3D.E;
 
 	};
 
-	app.cleanView = function () {
+	app.cleanView = () => {
 		gui.clean();
 
 		app.scene.remove(app.queryMarker);
@@ -1232,7 +1230,7 @@ const E = Q3D.E;
 		}
 	};
 
-	app.highlightFeature = function (object) {
+	app.highlightFeature = (object) => {
 		if (app.highlightObject) {
 			// remove highlight object from the scene
 			app.scene.remove(app.highlightObject);
@@ -1262,7 +1260,7 @@ const E = Q3D.E;
 		app.highlightObject = clone;
 	};
 
-	app.canvasClicked = function (e) {
+	app.canvasClicked = (e) => {
 
 		// button 2: right click
 		if (e.button == 2 && app.measure.isActive) {
@@ -1318,7 +1316,7 @@ const E = Q3D.E;
 		}
 	};
 
-	app.saveCanvasImage = function (width, height, fill_background, saveImageFunc) {
+	app.saveCanvasImage = (width, height, fill_background, saveImageFunc) => {
 		if (fill_background === undefined) fill_background = true;
 
 		let old_size;
@@ -1327,7 +1325,7 @@ const E = Q3D.E;
 			app.setCanvasSize(width, height);
 		}
 
-		const saveBlob = function (blob) {
+		const saveBlob = (blob) => {
 			const filename = "image.png";
 
 			if (app._canvasImageUrl) URL.revokeObjectURL(app._canvasImageUrl);
@@ -1353,7 +1351,7 @@ const E = Q3D.E;
 			}
 		};
 
-		const restoreCanvasSize = function () {
+		const restoreCanvasSize = () => {
 			if (old_size) app.setCanvasSize(old_size[0], old_size[1]);
 			app.render();
 		};
@@ -1393,7 +1391,7 @@ const E = Q3D.E;
 			}
 
 			const image = new Image();
-			image.onload = function () {
+			image.onload = () => {
 				ctx.drawImage(image, 0, 0, width, height);
 
 				saveCanvasImage(canvas);
@@ -1537,7 +1535,7 @@ const E = Q3D.E;
 		if (e) e.addEventListener("click", listener);
 	}
 
-	gui.init = function () {
+	gui.init = () => {
 		// tool buttons
 		ON_CLICK("layerbtn", () => {
 			if (!gui.layerPanel.initialized) gui.layerPanel.init();
@@ -1564,15 +1562,15 @@ const E = Q3D.E;
 		if (conf.animation.enabled && btn) {
 			const anim = app.animation.keyframes;
 
-			const playButton = function () {
+			const playButton = () => {
 				btn.className = "playbtn";
 			};
 
-			const pauseButton = function () {
+			const pauseButton = () => {
 				btn.className = "pausebtn";
 			};
 
-			btn.onclick = function () {
+			btn.onclick = () => {
 				if (anim.isActive) {
 					anim.pause();
 					playButton();
@@ -1610,7 +1608,7 @@ const E = Q3D.E;
 		}
 	};
 
-	gui.clean = function () {
+	gui.clean = () => {
 		gui.popup.hide();
 		if (gui.layerPanel.initialized) gui.layerPanel.hide();
 	};
@@ -1683,13 +1681,13 @@ const E = Q3D.E;
 
 	};
 
-	gui.showInfo = function () {
+	gui.showInfo = () => {
 		const e = E("urlbox");
 		if (e) e.value = app.currentViewUrl();
 		gui.popup.show("pageinfo");
 	};
 
-	gui.showQueryResult = function (point, layer, obj, show_coords) {
+	gui.showQueryResult = (point, layer, obj, show_coords) => {
 		let e;
 		// layer name
 		e = E("qr_layername");
@@ -1740,7 +1738,7 @@ const E = Q3D.E;
 		gui.popup.show("queryresult");
 	};
 
-	gui.showPrintDialog = function () {
+	gui.showPrintDialog = () => {
 
 		var f = CE("form");
 		f.className = "print";
@@ -1791,15 +1789,15 @@ const E = Q3D.E;
 		// width and height boxes
 		var aspect = app.width / app.height;
 
-		width.oninput = function () {
+		width.oninput = () => {
 			if (ka.checked) height.value = Math.round(width.value / aspect);
 		};
 
-		height.oninput = function () {
+		height.oninput = () => {
 			if (ka.checked) width.value = Math.round(height.value * aspect);
 		};
 
-		ok.onclick = function () {
+		ok.onclick = () => {
 			gui.popup.show("Rendering...");
 			window.setTimeout(() => app.saveCanvasImage(width.value, height.value, bg.checked), 10);
 		};
@@ -1807,7 +1805,7 @@ const E = Q3D.E;
 		cancel.onclick = app.cleanView;
 
 		// enter key pressed
-		f.onsubmit = function () {
+		f.onsubmit = () => {
 			ok.onclick();
 			return false;
 		};
@@ -1844,7 +1842,7 @@ const E = Q3D.E;
 				e = CE("div", item, "Opacity: <input type='range'><output></output>");
 				const slider = e.querySelector("input[type=range]");
 				const label = e.querySelector("output");
-				const setLabel = function (opacity) {
+				const setLabel = (opacity) => {
 					label.innerHTML = opacity + " %";
 				};
 
@@ -2012,7 +2010,7 @@ class Q3DScene extends THREE.Scene {
 
 			// load layers
 			if (data.layers !== undefined) {
-				data.layers.forEach(layer => this.loadData(layer));
+				data.layers.forEach((layer) => this.loadData(layer));
 			}
 		}
 		else if (data.type == "layer") {
@@ -2231,13 +2229,13 @@ class Q3DMaterial {
 			}
 			// opt.sizeAttenuation = 1;
 
-			var mtl = this.mtl = new THREE_EX.meshline.MeshLineMaterial(opt);
-			var updateAspect = this._listener = function () {
-				mtl.resolution = new THREE.Vector2(Q3D.application.width, Q3D.application.height);
+			this.mtl = new THREE_EX.meshline.MeshLineMaterial(opt);
+			this._updateAspect = () => {
+				this.mtl.resolution.set(Q3D.application.width, Q3D.application.height);
 			};
 
-			updateAspect();
-			Q3D.application.addEventListener("canvasSizeChanged", updateAspect);
+			this._updateAspect();
+			Q3D.application.addEventListener("canvasSizeChanged", this._updateAspect);
 		}
 		else if (m.type == Q3D.MaterialType.Sprite) {
 			opt.color = 0xffffff;
@@ -2280,9 +2278,9 @@ class Q3DMaterial {
 		this.mtl.dispose();
 		this.mtl = null;
 
-		if (this._listener) {
-			Q3D.application.removeEventListener("canvasSizeChanged", this._listener);
-			this._listener = undefined;
+		if (this._updateAspect) {
+			Q3D.application.removeEventListener("canvasSizeChanged", this._updateAspect);
+			this._updateAspect = undefined;
 		}
 	}
 }
@@ -2703,7 +2701,7 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 		mesh.scale.z = data.zScale;
 		layer.addObject(mesh);
 
-		const buildGeometry = function (grid) {
+		const buildGeometry = (grid) => {
 			geom.loadData(grid, data.width, data.height);
 			if (callback) callback(mesh);
 		};
@@ -2758,13 +2756,13 @@ class Q3DDEMTileBlock extends Q3DDEMBlockBase {
 		mesh.scale.z = data.zScale;
 		layer.addObject(mesh);
 
-		const buildGeometry = function (grid) {
+		const buildGeometry = (grid) => {
 			geom.loadData(grid, data.tileSize, data.tileSize, data.segments);
 			if (callback) callback(mesh);
 		};
 
 		if (grid.url !== undefined) {
-			Q3D.application.loadFile(grid.url, "arraybuffer", function (buf) {
+			Q3D.application.loadFile(grid.url, "arraybuffer", (buf) => {
 				grid.values = new Float32Array(buf);
 				buildGeometry(grid);
 			});
@@ -3521,13 +3519,13 @@ class Q3DPointLayer extends Q3DVectorLayer {
 
 	geomAndTransformFunc(objType) {
 
-		var deg2rad = Q3D.deg2rad,
-			rx = 90 * deg2rad;
+		const deg2rad = Q3D.deg2rad;
+		const rx = 90 * deg2rad;
 
 		if (objType == "Sphere") {
 			return [
 				new THREE.SphereGeometry(1, 32, 32),
-				function (mesh, geom, pt) {
+				(mesh, geom, pt) => {
 					mesh.scale.setScalar(geom.r);
 					mesh.position.fromArray(pt);
 				}
@@ -3536,7 +3534,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 		else if (objType == "Box") {
 			return [
 				new THREE.BoxGeometry(1, 1, 1),
-				function (mesh, geom, pt) {
+				(mesh, geom, pt) => {
 					mesh.scale.set(geom.w, geom.h, geom.d);
 					mesh.rotation.x = rx;
 					mesh.position.set(pt[0], pt[1], pt[2] + geom.h / 2);
@@ -3544,10 +3542,10 @@ class Q3DPointLayer extends Q3DVectorLayer {
 			];
 		}
 		else if (objType == "Disk") {
-			var sz = this.sceneData.zScale;
+			const sz = this.sceneData.zScale;
 			return [
 				new THREE.CircleGeometry(1, 32),
-				function (mesh, geom, pt) {
+				(mesh, geom, pt) => {
 					mesh.scale.set(geom.r, geom.r * sz, 1);
 					mesh.rotateOnWorldAxis(Q3D.uv.i, -geom.d * deg2rad);
 					mesh.rotateOnWorldAxis(Q3D.uv.k, -geom.dd * deg2rad);
@@ -3556,10 +3554,10 @@ class Q3DPointLayer extends Q3DVectorLayer {
 			];
 		}
 		else if (objType == "Plane") {
-			var sz = this.sceneData.zScale;
+			const sz = this.sceneData.zScale;
 			return [
 				new THREE.PlaneGeometry(1, 1, 1, 1),
-				function (mesh, geom, pt) {
+				(mesh, geom, pt) => {
 					mesh.scale.set(geom.w, geom.l * sz, 1);
 					mesh.rotateOnWorldAxis(Q3D.uv.i, -geom.d * deg2rad);
 					mesh.rotateOnWorldAxis(Q3D.uv.k, -geom.dd * deg2rad);
@@ -3569,10 +3567,10 @@ class Q3DPointLayer extends Q3DVectorLayer {
 		}
 
 		// Cylinder or Cone
-		var radiusTop = (objType == "Cylinder") ? 1 : 0;
+		const radiusTop = (objType == "Cylinder") ? 1 : 0;
 		return [
 			new THREE.CylinderGeometry(radiusTop, 1, 1, 32),
-			function (mesh, geom, pt) {
+			(mesh, geom, pt) => {
 				mesh.scale.set(geom.r, geom.h, geom.r);
 				mesh.rotation.x = rx;
 				mesh.position.set(pt[0], pt[1], pt[2] + geom.h / 2);
@@ -3740,19 +3738,20 @@ class Q3DLineLayer extends Q3DVectorLayer {
 	}
 
 	createObjFunc(objType) {
-		var materials = this.materials;
+		const materials = this.materials;
 
 		if (objType == "Line") {
-			return function (f, vertices) {
-				var geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
-
-				var obj = new THREE.Line(geom, materials.mtl(f.mtl.idx));
+			return (f, vertices) => {
+				const obj = new THREE.Line(
+					new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3)),
+					materials.mtl(f.mtl.idx)
+				);
 				if (obj.material instanceof THREE.LineDashedMaterial) obj.computeLineDistances();
 				return obj;
 			};
 		}
 		else if (objType == "Thick Line") {
-			return function (f, vertices) {
+			return (f, vertices) => {
 				const geom = new THREE_EX.meshline.MeshLineGeometry();
 				geom.setPoints(vertices);
 
@@ -3762,7 +3761,7 @@ class Q3DLineLayer extends Q3DVectorLayer {
 			};
 		}
 		else if (objType == "Pipe" || objType == "Cone") {
-			var jointGeom, cylinGeom;
+			let jointGeom, cylinGeom;
 			if (objType == "Pipe") {
 				jointGeom = new THREE.SphereGeometry(1, 32, 32);
 				cylinGeom = new THREE.CylinderGeometry(1, 1, 1, 32);
@@ -3771,27 +3770,36 @@ class Q3DLineLayer extends Q3DVectorLayer {
 				cylinGeom = new THREE.CylinderGeometry(0, 1, 1, 32);
 			}
 
-			var group, mesh, axis = Q3D.uv.j;
-			var pt0 = new THREE.Vector3(), pt1 = new THREE.Vector3(), sub = new THREE.Vector3();
+			const axis = Q3D.uv.j;
+			const pt0 = new THREE.Vector3();
+			const pt1 = new THREE.Vector3();
+			const sub = new THREE.Vector3();
 
-			return function (f, points) {
-				group = new Q3DGroup();
+			return (f, points) => {
+				const group = new Q3DGroup();
+				const material = materials.mtl(f.mtl.idx);
 
 				pt0.fromArray(points[0]);
-				for (var i = 1, l = points.length; i < l; i++) {
+				for (let i = 1; i < points.length; i++) {
 					pt1.fromArray(points[i]);
 
-					mesh = new THREE.Mesh(cylinGeom, materials.mtl(f.mtl.idx));
-					mesh.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
-					mesh.position.set((pt0.x + pt1.x) / 2, (pt0.y + pt1.y) / 2, (pt0.z + pt1.z) / 2);
-					mesh.quaternion.setFromUnitVectors(axis, sub.subVectors(pt1, pt0).normalize());
-					group.add(mesh);
+					const cylinder = new THREE.Mesh(cylinGeom, material);
+					cylinder.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
+					cylinder.position.set(
+						(pt0.x + pt1.x) / 2,
+						(pt0.y + pt1.y) / 2,
+						(pt0.z + pt1.z) / 2
+					);
+					cylinder.quaternion.setFromUnitVectors(axis, sub.subVectors(pt1, pt0).normalize());
 
-					if (jointGeom && i < l - 1) {
-						mesh = new THREE.Mesh(jointGeom, materials.mtl(f.mtl.idx));
-						mesh.scale.setScalar(f.geom.r);
-						mesh.position.copy(pt1);
-						group.add(mesh);
+					group.add(cylinder);
+
+					if (jointGeom && i < points.length - 1) {
+						const joint = new THREE.Mesh(jointGeom, material);
+						joint.scale.setScalar(f.geom.r);
+						joint.position.copy(pt1);
+
+						group.add(joint);
 					}
 
 					pt0.copy(pt1);
@@ -3811,7 +3819,7 @@ class Q3DLineLayer extends Q3DVectorLayer {
 				2, 7, 6, 6, 7, 3
 			];
 
-			return function (f, points) {
+			return (f, points) => {
 				const geometries = [];
 
 				let geom, vf4;
@@ -3890,15 +3898,18 @@ class Q3DLineLayer extends Q3DVectorLayer {
 					pt0.copy(pt1);
 				}
 
-				geom = THREE_EX.BufferGeometryUtils.mergeGeometries(geometries, false);
-				return new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
+				return new THREE.Mesh(
+					THREE_EX.BufferGeometryUtils.mergeGeometries(geometries, false),
+					materials.mtl(f.mtl.idx)
+				);
 			};
 		}
 		else if (objType == "Wall") {
-			return function (f, vertices) {
-				var bzFunc = function (x, y) { return f.geom.bh; };
-				return new THREE.Mesh(Q3D.Utils.createWallGeometry(vertices, bzFunc),
-									materials.mtl(f.mtl.idx));
+			return (f, vertices) => {
+				return new THREE.Mesh(
+					Q3D.Utils.createWallGeometry(vertices, () => f.geom.bh),
+					materials.mtl(f.mtl.idx)
+				);
 			};
 		}
 	}
@@ -4053,19 +4064,18 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 	}
 
 	createObjFunc(objType) {
-
-		var materials = this.materials;
+		const materials = this.materials;
 
 		if (objType == "Polygon") {
-			return function (f) {
-				var geom = new THREE.BufferGeometry();
+			return (f) => {
+				const geom = new THREE.BufferGeometry();
 				geom.setAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
 				geom.setIndex(f.geom.triangles.f);
 				return new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
 			};
 		}
 		else if (objType == "Extruded") {
-			var createSubObject = function (f, polygon, z) {
+			const createSubObject = (f, polygon, z) => {
 				var i, l, j, m;
 
 				var shape = new THREE.Shape(Q3D.Utils.arrayToVec2Array(polygon[0]));
@@ -4116,27 +4126,25 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 				return mesh;
 			};
 
-			var polygons, centroids;
+			return (f) => {
+				const { polygons, centroids } = f.geom;
 
-			return function (f) {
-				polygons = f.geom.polygons;
-				centroids = f.geom.centroids;
+				if (polygons.length === 1) {
+					return createSubObject(f, polygons[0], centroids[0][2]);
+				}
 
-				if (polygons.length == 1) return createSubObject(f, polygons[0], centroids[0][2]);
+				const group = new THREE.Group();
 
-				var group = new THREE.Group();
-				for (var i = 0, l = polygons.length; i < l; i++) {
+				for (let i = 0; i < polygons.length; i++) {
 					group.add(createSubObject(f, polygons[i], centroids[i][2]));
 				}
+
 				return group;
 			};
 		}
 		else if (objType == "Overlay") {
 
-			var _this = this;
-
-			return function (f) {
-
+			return (f) => {
 				var geom = new THREE.BufferGeometry();
 				geom.setIndex(f.geom.triangles.f);
 				geom.setAttribute("position", new THREE.Float32BufferAttribute(f.geom.triangles.v, 3));
@@ -4144,12 +4152,12 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 
 				var mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
 
-				var rotation = _this.sceneData.baseExtent.rotation;
+				var rotation = this.sceneData.baseExtent.rotation;
 				if (rotation) {
 					// rotate around center of base extent
-					mesh.position.copy(_this.sceneData.pivot).negate();
+					mesh.position.copy(this.sceneData.pivot).negate();
 					mesh.position.applyAxisAngle(Q3D.uv.k, rotation * Q3D.deg2rad);
-					mesh.position.add(_this.sceneData.pivot);
+					mesh.position.add(this.sceneData.pivot);
 					mesh.rotateOnAxis(Q3D.uv.k, rotation * Q3D.deg2rad);
 				}
 
@@ -4264,9 +4272,8 @@ class Q3DModels extends THREE.EventDispatcher {
 	}
 
 	loadData(data) {
-		var _this = this;
-		var callback = function (model) {
-			_this.dispatchEvent({type: "modelLoaded", model: model});
+		const callback = (model) => {
+			this.dispatchEvent({type: "modelLoaded", model: model});
 		};
 
 		var model, url;
@@ -4317,7 +4324,7 @@ Q3D.Models = Q3DModels;
 Q3D.Utils = {};
 
 // Put a stick to given position (for debugging)
-Q3D.Utils.putStick = function (x, y, zFunc, h) {
+Q3D.Utils.putStick = (x, y, zFunc, h) => {
 	if (Q3D.Utils._stick_mat === undefined) Q3D.Utils._stick_mat = new THREE.LineBasicMaterial({color: 0xff0000});
 	if (h === undefined) h = 0.2;
 	const z = zFunc(x, y);
@@ -4331,8 +4338,8 @@ Q3D.Utils.putStick = function (x, y, zFunc, h) {
 
 // convert latitude and longitude in degrees to the following format
 // Ndd°mm′ss.ss″, Eddd°mm′ss.ss″
-Q3D.Utils.convertToDMS = function (lat, lon) {
-	function toDMS(degrees) {
+Q3D.Utils.convertToDMS = (lat, lon) => {
+	const toDMS = (degrees) => {
 		var deg = Math.floor(degrees),
 			m = (degrees - deg) * 60,
 			min = Math.floor(m),
@@ -4344,7 +4351,7 @@ Q3D.Utils.convertToDMS = function (lat, lon) {
 		   ((lon < 0) ? "W" : "E") + toDMS(Math.abs(lon));
 };
 
-Q3D.Utils.createWallGeometry = function (vert, bzFunc) {
+Q3D.Utils.createWallGeometry = (vert, bzFunc) => {
 	const positions = [];
 	const indices = [];
 
@@ -4403,7 +4410,7 @@ Q3D.Utils.setGeometryUVs = function (geom, base_width, base_height) {
 	}
 };
 
-Q3D.Utils.base64ToUint8Array = function (base64) {
+Q3D.Utils.base64ToUint8Array = (base64) => {
 	var bin = atob(base64);
 	var len = bin.length;
 	var bytes = new Uint8Array(len);
@@ -4520,7 +4527,7 @@ Q3D.Tweens.opacity = {
 			track.prop_list.push({opacity: keyframe.opacity});
 		}
 
-		track.onUpdate = function (obj, elapsed) {
+		track.onUpdate = (obj, elapsed) => {
 			layer.opacity = obj.opacity;
 		};
 
@@ -4535,27 +4542,27 @@ Q3D.Tweens.texture = {
 	type: Q3D.KeyframeType.Texture,
 
 	init: function (track, layer) {
+		const { keyframes } = track;
 
-		var keyframes = track.keyframes;
+		let effect;
 
-		var idx_from, from, to, effect;
+		track.onStart = () => {
+			const i = track.currentIndex;
+			const from = keyframes[i].mtlIndex;
+			const to = keyframes[i + 1].mtlIndex;
 
-		track.onStart = function () {
-			idx_from = track.currentIndex;
-			effect = keyframes[idx_from].effect;
-			from = keyframes[idx_from].mtlIndex;
-			to = keyframes[idx_from + 1].mtlIndex;
+			effect = keyframes[i].effect;
 
 			layer.prepareTexAnimation(from, to);
 			layer.setTextureAt(null, effect);
 		};
 
-		track.onUpdate = function (obj, elapsed) {
+		track.onUpdate = (obj, elapsed) => {
 			layer.setTextureAt(obj.p - track.currentIndex, effect);
 		};
 
-		for (var i = 0; i < keyframes.length; i++) {
-			track.prop_list.push({p: i});
+		for (let i = 0; i < keyframes.length; i++) {
+			track.prop_list.push({ p: i });
 		}
 	}
 };
@@ -4565,31 +4572,36 @@ Q3D.Tweens.lineGrowing = {
 	type: Q3D.KeyframeType.GrowingLine,
 
 	init: function (track, layer) {
-		if (track._keyframes === undefined) track._keyframes = track.keyframes;
+		if (track._keyframes === undefined) {
+			track._keyframes = track.keyframes;
+		}
 
-		var effectItem = track._keyframes[0];
+		const effectItem = track._keyframes[0];
+
 		if (effectItem.sequential) {
 			track.keyframes = [];
+			track.prop_list = [];
 
-			var item;
-			for (var i = 0; i < layer.features.length; i++) {
-				item = layer.features[i].anim;
+			for (let i = 0; i < layer.features.length; i++) {
+				const item = layer.features[i].anim;
+
 				item.easing = effectItem.easing;
 				track.keyframes.push(item);
-				track.prop_list.push({p: i});
+				track.prop_list.push({ p: i });
 			}
-			track.keyframes.push({});
-			track.prop_list.push({p: i});
 
-			track.onUpdate = function (obj, elapsed) {
+			track.keyframes.push({});
+			track.prop_list.push({ p: layer.features.length });
+
+			track.onUpdate = (obj, elapsed) => {
 				layer.setLineLength(obj.p - track.currentIndex, track.currentIndex);
 			};
 		}
 		else {
 			track.keyframes = [effectItem, {}];
-			track.prop_list = [{p: 0}, {p: 1}];
+			track.prop_list = [{ p: 0 }, { p: 1 }];
 
-			track.onUpdate = function (obj, elapsed) {
+			track.onUpdate = (obj, elapsed) => {
 				layer.setLineLength(obj.p);
 			};
 		}
