@@ -195,15 +195,13 @@ Q3D.E = function (id) {
 	return document.getElementById(id);
 };
 
+const app = Q3D.application;
+const gui = Q3D.gui;
+const conf = Q3D.Config;
+const E = Q3D.E;
 
 (function () {
-
-	var app = Q3D.application,
-		gui = Q3D.gui,
-		conf = Q3D.Config,
-		E = Q3D.E;
-
-	var vec3 = new THREE.Vector3();
+	const vec3 = new THREE.Vector3();
 
 	/*
 	Q3D.application
@@ -226,11 +224,11 @@ Q3D.E = function (id) {
 	};
 
 	app.removeEventListener = function (type, listener) {
-		var array = listeners[type];
-		if (array !== undefined) {
-			var idx = array.indexOf(listener);
-			if (idx !== -1) array.splice(idx, 1);
-		}
+		const array = listeners[type];
+		if (!array) return;
+
+		const idx = array.indexOf(listener);
+		if (idx !== -1) array.splice(idx, 1);
 	};
 
 	app.init = function (container) {
@@ -245,12 +243,12 @@ Q3D.E = function (id) {
 		app._wireframeMode = false;
 
 		// URL parameters
-		var params = app.parseUrlParameters();
+		const params = app.parseUrlParameters();
 		app.urlParams = params;
 
 		if ("popup" in params) {
 			// open popup window
-			var c = window.location.href.split("?");
+			const c = window.location.href.split("?");
 			window.open(c[0] + "?" + c[1].replace(/&?popup/, ""), "popup", "width=" + params.width + ",height=" + params.height);
 			gui.popup.show("Another window has been opened.");
 			return;
@@ -270,7 +268,7 @@ Q3D.E = function (id) {
 		app.width = container.clientWidth;
 		app.height = container.clientHeight;
 
-		var bgcolor = conf.bgColor;
+		const bgcolor = conf.bgColor;
 		if (bgcolor === null) container.classList.add("sky");
 
 		// WebGLRenderer
@@ -286,7 +284,7 @@ Q3D.E = function (id) {
 		app.container.appendChild(app.renderer.domElement);
 
 		if (conf.texture.anisotropy <= 0) {
-			var maxAnis = app.renderer.capabilities.getMaxAnisotropy() || 1;
+			const maxAnis = app.renderer.capabilities.getMaxAnisotropy() || 1;
 
 			if (conf.texture.anisotropy == 0) {
 				conf.texture.anisotropy = maxAnis;
@@ -389,7 +387,7 @@ Q3D.E = function (id) {
 			app.render();
 
 			if (conf.animation.enabled) {
-				var btn = E("animbtn");
+				const btn = E("animbtn");
 				if (btn) {
 					btn.className = "playbtn";
 				}
@@ -441,10 +439,10 @@ Q3D.E = function (id) {
 
 	app.loadFile = function (url, type, callback) {
 
-		var loader = new THREE.FileLoader(app.loadingManager);
+		const loader = new THREE.FileLoader(app.loadingManager);
 		loader.setResponseType(type);
 
-		var onError = function (e) {
+		const onError = function (e) {
 			if (location.protocol == "file:") {
 				gui.popup.show("This browser doesn't allow loading local files via Ajax. See <a href='https://github.com/minorua/Qgis2threejs/wiki/Browser-Support'>plugin wiki page</a> for details.", "Error", true);
 			}
@@ -479,7 +477,7 @@ Q3D.E = function (id) {
 
 	app.loadSceneFile = function (url, sceneFileLoadedCallback, sceneLoadedCallback) {
 
-		var onload = function () {
+		const onload = function () {
 			if (sceneFileLoadedCallback) sceneFileLoadedCallback(app.scene);
 
 			app.loadingManager.itemEnd("scenefile");
@@ -493,10 +491,12 @@ Q3D.E = function (id) {
 
 		app.loadingManager.itemStart("scenefile");
 
-		var ext = url.split(".").pop();
-		if (ext == "json") app.loadJSONFile(url, onload);
+		const ext = url.split(".").pop();
+		if (ext == "json") {
+			app.loadJSONFile(url, onload);
+		}
 		else if (ext == "js") {
-			var e = document.createElement("script");
+			const e = document.createElement("script");
 			e.src = url;
 			e.onload = onload;
 			document.body.appendChild(e);
@@ -508,9 +508,9 @@ Q3D.E = function (id) {
 	};
 
 	app.loadModelFile = function (url, callback) {
-		var loader,
-			ext = url.split(".").pop();
+		const ext = url.split(".").pop();
 
+		let loader;
 		if (ext == "dae") {
 			loader = new THREE_EX.ColladaLoader(app.loadingManager);
 		}
@@ -537,7 +537,7 @@ Q3D.E = function (id) {
 	app.loadModelData = function (data, ext, resourcePath, callback) {
 
 		if (ext == "dae") {
-			var model = new THREE_EX.ColladaLoader(app.loadingManager).parse(data, resourcePath);
+			const model = new THREE_EX.ColladaLoader(app.loadingManager).parse(data, resourcePath);
 			if (callback) callback(model);
 		}
 		else if (ext == "gltf" || ext == "glb") {
@@ -620,7 +620,7 @@ Q3D.E = function (id) {
 	};
 
 	app.setCanvasSize = function (width, height) {
-		var changed = (app.width != width || app.height != height);
+		const changed = (app.width != width || app.height != height);
 
 		app.width = width;
 		app.height = height;
@@ -643,7 +643,7 @@ Q3D.E = function (id) {
 		app.camera.up.set(0, 0, 1);
 
 		// temporary near and far values from base extent
-		var be = app.scene.userData.baseExtent;
+		const be = app.scene.userData.baseExtent;
 		if (be) {
 			app.camera.near = (is_ortho) ? 0 : 0.001 * be.width;
 			app.camera.far = 100 * be.width;
@@ -653,9 +653,9 @@ Q3D.E = function (id) {
 
 	// adjusts camera's near and far based on the scene's bounding box
 	app.adjustCameraNearFar = function () {
-		var bbox = app.scene.boundingBox();
+		const bbox = app.scene.boundingBox();
 		if (!bbox.isEmpty()) {
-			var sphere = bbox.getBoundingSphere(new THREE.Sphere());
+			const sphere = bbox.getBoundingSphere(new THREE.Sphere());
 
 			app.camera.near = (app.camera.isOrthographicCamera) ? 0 : 0.001 * sphere.radius;
 			app.camera.far = 50 * sphere.radius;
@@ -671,10 +671,10 @@ Q3D.E = function (id) {
 			app.render(true);
 
 			// stay at current position if rendered objects exist
-			var r = app.renderer.info.render;
+			const r = app.renderer.info.render;
 			if (r.triangles + r.points + r.lines) return;
 		}
-		var bbox = app.scene.boundingBox(true);
+		const bbox = app.scene.boundingBox(true);
 		if (bbox.isEmpty()) return;
 
 		bbox.getCenter(vec3);
@@ -728,8 +728,8 @@ Q3D.E = function (id) {
 		app.scene2.add(mesh);
 	};
 
-	var anim_timer = new THREE.Timer();
-	var _pupListenerAdded = false;
+	const anim_timer = new THREE.Timer();
+	let _pupListenerAdded = false;
 	app.buildViewHelper = function (container) {
 		app.viewHelper = new THREE_EX.ViewHelper(app.camera, container);
 		app.viewHelper.center = app.controls.target;
@@ -749,10 +749,14 @@ Q3D.E = function (id) {
 	};
 
 	app.currentViewUrl = function () {
-		var c = app.scene.toMapCoordinates(app.camera.position),
-			t = app.scene.toMapCoordinates(app.controls.target),
-			hash = "#cx=" + c.x.toFixed(3) + "&cy=" + c.y.toFixed(3) + "&cz=" + c.z.toFixed(3);
-		if (t.x || t.y || t.z) hash += "&tx=" + t.x.toFixed(3) + "&ty=" + t.y.toFixed(3) + "&tz=" + t.z.toFixed(3);
+		const c = app.scene.toMapCoordinates(app.camera.position);
+		const t = app.scene.toMapCoordinates(app.controls.target);
+
+		let hash = `#cx=${c.x.toFixed(3)}&cy=${c.y.toFixed(3)}&cz=${c.z.toFixed(3)}`;
+
+		if (t.x || t.y || t.z) {
+			hash += `&tx=${t.x.toFixed(3)}&ty=${t.y.toFixed(3)}&tz=${t.z.toFixed(3)}`;
+		}
 		return window.location.href.split("#")[0] + hash;
 	};
 
@@ -813,7 +817,7 @@ Q3D.E = function (id) {
 			easingFunction: function (easing) {
 				if (easing == 1) return TWEEN.Easing.Linear.None;
 				if (easing > 1) {
-					var f = TWEEN.Easing[Q3D.Config.animation.easingCurve];
+					const f = TWEEN.Easing[Q3D.Config.animation.easingCurve];
 					if (easing == 2) return f["InOut"];
 					else if (easing == 3) return f["In"];
 					else return f["Out"];   // easing == 4
@@ -853,7 +857,7 @@ Q3D.E = function (id) {
 						return;
 					}
 
-					var layer = (track.layerId !== undefined) ? app.scene.mapLayers[track.layerId] : undefined;
+					const layer = (track.layerId !== undefined) ? app.scene.mapLayers[track.layerId] : undefined;
 
 					track.completed = false;
 					track.currentIndex = 0;
@@ -861,11 +865,11 @@ Q3D.E = function (id) {
 
 					tween.init(track, layer);
 
-					var keyframes = track.keyframes;
+					const keyframes = track.keyframes;
 
-					var showNBox = function (idx) {
+					const showNBox = function (idx) {
 						// narrative box
-						var n = keyframes[idx].narration;
+						const n = keyframes[idx].narration;
 						if (n && narBox) {
 							if (currentNarElem) {
 								currentNarElem.classList.remove("visible");
@@ -897,7 +901,7 @@ Q3D.E = function (id) {
 						}
 					};
 
-					var onStart = function () {
+					const onStart = function () {
 						if (track.onStart) track.onStart();
 
 						app.dispatchEvent({type: "tweenStarted", index: track.currentIndex});
@@ -908,18 +912,18 @@ Q3D.E = function (id) {
 						}
 					};
 
-					var onComplete = function (obj) {
+					const onComplete = function (obj) {
 						if (!keyframes[track.currentIndex].easing) {
 							track.onUpdate(obj, 1);
 						}
 
 						if (track.onComplete) track.onComplete(obj);
 
-						var index = ++track.currentIndex;
+						const index = ++track.currentIndex;
 						if (index == keyframes.length - 1) {
 							track.completed = true;
 
-							var completed = true;
+							let completed = true;
 							for (const t of _this.tracks) {
 								if (!t.completed) completed = false;
 							}
@@ -944,8 +948,8 @@ Q3D.E = function (id) {
 						showNBox(index);
 					};
 
-					var t0, t1, t2;
-					for (var i = 0; i < keyframes.length - 1; i++) {
+					let t0, t1, t2;
+					for (let i = 0; i < keyframes.length - 1; i++) {
 
 						t2 = new TWEEN.Tween(track.prop_list[i]).delay(keyframes[i].delay).onStart(onStart)
 										 .to(track.prop_list[i + 1], keyframes[i].duration).onComplete(onComplete);
@@ -1000,7 +1004,7 @@ Q3D.E = function (id) {
 
 			resume: function () {
 
-				var box = E("narrativebox");
+				const box = E("narrativebox");
 				if (box && box.classList.contains("visible")) {
 					box.classList.remove("visible");
 				}
@@ -1044,9 +1048,9 @@ Q3D.E = function (id) {
 		app.render();
 	};
 
-	var rafId = null;
+	let rafId = null;
 
-	var renderImmediately = function () {
+	const renderImmediately = function () {
 		app.render(true);
 		rafId = null;
 	};
@@ -1087,8 +1091,8 @@ Q3D.E = function (id) {
 	};
 
 	(function () {
-		var dly, rpt, times, id = null;
-		var func = function () {
+		let dly, rpt, times, id = null;
+		const func = function () {
 			app.render();
 			if (rpt <= ++times) {
 				clearInterval(id);
@@ -1127,7 +1131,7 @@ Q3D.E = function (id) {
 	app.setWireframeMode = function (wireframe) {
 		if (wireframe == app._wireframeMode) return;
 
-		for (var id in app.scene.mapLayers) {
+		for (const id in app.scene.mapLayers) {
 			app.scene.mapLayers[id].setWireframeMode(wireframe);
 		}
 
@@ -1136,9 +1140,9 @@ Q3D.E = function (id) {
 	};
 
 	app.intersectObjects = function (offsetX, offsetY) {
-		var vec2 = new THREE.Vector2((offsetX / app.width) * 2 - 1,
-								    -(offsetY / app.height) * 2 + 1);
-		var ray = new THREE.Raycaster();
+		const vec2 = new THREE.Vector2((offsetX / app.width) * 2 - 1,
+									  -(offsetY / app.height) * 2 + 1);
+		const ray = new THREE.Raycaster();
 		ray.params.Line.threshold = 0.5;
 		ray.params.Points.threshold = 0.5;
 		ray.setFromCamera(vec2, app.camera);
@@ -1146,7 +1150,7 @@ Q3D.E = function (id) {
 	};
 
 	app._offset = function (elm) {
-		var top = 0, left = 0;
+		let top = 0, left = 0;
 		do {
 			top += elm.offsetTop || 0; left += elm.offsetLeft || 0; elm = elm.offsetParent;
 		} while (elm);
@@ -1183,10 +1187,9 @@ Q3D.E = function (id) {
 		zoomToLayer: function (layer) {
 			if (!layer) return;
 
-			var bbox = layer.boundingBox();
-
+			const bbox = layer.boundingBox();
 			bbox.getSize(vec3);
-			var dist = Math.max(vec3.x, vec3.y * 3 / 4) * 1.2;
+			const dist = Math.max(vec3.x, vec3.y * 3 / 4) * 1.2;
 
 			bbox.getCenter(vec3);
 			app.cameraAction.zoom(vec3.x, vec3.y, vec3.z, dist);
@@ -1230,14 +1233,14 @@ Q3D.E = function (id) {
 
 		if (object === null) return;
 
-		var layer = app.scene.mapLayers[object.userData.layerId];
+		const layer = app.scene.mapLayers[object.userData.layerId];
 		if (!layer || layer.type == Q3D.LayerType.DEM || layer.type == Q3D.LayerType.PointCloud) return;
 		if (layer.properties.objType == "Billboard") return;
 
 		// create a highlight object (if layer type is Point, slightly bigger than the object)
-		var s = (layer.type == Q3D.LayerType.Point) ? 1.01 : 1;
+		const s = (layer.type == Q3D.LayerType.Point) ? 1.01 : 1;
 
-		var clone = object.clone();
+		const clone = object.clone();
 		clone.traverse((obj) => {
 			obj.material = app.highlightMaterial;
 		});
@@ -1309,20 +1312,20 @@ Q3D.E = function (id) {
 	app.saveCanvasImage = function (width, height, fill_background, saveImageFunc) {
 		if (fill_background === undefined) fill_background = true;
 
-		var old_size;
+		let old_size;
 		if (width && height) {
 			old_size = [app.width, app.height];
 			app.setCanvasSize(width, height);
 		}
 
-		var saveBlob = function (blob) {
-			var filename = "image.png";
+		const saveBlob = function (blob) {
+			const filename = "image.png";
 
 			if (app._canvasImageUrl) URL.revokeObjectURL(app._canvasImageUrl);
 			app._canvasImageUrl = URL.createObjectURL(blob);
 
 			// display a link to save the image
-			var e = document.createElement("a");
+			const e = document.createElement("a");
 			e.className = "download-link";
 			e.href = app._canvasImageUrl;
 			e.download = filename;
@@ -1330,18 +1333,18 @@ Q3D.E = function (id) {
 			gui.popup.show("Click to save the image to a file." + e.outerHTML, "Image is ready");
 		};
 
-		var saveCanvasImage = saveImageFunc || function (canvas) {
+		const saveCanvasImage = saveImageFunc || function (canvas) {
 			if (canvas.toBlob !== undefined) {
 				canvas.toBlob(saveBlob);
 			}
 			else {    // !HTMLCanvasElement.prototype.toBlob
 				// https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement.toBlob
-				var arr = Q3D.Utils.base64ToUint8Array(canvas.toDataURL("image/png").split(',')[1]);
+				const arr = Q3D.Utils.base64ToUint8Array(canvas.toDataURL("image/png").split(',')[1]);
 				saveBlob(new Blob([arr], {type: "image/png"}));
 			}
 		};
 
-		var restoreCanvasSize = function () {
+		const restoreCanvasSize = function () {
 			if (old_size) app.setCanvasSize(old_size[0], old_size[1]);
 			app.render();
 		};
@@ -1361,18 +1364,18 @@ Q3D.E = function (id) {
 		}
 
 		// restore clear color
-		var bgcolor = conf.bgColor;
+		const bgcolor = conf.bgColor;
 		app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
 
 		if (fill_background && bgcolor === null) {
-			var canvas = document.createElement("canvas");
+			const canvas = document.createElement("canvas");
 			canvas.width = width;
 			canvas.height = height;
 
-			var ctx = canvas.getContext("2d");
+			const ctx = canvas.getContext("2d");
 			if (fill_background && bgcolor === null) {
 				// render "sky-like" background
-				var grad = ctx.createLinearGradient(0, 0, 0, height);
+				const grad = ctx.createLinearGradient(0, 0, 0, height);
 				grad.addColorStop(0, "#98c8f6");
 				grad.addColorStop(0.4, "#cbebff");
 				grad.addColorStop(1, "#f0f9ff");
@@ -1380,7 +1383,7 @@ Q3D.E = function (id) {
 				ctx.fillRect(0, 0, width, height);
 			}
 
-			var image = new Image();
+			const image = new Image();
 			image.onload = function () {
 				ctx.drawImage(image, 0, 0, width, height);
 
@@ -1397,7 +1400,7 @@ Q3D.E = function (id) {
 
 	(function () {
 
-		var path = [];
+		let path = [];
 
 		app.measure = {
 
@@ -1412,6 +1415,7 @@ Q3D.E = function (id) {
 					var opt = conf.measure.marker;
 					this.geom = new THREE.SphereGeometry(opt.radius, 32, 32);
 					this.mtl = new THREE.MeshLambertMaterial({color: opt.color, opacity: opt.opacity, transparent: (opt.opacity < 1)});
+
 					opt = conf.measure.line;
 					this.lineMtl = new THREE.LineBasicMaterial({color: opt.color});
 					this.markerGroup = new Q3DGroup();
@@ -1430,7 +1434,7 @@ Q3D.E = function (id) {
 
 			addPoint: function (pt) {
 				// add a marker
-				var marker = new THREE.Mesh(this.geom, this.mtl);
+				const marker = new THREE.Mesh(this.geom, this.mtl);
 				marker.position.copy(pt);
 				marker.onBeforeRender = app.queryMarker.onBeforeRender;
 
@@ -1441,9 +1445,9 @@ Q3D.E = function (id) {
 
 				if (path.length > 1) {
 					// add a line
-					var v = path[path.length - 2].toArray().concat(path[path.length - 1].toArray()),
-						geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3)),
-						line = new THREE.Line(geom, this.lineMtl);
+					const v = path[path.length - 2].toArray().concat(path[path.length - 1].toArray());
+					const geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+					const line = new THREE.Line(geom, this.lineMtl);
 					this.lineGroup.add(line);
 				}
 
@@ -1480,12 +1484,12 @@ Q3D.E = function (id) {
 			},
 
 			showResult: function () {
-				var vec2 = new THREE.Vector2(),
-					zScale = app.scene.userData.zScale;
-				var total = 0, totalxy = 0, dz = 0;
+				const vec2 = new THREE.Vector2();
+				const zScale = app.scene.userData.zScale;
+				let total = 0, totalxy = 0, dz = 0;
 				if (path.length > 1) {
-					var dxy;
-					for (var i = path.length - 1; i > 0; i--) {
+					let dxy;
+					for (let i = path.length - 1; i > 0; i--) {
 						dxy = vec2.copy(path[i]).distanceTo(path[i - 1]);
 						dz = (path[i].z - path[i - 1].z) / zScale;
 
@@ -1495,7 +1499,7 @@ Q3D.E = function (id) {
 					dz = (path[path.length - 1].z - path[0].z) / zScale;
 				}
 
-				var html = '<table class="measure">';
+				let html = '<table class="measure">';
 				html += "<tr><td>Total distance:</td><td>" + this.formatLength(total) + " m</td><td></td></tr>";
 				html += "<tr><td>Horizontal distance:</td><td>" + this.formatLength(totalxy) + " m</td><td></td></tr>";
 				html += "<tr><td>Vertical difference:</td><td>" + this.formatLength(dz) + ' m</td><td><span class="tooltip tooltip-btn" data-tooltip="elevation difference between start point and end point">?</span></td></tr>';
@@ -1510,17 +1514,17 @@ Q3D.E = function (id) {
 	/*
 	Q3D.gui
 	*/
-	var VIS = "visible";
+	const VIS = "visible";
 
 	function CE(tagName, parent, innerHTML) {
-		var elem = document.createElement(tagName);
+		const elem = document.createElement(tagName);
 		if (parent) parent.appendChild(elem);
 		if (innerHTML) elem.innerHTML = innerHTML;
 		return elem;
 	}
 
 	function ON_CLICK(id, listener) {
-		var e = document.getElementById(id);
+		const e = document.getElementById(id);
 		if (e) e.addEventListener("click", listener);
 	}
 
@@ -1549,15 +1553,15 @@ Q3D.E = function (id) {
 			else gui.showInfo();
 		});
 
-		var btn = E("animbtn");
+		const btn = E("animbtn");
 		if (conf.animation.enabled && btn) {
-			var anim = app.animation.keyframes;
+			const anim = app.animation.keyframes;
 
-			var playButton = function () {
+			const playButton = function () {
 				btn.className = "playbtn";
 			};
 
-			var pauseButton = function () {
+			const pauseButton = function () {
 				btn.className = "pausebtn";
 			};
 
@@ -1579,27 +1583,17 @@ Q3D.E = function (id) {
 
 		// popup
 		ON_CLICK("closebtn", app.cleanView);
-		ON_CLICK("zoomtolayer", () => {
-			app.cameraAction.zoomToLayer(app.selectedLayer);
-		});
-		ON_CLICK("zoomtopoint", () => {
-			app.cameraAction.zoom();
-		});
-		ON_CLICK("orbitbtn", () => {
-			app.cameraAction.orbit();
-		});
-		ON_CLICK("measurebtn", () => {
-			app.measure.start();
-		});
+		ON_CLICK("zoomtolayer", () => app.cameraAction.zoomToLayer(app.selectedLayer));
+		ON_CLICK("zoomtopoint", () => app.cameraAction.zoom());
+		ON_CLICK("orbitbtn", () => app.cameraAction.orbit());
+		ON_CLICK("measurebtn", () => app.measure.start());
 
 		// narrative box
-		ON_CLICK("nextbtn", () => {
-			app.animation.keyframes.resume();
-		});
+		ON_CLICK("nextbtn", () => app.animation.keyframes.resume());
 
 		// attribution
 		if (typeof proj4 === "undefined") {
-			var e = E("lib_proj4js");
+			const e = E("lib_proj4js");
 			if (e) e.classList.add("hidden");
 		}
 
@@ -1638,10 +1632,10 @@ Q3D.E = function (id) {
 			this.content = obj;
 			this.modal = Boolean(modal);
 
-			var e = E("layerpanel");
+			const e = E("layerpanel");
 			if (e) e.classList.remove(VIS);
 
-			var content = E("popupcontent");
+			const content = E("popupcontent");
 			[content, E("queryresult"), E("pageinfo")].forEach((e) => {
 				if (e) e.classList.remove(VIS);
 			});
@@ -1683,14 +1677,15 @@ Q3D.E = function (id) {
 	};
 
 	gui.showInfo = function () {
-		var e = E("urlbox");
+		const e = E("urlbox");
 		if (e) e.value = app.currentViewUrl();
 		gui.popup.show("pageinfo");
 	};
 
 	gui.showQueryResult = function (point, layer, obj, show_coords) {
+		let e;
 		// layer name
-		var e = E("qr_layername");
+		e = E("qr_layername");
 		if (layer && e) e.innerHTML = layer.properties.name;
 
 		// clicked coordinates
@@ -1699,12 +1694,12 @@ Q3D.E = function (id) {
 			if (show_coords) {
 				e.classList.remove("hidden");
 
-				var pt = app.scene.toMapCoordinates(point);
+				const pt = app.scene.toMapCoordinates(point);
 
 				e = E("qr_coords");
 
 				if (conf.coord.latlon) {
-					var lonLat = proj4(app.scene.userData.proj).inverse([pt.x, pt.y]);
+					const lonLat = proj4(app.scene.userData.proj).inverse([pt.x, pt.y]);
 					e.innerHTML = Q3D.Utils.convertToDMS(lonLat[1], lonLat[0]) + ", Elev. " + pt.z.toFixed(2);
 				}
 				else {
@@ -1718,14 +1713,13 @@ Q3D.E = function (id) {
 
 		e = E("qr_attrs_table");
 		if (e) {
-			for (var i = e.children.length - 1; i >= 0; i--) {
+			for (let i = e.children.length - 1; i >= 0; i--) {
 				if (e.children[i].tagName.toUpperCase() == "TR") e.removeChild(e.children[i]);
 			}
 
 			if (layer && layer.properties.propertyNames !== undefined) {
-				var row;
-				for (var i = 0, l = layer.properties.propertyNames.length; i < l; i++) {
-					row = document.createElement("tr");
+				for (let i = 0, l = layer.properties.propertyNames.length; i < l; i++) {
+					const row = document.createElement("tr");
 					row.innerHTML = "<td>" + layer.properties.propertyNames[i] + "</td>" +
 									"<td>" + obj.userData.properties[i] + "</td>";
 					e.appendChild(row);
@@ -1899,7 +1893,7 @@ class Q3DGroup extends THREE.Group {
 	}
 
 	clear() {
-		for (var i = this.children.length - 1; i >= 0; i--) {
+		for (let i = this.children.length - 1; i >= 0; i--) {
 			this.remove(this.children[i]);
 		}
 		return this;
@@ -1952,7 +1946,7 @@ class Q3DScene extends THREE.Scene {
 
 	loadData(data) {
 		if (data.type == "scene") {
-			var p = data.properties;
+			const p = data.properties;
 			if (p !== undefined) {
 				// fog
 				if (p.fog) {
@@ -1960,22 +1954,22 @@ class Q3DScene extends THREE.Scene {
 				}
 
 				// light
-				var rotation0 = (this.userData.baseExtent) ? this.userData.baseExtent.rotation : 0;
+				const rotation0 = (this.userData.baseExtent) ? this.userData.baseExtent.rotation : 0;
 				if (p.light != this.userData.light || p.baseExtent.rotation != rotation0) {
 					this.lightGroup.clear();
 					this.buildLights(Q3D.Config.lights[p.light] || Q3D.Config.lights.directional, p.baseExtent.rotation);
 					this.dispatchEvent({type: "lightChanged", light: p.light});
 				}
 
-				var be = p.baseExtent;
+				const be = p.baseExtent;
 				p.pivot = new THREE.Vector3(be.cx, be.cy, p.origin.z).sub(p.origin);   // 2D center of extent in 3D world coordinates
 
 				// set initial camera position and parameters
 				if (this.userData.origin === undefined) {
 
-					var s = be.width,
-						v = Q3D.Config.viewpoint,
-						pos, focal;
+					const s = be.width;
+					let v = Q3D.Config.viewpoint;
+					let pos, focal;
 
 					if (v.pos === undefined) {
 						v = v.default;
@@ -1996,8 +1990,8 @@ class Q3DScene extends THREE.Scene {
 					pos.z *= p.zScale;
 					focal.z *= p.zScale;
 
-					var near = 0.001 * s,
-						far = 100 * s;
+					const near = 0.001 * s,
+						  far = 100 * s;
 
 					this.requestCameraUpdate(pos, focal, near, far);
 				}
@@ -2015,10 +2009,10 @@ class Q3DScene extends THREE.Scene {
 			}
 		}
 		else if (data.type == "layer") {
-			var layer = this.mapLayers[data.id];
+			let layer = this.mapLayers[data.id];
 			if (layer === undefined) {
 				// create a layer
-				var type = data.properties.type;
+				const type = data.properties.type;
 				if (type == "dem") layer = new Q3DDEMLayer();
 				else if (type == "point") layer = new Q3DPointLayer();
 				else if (type == "line") layer = new Q3DLineLayer();
@@ -2040,11 +2034,9 @@ class Q3DScene extends THREE.Scene {
 			this.requestRender();
 		}
 		else if (data.type == "block") {
-			var layer = this.mapLayers[data.layer];
-			if (layer === undefined) {
-				// console.error("layer not exists:" + data.layer);
-				return;
-			}
+			const layer = this.mapLayers[data.layer];
+			if (layer === undefined) return;
+
 			layer.loadData(data, this);
 
 			this.requestRender();
@@ -2083,20 +2075,25 @@ class Q3DScene extends THREE.Scene {
 	}
 
 	visibleObjects(labelVisible) {
-		var layer, objs = [];
-		for (var id in this.mapLayers) {
-			layer = this.mapLayers[id];
-			if (layer.visible) {
-				objs = objs.concat(layer.visibleObjects());
-				if (labelVisible && layer.labels) objs = objs.concat(layer.labels);
+		let objs = [];
+
+		for (const id in this.mapLayers) {
+			const layer = this.mapLayers[id];
+			if (!layer.visible) continue;
+
+			objs = objs.concat(layer.visibleObjects());
+
+			if (labelVisible && layer.labels) {
+				objs = objs.concat(layer.labels);
 			}
 		}
+
 		return objs;
 	}
 
 	// 3D world coordinates to map coordinates
 	toMapCoordinates(pt) {
-		var p = this.userData;
+		const p = this.userData;
 		return {
 			x: p.origin.x + pt.x,
 			y: p.origin.y + pt.y,
@@ -2106,7 +2103,7 @@ class Q3DScene extends THREE.Scene {
 
 	// map coordinates to 3D world coordinates
 	toWorldCoordinates(pt, isLonLat) {
-		var p = this.userData;
+		const p = this.userData;
 		if (isLonLat && typeof proj4 !== "undefined") {
 			// WGS84 long,lat to map coordinates
 			var t = proj4(p.proj).forward([pt.x, pt.y]);
@@ -2122,8 +2119,8 @@ class Q3DScene extends THREE.Scene {
 
 	// return bounding box in 3d world coordinates
 	boundingBox(only_visible) {
-		var box = new THREE.Box3();
-		for (var id in this.mapLayers) {
+		const box = new THREE.Box3();
+		for (const id in this.mapLayers) {
 			if (only_visible && !this.mapLayers[id].visible) continue;
 
 			const b = this.mapLayers[id].boundingBox();
@@ -2153,7 +2150,9 @@ class Q3DMaterial {
 		this.origProp = data;
 		this.groupId = data.mtlIndex;
 
-		var m = data, opt = {}, defer = false;
+		const m = data;
+		const opt = {};
+		let defer = false;
 
 		if (m.ds) opt.side = THREE.DoubleSide;
 
@@ -2377,7 +2376,7 @@ class Q3DMaterials extends THREE.EventDispatcher {
 	}
 
 	removeItem(material, dispose) {
-		for (var i = this.array.length - 1; i >= 0; i--) {
+		for (let i = this.array.length - 1; i >= 0; i--) {
 			if (this.array[i].mtl === material) {
 				this.array.splice(i, 1);
 				break;
@@ -2387,7 +2386,7 @@ class Q3DMaterials extends THREE.EventDispatcher {
 	}
 
 	removeItemsByGroupId(groupId) {
-		for (var i = this.array.length - 1; i >= 0; i--) {
+		for (let i = this.array.length - 1; i >= 0; i--) {
 			if (this.array[i].groupId === groupId) {
 				this.array.splice(i, 1);
 			}
@@ -2508,78 +2507,75 @@ class Q3DDEMBlockBase {
 	}
 
 	buildSides(layer, parent, material, z0) {
-		const grid = this.data.grid,
-			  b = this._auxArgs(),
-  			  x0 = b.x0, y0 = b.y0, x1 = b.x1, y1 = b.y1,
-			  planeWidth = x1 - x0,
-			  planeHeight = y0 - y1,
-			  cx = x0 + (x1 - x0) / 2,
-			  cy = y0 + (y1 - y0) / 2,
-			  grid_values = grid.values,
-			  w = grid.width,
-			  h = grid.height,
-			  k = w * (h - 1),
-			  band_width = -2 * z0;
+		const {values: gridValues, width: w, height: h} = this.data.grid;
+		const {x0, y0, x1, y1} = this._auxArgs();
+
+		const planeWidth = x1 - x0;
+		const planeHeight = y0 - y1;
+		const cx = (x0 + x1) / 2;
+		const cy = (y0 + y1) / 2;
+
+		const k = w * (h - 1);
+		const bandWidth = -2 * z0;
 
 		// front and back
-		const geom_fr = new THREE.PlaneGeometry(planeWidth, band_width, w - 1, 1),
-			  geom_ba = geom_fr.clone();
+		const geomFr = new THREE.PlaneGeometry(planeWidth, bandWidth, w - 1, 1);
+		const geomBa = geomFr.clone();
 
-		const vertices_fr = geom_fr.attributes.position.array,
-			  vertices_ba = geom_ba.attributes.position.array;
+		const verticesFr = geomFr.attributes.position.array;
+		const verticesBa = geomBa.attributes.position.array;
 
-		let i, mesh;
-		for (i = 0; i < w; i++) {
-			vertices_fr[i * 3 + 1] = grid_values[k + i];
-			vertices_ba[i * 3 + 1] = grid_values[w - 1 - i];
+		for (let i = 0; i < w; i++) {
+			verticesFr[i * 3 + 1] = gridValues[k + i];
+			verticesBa[i * 3 + 1] = gridValues[w - 1 - i];
 		}
-		mesh = new THREE.Mesh(geom_fr, material);
-		mesh.rotation.x = Math.PI / 2;
-		mesh.position.x = cx;
-		mesh.position.y = y1;
-		mesh.name = "side";
-		parent.add(mesh);
 
-		mesh = new THREE.Mesh(geom_ba, material);
-		mesh.rotation.x = Math.PI / 2;
-		mesh.rotation.y = Math.PI;
-		mesh.position.x = cx;
-		mesh.position.y = y0;
-		mesh.name = "side";
-		parent.add(mesh);
+		const meshFr = new THREE.Mesh(geomFr, material);
+		meshFr.rotation.x = Math.PI / 2;
+		meshFr.position.x = cx;
+		meshFr.position.y = y1;
+		meshFr.name = "side";
+		parent.add(meshFr);
+
+		const meshBa = new THREE.Mesh(geomBa, material);
+		meshBa.rotation.x = Math.PI / 2;
+		meshBa.rotation.y = Math.PI;
+		meshBa.position.x = cx;
+		meshBa.position.y = y0;
+		meshBa.name = "side";
+		parent.add(meshBa);
 
 		// left and right
-		const geom_le = new THREE.PlaneGeometry(band_width, planeHeight, 1, h - 1),
-			  geom_ri = geom_le.clone();
+		const geomLe = new THREE.PlaneGeometry(bandWidth, planeHeight, 1, h - 1);
+		const geomRi = geomLe.clone();
 
-		const vertices_le = geom_le.attributes.position.array,
-			  vertices_ri = geom_ri.attributes.position.array;
+		const verticesLe = geomLe.attributes.position.array;
+		const verticesRi = geomRi.attributes.position.array;
 
-		for (i = 0; i < h; i++) {
-			vertices_le[(i * 2 + 1) * 3] = grid_values[w * i];
-			vertices_ri[i * 2 * 3] = -grid_values[w * (i + 1) - 1];
+		for (let i = 0; i < h; i++) {
+			verticesLe[(i * 2 + 1) * 3] = gridValues[w * i];
+			verticesRi[i * 2 * 3] = -gridValues[w * (i + 1) - 1];
 		}
-		mesh = new THREE.Mesh(geom_le, material);
-		mesh.rotation.y = -Math.PI / 2;
-		mesh.position.x = x0;
-		mesh.position.y = cy;
-		mesh.name = "side";
-		parent.add(mesh);
 
-		mesh = new THREE.Mesh(geom_ri, material);
-		mesh.rotation.y = Math.PI / 2;
-		mesh.position.x = x1;
-		mesh.position.y = cy;
-		mesh.name = "side";
-		parent.add(mesh);
+		const meshLe = new THREE.Mesh(geomLe, material);
+		meshLe.rotation.y = -Math.PI / 2;
+		meshLe.position.x = x0;
+		meshLe.position.y = cy;
+		meshLe.name = "side";
+		parent.add(meshLe);
+
+		const meshRi = new THREE.Mesh(geomRi, material);
+		meshRi.rotation.y = Math.PI / 2;
+		meshRi.position.x = x1;
+		meshRi.position.y = cy;
+		meshRi.name = "side";
+		parent.add(meshRi);
 
 		// bottom
-		var geom = new THREE.PlaneGeometry(planeWidth, planeHeight, 1, 1);
-		mesh = new THREE.Mesh(geom, material);
+		const geom = new THREE.PlaneGeometry(planeWidth, planeHeight);
+		const mesh = new THREE.Mesh(geom, material);
 		mesh.rotation.x = Math.PI;
-		mesh.position.x = cx;
-		mesh.position.y = cy;
-		mesh.position.z = z0;
+		mesh.position.set(cx, cy, z0);
 		mesh.name = "bottom";
 		parent.add(mesh);
 
@@ -2587,57 +2583,58 @@ class Q3DDEMBlockBase {
 	}
 
 	addEdges(layer, parent, material, z0) {
-		const grid = this.data.grid,
-			  b = this._auxArgs(),
-			  x0 = b.x0, y0 = b.y0, x1 = b.x1, y1 = b.y1, xres = b.xres, yres = b.yres,
-			  grid_values = grid.values,
-			  w = grid.width,
-			  h = grid.height,
-			  k = w * (h - 1);
+		const {values: gridValues, width: w, height: h} = this.data.grid;
+		const {x0, y0, x1, y1, xres, yres} = this._auxArgs();
 
-		var i, x, y;
-		var vl = [];
+		const k = w * (h - 1);
 
 		// terrain edges
-		var vl_fr = [],
-			vl_bk = [],
-			vl_le = [],
-			vl_ri = [];
+		const vlFr = [];
+		const vlBk = [];
+		const vlLe = [];
+		const vlRi = [];
 
-		for (i = 0; i < w; i++) {
-			x = x0 + xres * i;
-			vl_fr.push(x, y1, grid_values[k + i]);
-			vl_bk.push(x, y0, grid_values[i]);
+		for (let i = 0; i < w; i++) {
+			const x = x0 + xres * i;
+			vlFr.push(x, y1, gridValues[k + i]);
+			vlBk.push(x, y0, gridValues[i]);
 		}
 
-		for (i = 0; i < h; i++) {
-			y = y0 - yres * i;
-			vl_le.push(x0, y, grid_values[w * i]);
-			vl_ri.push(x1, y, grid_values[w * (i + 1) - 1]);
+		for (let i = 0; i < h; i++) {
+			const y = y0 - yres * i;
+			vlLe.push(x0, y, gridValues[w * i]);
+			vlRi.push(x1, y, gridValues[w * (i + 1) - 1]);
 		}
 
-		vl.push(vl_fr, vl_bk, vl_le, vl_ri);
+		const verticesList = [vlFr, vlBk, vlLe, vlRi];
 
 		if (z0 !== undefined) {
 			// horizontal rectangle at bottom
-			vl.push([x0, y0, z0,
-					 x1, y0, z0,
-					 x1, y1, z0,
-					 x0, y1, z0,
-					 x0, y0, z0]);
+			verticesList.push([
+				x0, y0, z0,
+				x1, y0, z0,
+				x1, y1, z0,
+				x0, y1, z0,
+				x0, y0, z0
+			]);
 
 			// vertical lines at corners
-			[[x0, y1, grid_values[grid_values.length - w]],
-			 [x1, y1, grid_values[grid_values.length - 1]],
-			 [x1, y0, grid_values[w - 1]],
-			 [x0, y0, grid_values[0]]].forEach(v => vl.push([v[0], v[1], v[2], v[0], v[1], z0]));
+			[
+				[x0, y1, gridValues.at(-w)],
+				[x1, y1, gridValues.at(-1)],
+				[x1, y0, gridValues[w - 1]],
+				[x0, y0, gridValues[0]]
+			].forEach(([x, y, z]) => {
+				verticesList.push([x, y, z, x, y, z0]);
+			});
 		}
 
-		for (const v of vl) {
-			const geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-			const obj = new THREE.Line(geom, material);
-			obj.name = "frame";
-			parent.add(obj);
+		for (const vertices of verticesList) {
+			const geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+
+			const line = new THREE.Line(geom, material);
+			line.name = "frame";
+			parent.add(line);
 		}
 
 		parent.updateMatrixWorld();
@@ -2645,37 +2642,33 @@ class Q3DDEMBlockBase {
 
 	// add quad wireframe
 	addWireframe(layer, parent, material) {
-		const grid = this.data.grid,
-			  b = this._auxArgs(),
-			  x0 = b.x0, y0 = b.y0, xres = b.xres, yres = b.yres,
-			  grid_values = grid.values,
-			  w = grid.width,
-			  h = grid.height;
+		const {values: gridValues, width: w, height: h} = this.data.grid;
+		const {x0, y0, xres, yres} = this._auxArgs();
 
-		var v, geom, x, y, vx, vy, group = new THREE.Group();
+		const group = new THREE.Group();
 
-		for (x = w - 1; x >= 0; x--) {
-			v = [];
-			vx = x0 + xres * x;
+		for (let x = w - 1; x >= 0; x--) {
+			const vertices = [];
+			const vx = x0 + xres * x;
 
-			for (y = h - 1; y >= 0; y--) {
-				v.push(vx, y0 - yres * y, grid_values[x + w * y]);
+			for (let y = h - 1; y >= 0; y--) {
+				vertices.push(vx, y0 - yres * y, gridValues[x + w * y]);
 			}
 
-			geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+			const geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
 
 			group.add(new THREE.Line(geom, material));
 		}
 
-		for (y = h - 1; y >= 0; y--) {
-			v = [];
-			vy = y0 - yres * y;
+		for (let y = h - 1; y >= 0; y--) {
+			const vertices = [];
+			const vy = y0 - yres * y;
 
-			for (x = w - 1; x >= 0; x--) {
-				v.push(x0 + xres * x, vy, grid_values[x + w * y]);
+			for (let x = w - 1; x >= 0; x--) {
+				vertices.push(x0 + xres * x, vy, gridValues[x + w * y]);
 			}
 
-			geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+			const geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
 
 			group.add(new THREE.Line(geom, material));
 		}
@@ -2693,18 +2686,18 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 
 		if (data.grid === undefined) return;
 
-		var grid = data.grid;
-		var geom = new GridGeometry();
-		var mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
+		const geom = new GridGeometry();
+		const mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
 		mesh.position.fromArray(data.translate);
 		mesh.scale.z = data.zScale;
 		layer.addObject(mesh);
 
-		var buildGeometry = function (grid) {
+		const buildGeometry = function (grid) {
 			geom.loadData(grid, data.width, data.height);
 			if (callback) callback(mesh);
 		};
 
+		const grid = data.grid;
 		if (grid.url !== undefined) {
 			Q3D.application.loadFile(grid.url, "arraybuffer", (buf) => {
 				grid.values = new Float32Array(buf);
@@ -2713,7 +2706,7 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 		}
 		else {
 			if (grid.base64 !== undefined) {
-				var bytes = Q3D.Utils.base64ToUint8Array(grid.base64);
+				const bytes = Q3D.Utils.base64ToUint8Array(grid.base64);
 				grid.values = new Float32Array(bytes.buffer);
 				delete grid.base64;
 			}
@@ -2725,8 +2718,8 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 	}
 
 	_auxArgs() {
-		var pw = this.data.width,
-			ph = this.data.height;
+		const pw = this.data.width,
+			  ph = this.data.height;
 		return {
 			x0: -pw / 2,
 			y0: ph / 2,
@@ -2742,19 +2735,19 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 class Q3DDEMTileBlock extends Q3DDEMBlockBase {
 
 	loadData(data, layer, callback) {
-		var grid = data.grid;
+		const grid = data.grid;
 
 		super.loadData(data, layer, callback);
 
 		if (grid === undefined) return;
 
-		var geom = new GridGeometry();
-		var mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
+		const geom = new GridGeometry();
+		const mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
 		mesh.position.fromArray(data.translate);
 		mesh.scale.z = data.zScale;
 		layer.addObject(mesh);
 
-		var buildGeometry = function (grid) {
+		const buildGeometry = function (grid) {
 			geom.loadData(grid, data.tileSize, data.tileSize, data.segments);
 			if (callback) callback(mesh);
 		};
@@ -2767,7 +2760,7 @@ class Q3DDEMTileBlock extends Q3DDEMBlockBase {
 		}
 		else {
 			if (grid.base64 !== undefined) {
-				var bytes = Q3D.Utils.base64ToUint8Array(grid.base64);
+				const bytes = Q3D.Utils.base64ToUint8Array(grid.base64);
 				grid.values = new Float32Array(bytes.buffer);
 				delete grid.base64;
 			}
@@ -2779,9 +2772,9 @@ class Q3DDEMTileBlock extends Q3DDEMBlockBase {
 	}
 
 	_auxArgs() {
-		var res = this.data.tileSize / this.data.segments,
-			pw = (this.data.grid.width - 1) * res,
-			ph = (this.data.grid.height - 1) * res;
+		const res = this.data.tileSize / this.data.segments;
+		const pw = (this.data.grid.width - 1) * res;
+		const ph = (this.data.grid.height - 1) * res;
 		return {
 			x0: -this.data.tileSize / 2,
 		    y0: this.data.tileSize / 2,
@@ -2801,25 +2794,26 @@ class Q3DClippedDEMBlock extends Q3DDEMBlockBase {
 
 		if (data.geom === undefined) return;
 
-		var geom = new THREE.BufferGeometry(),
-			mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
+		const geom = new THREE.BufferGeometry();
+		const mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
 		mesh.position.fromArray(data.translate);
 		mesh.scale.z = data.zScale;
 		layer.addObject(mesh);
 
-		var _this = this;
-		var buildGeometry = function (obj) {
+		const buildGeometry = (obj) => {
 
-			var v = obj.triangles.v,
-				origin = layer.sceneData.origin,
+			const v = obj.triangles.v;
+			const normals = [];
+			const uvs = [];
+
+			let origin = layer.sceneData.origin,
 				be = layer.sceneData.baseExtent,
 				base_width = be.width,
 				base_height = be.height,
 				x0 = be.cx - origin.x - base_width * 0.5,
 				y0 = be.cy - origin.y - base_height * 0.5;
 
-			var normals = [], uvs = [];
-			for (var i = 0, l = v.length; i < l; i += 3) {
+			for (let i = 0, l = v.length; i < l; i += 3) {
 				normals.push(0, 0, 1);
 				uvs.push((v[i] - x0) / base_width, (v[i + 1] - y0) / base_height);
 			}
@@ -2834,7 +2828,7 @@ class Q3DClippedDEMBlock extends Q3DDEMBlockBase {
 			geom.attributes.normal.needsUpdate = true;
 			geom.attributes.uv.needsUpdate = true;
 
-			_this.data.polygons = obj.polygons;
+			this.data.polygons = obj.polygons;
 			if (callback) callback(mesh);
 		};
 
@@ -2850,8 +2844,8 @@ class Q3DClippedDEMBlock extends Q3DDEMBlockBase {
 	}
 
 	buildSides(layer, parent, material, z0) {
-		var polygons = this.data.polygons,
-			bzFunc = function (x, y) { return z0; };
+		const polygons = this.data.polygons;
+		const bzFunc = (_x, _y) => z0;
 
 		// make back-side material for bottom
 		var mat_back = material.clone();
@@ -3140,32 +3134,29 @@ class Q3DDEMLayer extends Q3DMapLayer {
 
 	// texture animation
 	prepareTexAnimation(from, to) {
-
 		this.anim = [];
-
-		var m, canvas, ctx, opt, mtl;
-		var img_from, img_to;
 		for (const block of this.blocks) {
+			const imgFrom = block.materials[from].mtl.map.image;
+			const imgTo = block.materials[to].mtl.map.image;
 
-			m = block.obj.material;
+			const canvas = document.createElement("canvas");
+			canvas.width = (imgFrom.width > imgTo.width) ? imgFrom.width : imgTo.width;
+			canvas.height = (imgFrom.width > imgTo.width) ? imgFrom.height : imgTo.height;
 
-			img_from = block.materials[from].mtl.map.image;
-			img_to = block.materials[to].mtl.map.image;
+			const ctx = canvas.getContext("2d");
 
-			canvas = document.createElement("canvas");
-			canvas.width = (img_from.width > img_to.width) ? img_from.width : img_to.width;
-			canvas.height = (img_from.width > img_to.width) ? img_from.height : img_to.height;
+			const tex = new THREE.CanvasTexture(canvas);
+			tex.anisotropy = Q3D.Config.texture.anisotropy;
+			tex.colorSpace = THREE.SRGBColorSpace;
 
-			ctx = canvas.getContext("2d");
+			const opt = {
+				map: tex,
+				side: THREE.DoubleSide,
+				transparent: true
+			};
 
-			opt = {};
-			opt.map = new THREE.CanvasTexture(canvas);
-			opt.map.anisotropy = Q3D.Config.texture.anisotropy;
-			opt.map.colorSpace = THREE.SRGBColorSpace;
-			opt.side = THREE.DoubleSide;
-			opt.transparent = true;
-
-			mtl = undefined;
+			let mtl;
+			const m = block.obj.material;
 			if (m) {
 				if (m.isMeshToonMaterial) {
 					mtl = new THREE.MeshToonMaterial(opt);
@@ -3179,12 +3170,11 @@ class Q3DDEMLayer extends Q3DMapLayer {
 			}
 
 			block.obj.material = mtl;
-
 			this.materials.add(mtl);
 
 			this.anim.push({
-				img_from: img_from,
-				img_to: img_to,
+				img_from: imgFrom,
+				img_to: imgTo,
 				ctx: ctx,
 				tex: mtl.map
 			});
@@ -3261,77 +3251,76 @@ class Q3DVectorLayer extends Q3DMapLayer {
 	buildLabels(features, getPointsFunc) {
 		if (this.properties.label === undefined || getPointsFunc === undefined) return;
 
-		var p = this.properties,
-			label = p.label,
-			bs = this.sceneData.baseExtent.width * 0.016,
-			sc = bs * Math.pow(1.2, label.size);
+		const label = this.properties.label;
+		const bs = this.sceneData.baseExtent.width * 0.016;
+		const sc = bs * Math.pow(1.2, label.size);
 
-		var hasOtl = (label.olcolor !== undefined),
-			hasConn = (label.cncolor !== undefined);
+		const hasOtl = (label.olcolor !== undefined);
+		const hasConn = (label.cncolor !== undefined);
 
+		let line_mtl;
 		if (hasConn) {
-			var line_mtl = new THREE.LineBasicMaterial({
+			line_mtl = new THREE.LineBasicMaterial({
 				color: label.cncolor
 			});
 		}
 
-		var hasUnderline = Boolean(hasConn && label.underline);
+		const hasUnderline = Boolean(hasConn && label.underline);
+		let ul_geom, onBeforeRender;
 		if (hasUnderline) {
-			var ul_geom = new THREE.BufferGeometry();
+			ul_geom = new THREE.BufferGeometry();
 			ul_geom.setAttribute("position", new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0], 3));
 
-			var onBeforeRender = function (renderer, scene, camera, geometry, material, group) {
+			onBeforeRender = function (renderer, scene, camera, geometry, material, group) {
 				this.quaternion.copy(camera.quaternion);
 				this.updateMatrixWorld();
 			};
 		}
 
-		var canvas = document.createElement("canvas"),
-			ctx = canvas.getContext("2d");
+		const canvas = document.createElement("canvas");
+		const ctx = canvas.getContext("2d");
 
-		var font, tw, th, cw, ch;
-		th = ch = Q3D.Config.label.canvasHeight;
-		font = th + "px " + (label.font || "sans-serif");
+		const th = Q3D.Config.label.canvasHeight;
+		const ch = th;
+		const font = th + "px " + (label.font || "sans-serif");
 
 		canvas.height = ch;
 
-		var f, text, partIdx, vec, sprite, mtl, geom, conn, x, y, j;
-		var underline;
-
-		for (var i = 0, l = features.length; i < l; i++) {
-			f = features[i];
-			text = f.lbl;
+		for (let i = 0, l = features.length; i < l; i++) {
+			const f = features[i];
+			const text = f.lbl;
 			if (!text) continue;
 
-			partIdx = 0;
+			let partIdx = 0;
 			getPointsFunc(f).forEach((pt) => {
 
 				// label position
-				vec = new THREE.Vector3(pt[0], pt[1], (label.relative) ? pt[2] + f.lh : f.lh);
+				const vec = new THREE.Vector3(pt[0], pt[1], (label.relative) ? pt[2] + f.lh : f.lh);
 
 				// render label text
 				ctx.font = font;
-				tw = ctx.measureText(text).width + 2;
-				cw = THREE.MathUtils.ceilPowerOfTwo(tw);
-				x = cw / 2;
-				y = ch / 2;
+				const tw = ctx.measureText(text).width + 2;
+				const cw = THREE.MathUtils.ceilPowerOfTwo(tw);
 
 				canvas.width = cw;
 				ctx.clearRect(0, 0, cw, ch);
 
 				if (label.bgcolor !== undefined) {
 					ctx.fillStyle = label.bgcolor;
-					ctx.roundRect((cw - tw) / 2, (ch - th) / 2, tw, th, 4).fill();    // definition is in this file
+					ctx.roundRect((cw - tw) / 2, (ch - th) / 2, tw, th, 4).fill();
 				}
 
 				ctx.font = font;
 				ctx.textAlign = "center";
 				ctx.textBaseline = "middle";
 
+				const x = cw / 2;
+				const y = ch / 2;
+
 				if (hasOtl) {
 					// outline effect
 					ctx.fillStyle = label.olcolor;
-					for (j = 0; j < 9; j++) {
+					for (let j = 0; j < 9; j++) {
 						if (j != 4) ctx.fillText(text, x + Math.floor(j / 3) - 1, y + j % 3 - 1);
 					}
 				}
@@ -3339,13 +3328,15 @@ class Q3DVectorLayer extends Q3DMapLayer {
 				ctx.fillStyle = label.color;
 				ctx.fillText(text, x, y);
 
-				mtl = new THREE.SpriteMaterial({
-					map: new THREE.TextureLoader(Q3D.application.loadingManager).load(canvas.toDataURL(), () => this.requestRender()),
+				const tex = new THREE.TextureLoader(Q3D.application.loadingManager).load(canvas.toDataURL(), () => this.requestRender());
+				tex.colorSpace = THREE.SRGBColorSpace;
+
+				const mtl = new THREE.SpriteMaterial({
+					map: tex,
 					transparent: true
 				});
-				mtl.map.colorSpace = THREE.SRGBColorSpace;
 
-				sprite = new THREE.Sprite(mtl);
+				const sprite = new THREE.Sprite(mtl);
 				if (hasUnderline) {
 					sprite.center.set((1 - tw / cw) * 0.5, 0);
 				}
@@ -3367,16 +3358,16 @@ class Q3DVectorLayer extends Q3DMapLayer {
 
 				if (hasConn) {
 					// a connector
-					geom = new THREE.BufferGeometry();
+					const geom = new THREE.BufferGeometry();
 					geom.setAttribute("position", new THREE.Float32BufferAttribute(vec.toArray().concat(pt), 3));
 
-					conn = new THREE.Line(geom, line_mtl);
+					const conn = new THREE.Line(geom, line_mtl);
 					conn.userData = sprite.userData;
 
 					this.labelConnectorGroup.add(conn);
 
 					if (hasUnderline) {
-						underline = new THREE.Line(ul_geom, line_mtl);
+						const underline = new THREE.Line(ul_geom, line_mtl);
 						underline.position.copy(vec);
 						underline.scale.x = sc * tw / th;
 						underline.updateMatrixWorld();
@@ -3475,7 +3466,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 	}
 
 	build(features, startIndex) {
-		var objType = this.properties.objType;
+		const { objType } = this.properties;
 		if (objType == "Point") {
 			return this.buildPoints(features, startIndex);
 		}
@@ -3486,15 +3477,13 @@ class Q3DPointLayer extends Q3DVectorLayer {
 			return this.buildModels(features, startIndex);
 		}
 
-		var unitGeom, transform;
+		let unitGeom, transform;
 		if (this.cachedGeometryType === objType) {
 			unitGeom = this.geometryCache;
 			transform = this.transformCache;
 		}
 		else {
-			var gt = this.geomAndTransformFunc(objType);
-			unitGeom = gt[0];
-			transform = gt[1];
+			[unitGeom, transform] = this.geomAndTransformFunc(objType);
 		}
 
 		var f, mtl, pts, i, l, mesh, meshes;
@@ -3582,14 +3571,13 @@ class Q3DPointLayer extends Q3DVectorLayer {
 	}
 
 	buildPoints(features, startIndex) {
-		var f, geom, mtl, obj;
-		for (var fidx = 0; fidx < features.length; fidx++) {
-			f = features[fidx];
+		for (let fidx = 0; fidx < features.length; fidx++) {
+			const f = features[fidx];
 
-			geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(f.geom.pts, 3));
-			mtl = this.materials.mtl(f.mtl.idx);
-
-			obj = new THREE.Points(geom, mtl);
+			const obj = new THREE.Points(
+				new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(f.geom.pts, 3)),
+				this.materials.mtl(f.mtl.idx)
+			);
 			obj.userData.properties = f.prop;
 
 			this.addFeature(fidx + startIndex, f, [obj]);
@@ -4039,12 +4027,12 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 
 		if (this.properties.objType !== this._lastObjType) this._createObject = null;
 
-		var createObject = this._createObject || this.createObjFunc(this.properties.objType);
+		const createObject = this._createObject || this.createObjFunc(this.properties.objType);
 
-		var f, obj;
-		for (var fidx = 0; fidx < features.length; fidx++) {
-			f = features[fidx];
-			obj = createObject(f);
+		for (let fidx = 0; fidx < features.length; fidx++) {
+			const f = features[fidx];
+			const obj = createObject(f);
+
 			obj.userData.properties = f.prop;
 
 			this.addFeature(fidx + startIndex, f, [obj]);
@@ -4228,7 +4216,7 @@ class Q3DModel {
 			this.load(data.url, callback);
 		}
 		else {
-			var bytes = Q3D.Utils.base64ToUint8Array(data.base64);
+			const bytes = Q3D.Utils.base64ToUint8Array(data.base64);
 			this.loadBytes(bytes.buffer, data.ext, data.resourcePath, callback);
 		}
 	}
@@ -4426,52 +4414,82 @@ Q3D.Tweens.cameraMotion = {
 	curveFactor: 0,
 
 	init: function (track) {
+		const app = Q3D.application;
+		const { origin, zScale } = app.scene.userData;
+		const { keyframes } = track;
+		const propList = [];
+		const distList = [];
 
-		var app = Q3D.application,
-			zScale = app.scene.userData.zScale,
-			keyframes = track.keyframes,
-			prop_list = [];
+		const curveFactor = this.curveFactor;
+		const vec3 = new THREE.Vector3();
 
-		var c = this.curveFactor, p, p0, phi, theta, dist, dist_list = [];
-		var vec3 = new THREE.Vector3(),
-			o = app.scene.userData.origin;
+		let prevCamera;
 
-		for (var i = 0; i < keyframes.length; i++) {
-			p = keyframes[i].camera;
-			vec3.set(p.x - p.fx, p.y - p.fy, (p.z - p.fz) * zScale);
-			dist = vec3.length();
-			theta = Math.acos(vec3.z / dist);
-			phi = Math.atan2(vec3.y, vec3.x);
-			p.phi = phi;
-			prop_list.push({p: i, fx: p.fx - o.x, fy: p.fy - o.y, fz: (p.fz - o.z) * zScale, d: dist, theta: theta});  // map to 3D world
+		for (let i = 0; i < keyframes.length; i++) {
+			const camera = keyframes[i].camera;
 
-			if (i > 0) {
-				dist_list.push(Math.sqrt((p.x - p0.x) * (p.x - p0.x) + (p.y - p0.y) * (p.y - p0.y)));
+			vec3.set(
+				camera.x - camera.fx,
+				camera.y - camera.fy,
+				(camera.z - camera.fz) * zScale
+			);
+
+			const dist = vec3.length();
+			const theta = Math.acos(vec3.z / dist);
+			const phi = Math.atan2(vec3.y, vec3.x);
+
+			camera.phi = phi;
+
+			propList.push({
+				p: i,
+				fx: camera.fx - origin.x,
+				fy: camera.fy - origin.y,
+				fz: (camera.fz - origin.z) * zScale,
+				d: dist,
+				theta
+			});
+
+			if (prevCamera) {
+				distList.push(
+					Math.hypot(
+						camera.x - prevCamera.x,
+						camera.y - prevCamera.y
+					)
+				);
 			}
-			p0 = p;
+
+			prevCamera = camera;
 		}
-		track.prop_list = prop_list;
 
-		var phi0, phi1, dz;
-		track.onUpdate = function (obj, elapsed, is_first) {
+		track.prop_list = propList;
 
-			p = obj.p - track.currentIndex;
-			phi0 = keyframes[track.currentIndex].camera.phi;
-			phi1 = (is_first) ? phi0 : keyframes[track.currentIndex + 1].camera.phi;
+		track.onUpdate = (obj, elapsed, isFirst) => {
+			const p = obj.p - track.currentIndex;
 
-			if (Math.abs(phi1 - phi0) > Math.PI) {  // take the shortest orbiting path
-				phi1 += Math.PI * ((phi1 > phi0) ? -2 : 2);
+			const phi0 = keyframes[track.currentIndex].camera.phi;
+			let phi1 = isFirst ? phi0 : keyframes[track.currentIndex + 1].camera.phi;
+
+			if (Math.abs(phi1 - phi0) > Math.PI) {
+				// Take the shortest orbiting path.
+				phi1 += Math.PI * (phi1 > phi0 ? -2 : 2);
 			}
 
-			phi = phi0 * (1 - p) + phi1 * p;
+			const phi = phi0 * (1 - p) + phi1 * p;
 
-			vec3.set(Math.cos(phi) * Math.sin(obj.theta),
-					 Math.sin(phi) * Math.sin(obj.theta),
-					 Math.cos(obj.theta)).setLength(obj.d);
+			vec3.set(
+				Math.cos(phi) * Math.sin(obj.theta),
+				Math.sin(phi) * Math.sin(obj.theta),
+				Math.cos(obj.theta)
+			).setLength(obj.d);
 
-			dz = (c) ? (1 - Math.pow(2 * p - 1, 2)) * dist_list[track.currentIndex] * c : 0;
+			const dz = curveFactor ? (1 - (2 * p - 1) ** 2) * distList[track.currentIndex] * curveFactor : 0;
 
-			app.camera.position.set(obj.fx + vec3.x, obj.fy + vec3.y, obj.fz + vec3.z + dz);
+			app.camera.position.set(
+				obj.fx + vec3.x,
+				obj.fy + vec3.y,
+				obj.fz + vec3.z + dz
+			);
+
 			app.camera.lookAt(obj.fx, obj.fy, obj.fz);
 			app.controls.target.set(obj.fx, obj.fy, obj.fz);
 		};
