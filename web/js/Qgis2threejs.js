@@ -1340,16 +1340,7 @@ const E = Q3D.E;
 			gui.popup.show("Click to save the image to a file." + e.outerHTML, "Image is ready");
 		};
 
-		const saveCanvasImage = saveImageFunc || function (canvas) {
-			if (canvas.toBlob !== undefined) {
-				canvas.toBlob(saveBlob);
-			}
-			else {    // !HTMLCanvasElement.prototype.toBlob
-				// https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement.toBlob
-				const arr = Q3D.Utils.base64ToUint8Array(canvas.toDataURL("image/png").split(',')[1]);
-				saveBlob(new Blob([arr], {type: "image/png"}));
-			}
-		};
+		const saveCanvasImage = saveImageFunc || ((canvas) => canvas.toBlob(saveBlob));
 
 		const restoreCanvasSize = () => {
 			if (old_size) app.setCanvasSize(old_size[0], old_size[1]);
