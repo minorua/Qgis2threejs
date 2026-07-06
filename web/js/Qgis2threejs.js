@@ -304,7 +304,7 @@ app.init = (container) => {
 	if (THREE_EX.OutlineEffect) app.effect = new THREE_EX.OutlineEffect(app.renderer);
 
 	// scene
-	app.scene = new Q3DScene();
+	app.scene = new Scene();
 
 	app.scene.addEventListener("renderRequest", (event) => {
 		app.render();
@@ -703,7 +703,7 @@ app.buildNorthArrow = (container, declination) => {
 	app.camera2.position.set(0, 0, conf.northArrow.cameraDistance);
 	app.camera2.up = app.camera.up;
 
-	app.scene2 = new Q3DScene();
+	app.scene2 = new Scene();
 	app.scene2.buildLights(conf.lights.directional, 0);
 
 	// an arrow object
@@ -1416,9 +1416,9 @@ app.saveCanvasImage = (width, height, fill_background = true, saveImageFunc) => 
 
 				opt = conf.measure.line;
 				this.lineMtl = new THREE.LineBasicMaterial({color: opt.color});
-				this.markerGroup = new Q3DGroup();
+				this.markerGroup = new Group();
 				this.markerGroup.name = "measure marker";
-				this.lineGroup = new Q3DGroup();
+				this.lineGroup = new Group();
 				this.lineGroup.name = "measure line";
 			}
 
@@ -1878,7 +1878,7 @@ gui.layerPanel = {
 
 // Q3D classes
 
-class Q3DGroup extends THREE.Group {
+class Group extends THREE.Group {
 
 	add(object) {
 		super.add(object);
@@ -1897,14 +1897,14 @@ class Q3DGroup extends THREE.Group {
 
 
 /*
-Q3DScene
+Scene
 .userData
 	- baseExtent(cx, cy, width, height, rotation): map base extent in map coordinates. center is (cx, cy).
 	- origin: origin of 3D world in map coordinates
 	- zScale: vertical scale factor
 	- proj: (optional) proj string. used to display clicked position in long/lat.
 */
-class Q3DScene extends THREE.Scene {
+class Scene extends THREE.Scene {
 
 	constructor() {
 		super();
@@ -1913,15 +1913,15 @@ class Q3DScene extends THREE.Scene {
 
 		this.mapLayers = {};    // map layers. key is layerId.
 
-		this.lightGroup = new Q3DGroup();
+		this.lightGroup = new Group();
 		this.lightGroup.name = "light";
 		this.add(this.lightGroup);
 
-		this.labelGroup = new Q3DGroup();
+		this.labelGroup = new Group();
 		this.labelGroup.name = "label";
 		this.add(this.labelGroup);
 
-		this.labelConnectorGroup = new Q3DGroup();
+		this.labelConnectorGroup = new Group();
 		this.labelConnectorGroup.name = "label connector";
 		this.add(this.labelConnectorGroup);
 	}
@@ -2007,10 +2007,10 @@ class Q3DScene extends THREE.Scene {
 			if (layer === undefined) {
 				// create a layer
 				const type = data.properties.type;
-				if (type == "dem") layer = new Q3DDEMLayer();
-				else if (type == "point") layer = new Q3DPointLayer();
-				else if (type == "line") layer = new Q3DLineLayer();
-				else if (type == "polygon") layer = new Q3DPolygonLayer();
+				if (type == "dem") layer = new DEMLayer();
+				else if (type == "point") layer = new PointLayer();
+				else if (type == "line") layer = new LineLayer();
+				else if (type == "polygon") layer = new PolygonLayer();
 				else {
 					console.error("unknown layer type:" + type);
 					return;
@@ -2126,7 +2126,7 @@ class Q3DScene extends THREE.Scene {
 }
 
 
-class Q3DMaterial {
+class Material {
 
 	constructor() {
 		this.loaded = false;
@@ -2275,20 +2275,20 @@ class Q3DMaterial {
 }
 
 
-class Q3DMaterials extends THREE.EventDispatcher {
+class Materials extends THREE.EventDispatcher {
 
 	constructor() {
 		super();
 		this.array = [];
 	}
 
-	// material: instance of Q3DMaterial object or THREE.Material-based object
+	// material: instance of Material object or THREE.Material-based object
 	add(material) {
-		if (material instanceof Q3DMaterial) {
+		if (material instanceof Material) {
 			this.array.push(material);
 		}
 		else {
-			this.array.push(new Q3DMaterial().set(material));
+			this.array.push(new Material().set(material));
 		}
 	}
 
@@ -2308,7 +2308,7 @@ class Q3DMaterials extends THREE.EventDispatcher {
 		};
 
 		for (const m of data) {
-			const mtl = new Q3DMaterial();
+			const mtl = new Material();
 			mtl.loadData(m, callback);
 			this.add(mtl);
 		}
@@ -2334,7 +2334,7 @@ class Q3DMaterials extends THREE.EventDispatcher {
 		});
 
 		for (const material of materials) {
-			this.array.push(new Q3DMaterial().set(material));
+			this.array.push(new Material().set(material));
 		}
 	}
 
@@ -2467,7 +2467,7 @@ class GridGeometry extends THREE.BufferGeometry {
 }
 
 
-class Q3DDEMBlockBase {
+class DEMBlockBase {
 
 	constructor() {
 		this.obj = null;
@@ -2480,7 +2480,7 @@ class Q3DDEMBlockBase {
 
 		// load material
 		for (const m of data.materials || []) {
-			const mtl = new Q3DMaterial();
+			const mtl = new Material();
 			mtl.loadData(m, () => layer.requestRender());
 			this.materials[m.mtlIndex] = mtl;
 
@@ -2677,7 +2677,7 @@ class Q3DDEMBlockBase {
 }
 
 
-class Q3DDEMBlock extends Q3DDEMBlockBase {
+class DEMBlock extends DEMBlockBase {
 
 	loadData(data, layer, callback) {
 		super.loadData(data, layer, callback);
@@ -2730,7 +2730,7 @@ class Q3DDEMBlock extends Q3DDEMBlockBase {
 }
 
 
-class Q3DDEMTileBlock extends Q3DDEMBlockBase {
+class DEMTileBlock extends DEMBlockBase {
 
 	loadData(data, layer, callback) {
 		const grid = data.grid;
@@ -2785,7 +2785,7 @@ class Q3DDEMTileBlock extends Q3DDEMBlockBase {
 }
 
 
-class Q3DClippedDEMBlock extends Q3DDEMBlockBase {
+class ClippedDEMBlock extends DEMBlockBase {
 
 	loadData(data, layer, callback) {
 		super.loadData(data, layer, callback);
@@ -2877,7 +2877,7 @@ class Q3DClippedDEMBlock extends Q3DDEMBlockBase {
 }
 
 
-class Q3DMapLayer extends THREE.EventDispatcher {
+class MapLayer extends THREE.EventDispatcher {
 
 	constructor() {
 		super();
@@ -2885,10 +2885,10 @@ class Q3DMapLayer extends THREE.EventDispatcher {
 		this.id = null;
 		this.properties = {};
 
-		this.materials = new Q3DMaterials();
+		this.materials = new Materials();
 		this.materials.addEventListener("renderRequest", this.requestRender.bind(this));
 
-		this.objectGroup = new Q3DGroup();
+		this.objectGroup = new Group();
 		this.objectGroup.name = "layer";
 		this.objects = [];
 	}
@@ -2978,7 +2978,7 @@ class Q3DMapLayer extends THREE.EventDispatcher {
 }
 
 
-class Q3DDEMLayer extends Q3DMapLayer {
+class DEMLayer extends MapLayer {
 
 	constructor() {
 		super();
@@ -3033,7 +3033,7 @@ class Q3DDEMLayer extends Q3DMapLayer {
 		["sides", "edges", "wireframe"].forEach((a) => {
 			if (!p[a]) return;
 
-			const m = new Q3DMaterial();
+			const m = new Material();
 			m.loadData(p[a].mtl);
 			this.materials.add(m);
 			this.auxiliaryMtl[a] = m;
@@ -3045,13 +3045,13 @@ class Q3DDEMLayer extends Q3DMapLayer {
 		let block = this.blocks[data.block];
 		if (block === undefined) {
 			if (layer.properties.tiled) {
-				block = new Q3DDEMTileBlock();
+				block = new DEMTileBlock();
 			}
 			else if (layer.properties.clipped) {
-				block = new Q3DClippedDEMBlock();
+				block = new ClippedDEMBlock();
 			}
 			else {
-				block = new Q3DDEMBlock();
+				block = new DEMBlock();
 			}
 			this.blocks[data.block] = block;
 		}
@@ -3215,7 +3215,7 @@ class Q3DDEMLayer extends Q3DMapLayer {
 }
 
 
-class Q3DVectorLayer extends Q3DMapLayer {
+class VectorLayer extends MapLayer {
 
 	constructor() {
 		super();
@@ -3386,14 +3386,14 @@ class Q3DVectorLayer extends Q3DMapLayer {
 
 			if (this.properties.label !== undefined) {
 				if (this.labelGroup === undefined) {
-					this.labelGroup = new Q3DGroup();
+					this.labelGroup = new Group();
 					this.labelGroup.userData.layerId = this.id;
 					this.labelGroup.visible = this.visible;
 					scene.labelGroup.add(this.labelGroup);
 				}
 
 				if (this.labelConnectorGroup === undefined) {
-					this.labelConnectorGroup = new Q3DGroup();
+					this.labelConnectorGroup = new Group();
 					this.labelConnectorGroup.userData.layerId = this.id;
 					this.labelConnectorGroup.visible = this.visible;
 					scene.labelConnectorGroup.add(this.labelConnectorGroup);
@@ -3435,7 +3435,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 }
 
 
-class Q3DPointLayer extends Q3DVectorLayer {
+class PointLayer extends VectorLayer {
 
 	constructor() {
 		super();
@@ -3445,7 +3445,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 	loadData(data, scene) {
 		if (data.type == "layer" && data.properties.objType == "3D Model" && data.body !== undefined) {
 			if (this.models === undefined) {
-				this.models = new Q3DModels();
+				this.models = new Models();
 				this.models.addEventListener("modelLoaded", (event) => {
 					this.materials.addFromObject3D(event.model.scene);
 					this.requestRender();
@@ -3633,7 +3633,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 			const groups = [];
 
 			for (const pt of f.geom.pts) {
-				const group = new Q3DGroup();
+				const group = new Group();
 
 				group.position.fromArray(pt);
 				group.scale.set(1, 1, this.sceneData.zScale);
@@ -3690,7 +3690,7 @@ class Q3DPointLayer extends Q3DVectorLayer {
 }
 
 
-class Q3DLineLayer extends Q3DVectorLayer {
+class LineLayer extends VectorLayer {
 
 	constructor() {
 		super();
@@ -3771,7 +3771,7 @@ class Q3DLineLayer extends Q3DVectorLayer {
 			const sub = new THREE.Vector3();
 
 			return (f, points) => {
-				const group = new Q3DGroup();
+				const group = new Group();
 				const material = materials.mtl(f.mtl.idx);
 
 				pt0.fromArray(points[0]);
@@ -3932,7 +3932,7 @@ class Q3DLineLayer extends Q3DVectorLayer {
 			}
 		}
 
-		this.origMtls = new Q3DMaterials();
+		this.origMtls = new Materials();
 		this.origMtls.array = this.materials.array;
 
 		this.materials.array = [];
@@ -4027,7 +4027,7 @@ class Q3DLineLayer extends Q3DVectorLayer {
 }
 
 
-class Q3DPolygonLayer extends Q3DVectorLayer {
+class PolygonLayer extends VectorLayer {
 
 	constructor() {
 		super();
@@ -4201,7 +4201,7 @@ class Q3DPolygonLayer extends Q3DVectorLayer {
 }
 
 
-class Q3DModel {
+class Model {
 
 	constructor() {
 		this.loaded = false;
@@ -4255,7 +4255,7 @@ class Q3DModel {
 }
 
 
-class Q3DModels extends THREE.EventDispatcher {
+class Models extends THREE.EventDispatcher {
 
 	constructor() {
 		super();
@@ -4275,7 +4275,7 @@ class Q3DModels extends THREE.EventDispatcher {
 			let model = this.cache[url];
 
 			if (model === undefined) {
-				model = new Q3DModel();
+				model = new Model();
 				model.loadData(modelData, callback);
 
 				if (url !== undefined) {
@@ -4297,22 +4297,23 @@ class Q3DModels extends THREE.EventDispatcher {
 
 }
 
-Q3D.Group = Q3DGroup;
-Q3D.Scene = Q3DScene;
-Q3D.Material = Q3DMaterial;
-Q3D.Materials = Q3DMaterials;
-Q3D.DEMBlock = Q3DDEMBlock;
-Q3D.DEMTileBlock = Q3DDEMTileBlock;
-Q3D.ClippedDEMBlock = Q3DClippedDEMBlock;
-Q3D.MapLayer = Q3DMapLayer;
-Q3D.DEMLayer = Q3DDEMLayer;
-Q3D.VectorLayer = Q3DVectorLayer;
-Q3D.PointLayer = Q3DPointLayer;
-Q3D.LineLayer = Q3DLineLayer;
-Q3D.PolygonLayer = Q3DPolygonLayer;
-Q3D.Model = Q3DModel;
-Q3D.Models = Q3DModels;
-
+Object.assign(Q3D, {
+	Group,
+	Scene,
+	Material,
+	Materials,
+	DEMBlock,
+	DEMTileBlock,
+	ClippedDEMBlock,
+	MapLayer,
+	DEMLayer,
+	VectorLayer,
+	PointLayer,
+	LineLayer,
+	PolygonLayer,
+	Model,
+	Models,
+});
 
 // Q3D.Utils - Utilities
 Q3D.Utils = {};
