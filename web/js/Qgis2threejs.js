@@ -1314,9 +1314,7 @@ const gui = Q3D.gui;
 		}
 	};
 
-	app.saveCanvasImage = (width, height, fill_background, saveImageFunc) => {
-		if (fill_background === undefined) fill_background = true;
-
+	app.saveCanvasImage = (width, height, fill_background = true, saveImageFunc) => {
 		let old_size;
 		if (width && height) {
 			old_size = [app.width, app.height];
@@ -4318,9 +4316,10 @@ Q3D.Models = Q3DModels;
 Q3D.Utils = {};
 
 // Put a stick to given position (for debugging)
-Q3D.Utils.putStick = (x, y, zFunc, h) => {
-	if (Q3D.Utils._stick_mat === undefined) Q3D.Utils._stick_mat = new THREE.LineBasicMaterial({color: 0xff0000});
-	if (h === undefined) h = 0.2;
+Q3D.Utils.putStick = (x, y, zFunc, h = 0.2) => {
+	if (Q3D.Utils._stick_mat === undefined) {
+		Q3D.Utils._stick_mat = new THREE.LineBasicMaterial({color: 0xff0000});
+	}
 	const z = zFunc(x, y);
 	const geom = new THREE.BufferGeometry().setFromPoints([
 		new THREE.Vector3(x, y, z + h),

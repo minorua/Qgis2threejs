@@ -36,14 +36,9 @@ let panel;
 
 // initialize gui
 // - setupDefaultItems: default is true
-// - params: parameter values to pass to dat.GUI constructor
-d.init = (setupDefaultItems, params) => {
-	setupDefaultItems = (setupDefaultItems === undefined) ? true : setupDefaultItems;
-
-	panel = new dat.GUI(params);
+d.init = (setupDefaultItems = true) => {
+	panel = d.panel = new dat.GUI();
 	panel.domElement.parentElement.style.zIndex = 2000;   // display the panel on the front of labels
-
-	d.gui = panel;
 
 	if (setupDefaultItems) {
 		d.layersFolder = panel.addFolder('Layers');
