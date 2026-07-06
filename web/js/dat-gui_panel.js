@@ -1,8 +1,8 @@
 // (C) 2014 Minoru Akagi
 // SPDX-License-Identifier: MIT
 
-Q3D.Config.gui = Q3D.Config.gui || {};
-Q3D.Config.gui.customPlane = false;
+import * as THREE from "three";
+import { Q3D } from "./Qgis2threejs.js";
 
 Q3D.gui.dat = {
 

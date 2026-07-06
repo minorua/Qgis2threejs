@@ -5,144 +5,153 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/controls/OrbitControls.js";
 
+const THREE_EX = {
+
+	OrbitControls: OrbitControls
+
+};
+
 export const Q3D = {
 
 	VERSION: "3.1",
+
 	application: {},
-	gui: {}
 
-};
-
-window.THREE = THREE;
-window.THREE_EX = {
-	OrbitControls: OrbitControls
-};
-window.Q3D = Q3D;
-
-Q3D.Config = {
-
-	// renderer
-	renderer: {
-		hiDpi: true       // HD-DPI support
+	gui: {
+		modules: [],
+		dat: null
 	},
 
-	texture: {
-		anisotropy: -4    // zero means max available value. negative value means max / -v.
-	},
+	Config: {
+		// renderer
+		renderer: {
+			hiDpi: true       // HD-DPI support
+		},
 
-	// scene
-	autoAdjustCameraPos: true,  // automatic camera height adjustment
-	bgColor: null,              // null is sky
+		texture: {
+			anisotropy: -4    // zero means max available value. negative value means max / -v.
+		},
 
-	// camera
-	orthoCamera: false,
-	viewpoint: {      // z-up
-		default: {      // assumed that origin is (0, 0, 0) and base extent width in 3D world coordinates is 1
-			pos: new THREE.Vector3(0, -1, 1),
-			lookAt: new THREE.Vector3()
-		}
-	},
+		// scene
+		autoAdjustCameraPos: true,  // automatic camera height adjustment
+		bgColor: null,              // null is sky
 
-	// light
-	lights: {
-		directional: [
-			{
-				type: "ambient",
-				color: 0x999999,
-				intensity: 2.513
-			},
-			{
-				type: "directional",
-				color: 0xffffff,
-				intensity: 2.513,
-				azimuth: 220,   // azimuth of light, in degrees. default light azimuth of gdaldem hillshade is 315.
-				altitude: 45    // altitude angle in degrees.
+		// camera
+		orthoCamera: false,
+		viewpoint: {      // z-up
+			default: {      // assumed that origin is (0, 0, 0) and base extent width in 3D world coordinates is 1
+				pos: new THREE.Vector3(0, -1, 1),
+				lookAt: new THREE.Vector3()
 			}
-		],
-		point: [
-			{
-				type: "ambient",
-				color: 0x999999,
-				intensity: 2.827
-			},
-			{
-				type: "point",
-				color: 0xffffff,
-				intensity: 3,
-				decay: 0.01,
-				height: 10
+		},
+
+		// light
+		lights: {
+			directional: [
+				{
+					type: "ambient",
+					color: 0x999999,
+					intensity: 2.513
+				},
+				{
+					type: "directional",
+					color: 0xffffff,
+					intensity: 2.513,
+					azimuth: 220,   // azimuth of light, in degrees. default light azimuth of gdaldem hillshade is 315.
+					altitude: 45    // altitude angle in degrees.
+				}
+			],
+			point: [
+				{
+					type: "ambient",
+					color: 0x999999,
+					intensity: 2.827
+				},
+				{
+					type: "point",
+					color: 0xffffff,
+					intensity: 3,
+					decay: 0.01,
+					height: 10
+				}
+			]
+		},
+
+		// layer
+		allVisible: false,   // set every layer visible property to true on load if set to true
+
+		line: {
+			dash: {
+				dashSize: 1,
+				gapSize: 0.5
 			}
-		]
-	},
+		},
 
-	// layer
-	allVisible: false,   // set every layer visible property to true on load if set to true
+		label: {
+			visible: true,
+			canvasHeight: 64,
+			clickable: true
+		},
 
-	line: {
-		dash: {
-			dashSize: 1,
-			gapSize: 0.5
-		}
-	},
+		// widgets
+		navigation: {
+			enabled: true,
+			top: null,
+			bottom: 0
+		},
 
-	label: {
-		visible: true,
-		canvasHeight: 64,
-		clickable: true
-	},
+		northArrow: {
+			color: 0x8b4513,
+			cameraDistance: 30,
+			enabled: false
+		},
 
-	// widgets
-	navigation: {
-		enabled: true,
-		top: null,
-		bottom: 0
-	},
+		// animation
+		animation: {
+			enabled: false,
+			startOnLoad: false,
+			easingCurve: "Cubic",
+			repeat: false
+		},
 
-	northArrow: {
-		color: 0x8b4513,
-		cameraDistance: 30,
-		enabled: false
-	},
-
-	// animation
-	animation: {
-		enabled: false,
-		startOnLoad: false,
-		easingCurve: "Cubic",
-		repeat: false
-	},
-
-	// others
-	qmarker: {
-		radius: 0.004,
-		color: 0xffff00,
-		opacity: 0.8,
-		k: 0.2    // size factor for ortho camera
-	},
-
-	measure: {
-		marker: {
+		// others
+		qmarker: {
 			radius: 0.004,
 			color: 0xffff00,
-			opacity: 0.5
-			/* k: 0.2 */
+			opacity: 0.8,
+			k: 0.2    // size factor for ortho camera
 		},
-		line: {
-			color: 0xffff00
-		}
-	},
 
-	coord: {
-		visible: true,
-		latlon: false
-	},
+		measure: {
+			marker: {
+				radius: 0.004,
+				color: 0xffff00,
+				opacity: 0.5
+				/* k: 0.2 */
+			},
+			line: {
+				color: 0xffff00
+			}
+		},
 
-	gui: {},
+		coord: {
+			visible: true,
+			latlon: false
+		},
 
-	potree: {},
+		gui: {
+			customPlane: false		// dat-gui
+		},
 
-	debugMode: false
+		debugMode: false,
+
+		preview: null
+	}
 };
+
+window["THREE"] = THREE;
+window["THREE_EX"] = THREE_EX;
+window["Q3D"] = Q3D;
 
 // consts
 Q3D.LayerType = {
@@ -1528,8 +1537,6 @@ const E = Q3D.E;
 		if (e) e.addEventListener("click", listener);
 	}
 
-	gui.modules = [];
-
 	gui.init = function () {
 		// tool buttons
 		ON_CLICK("layerbtn", () => {
@@ -2476,6 +2483,7 @@ class GridGeometry extends THREE.BufferGeometry {
 class Q3DDEMBlockBase {
 
 	constructor() {
+		this.obj = null;
 		this.materials = [];
 		this.currentMtlIndex = 0;
 	}
@@ -2502,8 +2510,11 @@ class Q3DDEMBlockBase {
 		}
 	}
 
+	/**
+	 * @returns {{x0: number, y0: number, x1: number, y1: number, xres: number, yres: number}}
+	 */
 	_auxArgs() {
-		// return {x0, y0, x1, y1, xres, yres};
+		return {x0: 0, y0: 0, x1: 0, y1: 0, xres: 0, yres: 0};
 	}
 
 	buildSides(layer, parent, material, z0) {
@@ -2888,6 +2899,7 @@ class Q3DMapLayer extends THREE.EventDispatcher {
 	constructor() {
 		super();
 
+		this.id = null;
 		this.properties = {};
 
 		this.materials = new Q3DMaterials();
@@ -3228,7 +3240,7 @@ class Q3DVectorLayer extends Q3DMapLayer {
 		this.labels = [];
 	}
 
-	// build(features, startIndex) {}
+	build(features, startIndex) {}
 
 	addFeature(featureIdx, f, objs) {
 		super.addObjects(objs);
@@ -3426,7 +3438,6 @@ class Q3DVectorLayer extends Q3DMapLayer {
 
 	get visible() {
 		return this.objectGroup.visible;
-		// return super.visible;
 	}
 
 	set visible(value) {
@@ -3435,7 +3446,6 @@ class Q3DVectorLayer extends Q3DMapLayer {
 
 		this.objectGroup.visible = value;
 		this.requestRender();
-		// super.visible = value;
 	}
 
 }
