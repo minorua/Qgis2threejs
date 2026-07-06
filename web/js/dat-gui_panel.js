@@ -4,7 +4,11 @@
 import * as THREE from "three";
 import { Q3D, deg2rad } from "./Qgis2threejs.js";
 
-Q3D.gui.dat = {
+const app = Q3D.application;
+const gui = Q3D.gui;
+const conf = Q3D.Config;
+
+gui.dat = {
 
 	type: "dat-gui",
 
@@ -21,43 +25,40 @@ Q3D.gui.dat = {
 			rot: false,  // auto rotation
 			wf: false    // wireframe mode
 		},
-		i: Q3D.gui.showInfo
+		i: gui.showInfo
 	}
 };
 
 (function () {
+	gui.modules.push(gui.dat);
 
-	var app = Q3D.application,
-		_this = Q3D.gui.dat;
-
-	Q3D.gui.modules.push(_this);
-
-	var panel;
+	const d = gui.dat;
+	let panel;
 
 	// initialize gui
 	// - setupDefaultItems: default is true
 	// - params: parameter values to pass to dat.GUI constructor
-	_this.init = function (setupDefaultItems, params) {
+	d.init = (setupDefaultItems, params) => {
 		setupDefaultItems = (setupDefaultItems === undefined) ? true : setupDefaultItems;
 
 		panel = new dat.GUI(params);
 		panel.domElement.parentElement.style.zIndex = 2000;   // display the panel on the front of labels
 
-		this.gui = panel;
+		d.gui = panel;
 
 		if (setupDefaultItems) {
-			this.layersFolder = panel.addFolder('Layers');
-			if (Q3D.Config.gui.customPlane) this.customPlaneFolder = panel.addFolder('Custom Plane');
-			if (Q3D.Config.animation.enabled) this.addAnimationFolder();
-			if (Q3D.isTouchDevice) this.addCommandsFolder();
-			this.addHelpButton();
+			d.layersFolder = panel.addFolder('Layers');
+			if (conf.gui.customPlane) d.customPlaneFolder = panel.addFolder('Custom Plane');
+			if (conf.animation.enabled) d.addAnimationFolder();
+			if (Q3D.isTouchDevice) d.addCommandsFolder();
+			d.addHelpButton();
 		}
 	};
 
-	_this.initLayersFolder = function (scene) {
-		const params = this.parameters;
-		const layersFolder = this.layersFolder;
-		scene.forEachLayer(function (layer, layerId) {
+	d.initLayersFolder = (scene) => {
+		const params = d.parameters;
+		const layersFolder = d.layersFolder;
+		scene.forEachLayer((layer, layerId) => {
 			params.lyr[layerId] = {i: layerId, v: layer.visible, o: layer.opacity, m: 0};
 			const p = layer.properties;
 
@@ -70,7 +71,7 @@ Q3D.gui.dat = {
 			const mtlNames = p.mtlNames;
 			if (mtlNames && mtlNames.length > 1) {
 				const items = {};
-				for (var i = 0; i < mtlNames.length; i++) {
+				for (let i = 0; i < mtlNames.length; i++) {
 					items[mtlNames[i]] = i;
 				}
 				mtls = folder.add(params.lyr[layerId], 'm', items).name('Material').setValue(p.mtlIdx);
@@ -81,7 +82,7 @@ Q3D.gui.dat = {
 			});
 
 			if (mtls) {
-				mtls.onChange(function (idx) {
+				mtls.onChange((idx) => {
 					layer.currentMtlIndex = idx;
 					params.lyr[layerId].o = layer.opacity;
 					op.updateDisplay();
@@ -91,69 +92,70 @@ Q3D.gui.dat = {
 		return layersFolder;
 	};
 
-	_this.customPlaneMaterial = function (color) {
+	d.customPlaneMaterial = (color) => {
 		return new THREE.MeshLambertMaterial({color: color, transparent: true, side: THREE.DoubleSide});
 	};
 
-	_this.initCustomPlaneFolder = function (zMin, zMax) {
-		var scene = app.scene,
-			p = scene.userData,
-			params = this.parameters;
+	d.initCustomPlaneFolder = (zMin, zMax) => {
+		const scene = app.scene;
+		const p = scene.userData;
+		const params = d.parameters;
 
 		if (zMin === undefined || zMax === undefined) {
-			var box = new THREE.Box3().setFromObject(scene);
+			const box = new THREE.Box3().setFromObject(scene);
 			if (zMin === undefined) zMin = scene.toMapCoordinates({x: 0, y: 0, z: box.min.z}).z;
 			if (zMax === undefined) zMax = scene.toMapCoordinates({x: 0, y: 0, z: box.max.z}).z;
 		}
 
-		var addPlane = function (color) {
+		const addPlane = (color) => {
 			// Add a new plane in the current scene
-			var geometry = new THREE.PlaneGeometry(p.baseExtent.width, p.baseExtent.height, 1, 1),
-				material = _this.customPlaneMaterial(color);
-			_this.customPlane = new THREE.Mesh(geometry, material);
-			_this.customPlane.rotation.z = p.baseExtent.rotation * deg2rad;
-			scene.add(_this.customPlane);
+			const geometry = new THREE.PlaneGeometry(p.baseExtent.width, p.baseExtent.height, 1, 1);
+			const material = d.customPlaneMaterial(color);
+			d.customPlane = new THREE.Mesh(geometry, material);
+			d.customPlane.rotation.z = p.baseExtent.rotation * deg2rad;
+			scene.add(d.customPlane);
 			app.render();
 		};
 		params.cp.d = zMin;
 
 		// Plane color
-		this.customPlaneFolder.addColor(params.cp, 'c').name('Color').onChange(function (value) {
-			if (_this.customPlane === undefined) addPlane(params.cp.c);
-			_this.customPlane.material.color.setStyle(value);
+		d.customPlaneFolder.addColor(params.cp, 'c').name('Color').onChange((value) => {
+			if (d.customPlane === undefined) addPlane(params.cp.c);
+			d.customPlane.material.color.setStyle(value);
 			app.render();
 		});
 
 		// Plane altitude
-		this.customPlaneFolder.add(params.cp, 'd').min(zMin).max(zMax).name('Altitude').onChange(function (value) {
-			if (_this.customPlane === undefined) addPlane(params.cp.c);
-			_this.customPlane.position.z = value * p.zScale;
-			_this.customPlane.updateMatrixWorld();
+		d.customPlaneFolder.add(params.cp, 'd').min(zMin).max(zMax).name('Altitude').onChange((value) => {
+			if (d.customPlane === undefined) addPlane(params.cp.c);
+			d.customPlane.position.z = value * p.zScale;
+			d.customPlane.updateMatrixWorld();
 			app.render();
 		});
 
 		// Plane opacity
-		this.customPlaneFolder.add(params.cp, 'o').min(0).max(1).name('Opacity (0-1)').onChange(function (value) {
-			if (_this.customPlane === undefined) addPlane(params.cp.c);
-			_this.customPlane.material.opacity = value;
+		d.customPlaneFolder.add(params.cp, 'o').min(0).max(1).name('Opacity (0-1)').onChange((value) => {
+			if (d.customPlane === undefined) addPlane(params.cp.c);
+			d.customPlane.material.opacity = value;
 			app.render();
 		});
 
 		// Enlarge plane option
-		this.customPlaneFolder.add(params.cp, 'l').name('Enlarge').onChange(function (value) {
-			if (_this.customPlane === undefined) addPlane(params.cp.c);
-			if (value) _this.customPlane.scale.set(80, 80, 1);
-			else _this.customPlane.scale.set(1, 1, 1);
-			_this.customPlane.updateMatrixWorld();
+		d.customPlaneFolder.add(params.cp, 'l').name('Enlarge').onChange((value) => {
+			if (d.customPlane === undefined) addPlane(params.cp.c);
+			if (value) d.customPlane.scale.set(80, 80, 1);
+			else d.customPlane.scale.set(1, 1, 1);
+			d.customPlane.updateMatrixWorld();
 			app.render();
 		});
 	};
 
-	_this.addAnimationFolder = function () {
-		var anim = app.animation.keyframes;
-		var btn, folder = panel.addFolder('Animation');
+	d.addAnimationFolder = () => {
+		const anim = app.animation.keyframes;
+		const folder = panel.addFolder('Animation');
+		let btn;
 
-		this.parameters.anm = {
+		d.parameters.anm = {
 			p: function () {
 				if (anim.isActive) {
 					anim.pause();
@@ -167,25 +169,25 @@ Q3D.gui.dat = {
 					anim.start();
 				}
 		}};
-		btn = folder.add(this.parameters.anm, 'p').name('Play');
+		btn = folder.add(d.parameters.anm, 'p').name('Play');
 
-		app.addEventListener('animationStarted', function () {
+		app.addEventListener('animationStarted', () => {
 			btn.name('Pause');
 		});
 
-		app.addEventListener('animationStopped', function () {
+		app.addEventListener('animationStopped', () => {
 			btn.name('Play');
 		});
 	};
 
 	// add commands folder for touch screen devices
-	_this.addCommandsFolder = function () {
-		var folder = panel.addFolder('Commands');
-		folder.add(this.parameters.cmd, 'rot').name('Orbit Animation').onChange(app.setRotateAnimationMode);
-		folder.add(this.parameters.cmd, 'wf').name('Wireframe Mode').onChange(app.setWireframeMode);
+	d.addCommandsFolder = () => {
+		const folder = panel.addFolder('Commands');
+		folder.add(d.parameters.cmd, 'rot').name('Orbit Animation').onChange(app.setRotateAnimationMode);
+		folder.add(d.parameters.cmd, 'wf').name('Wireframe Mode').onChange(app.setWireframeMode);
 	};
 
-	_this.addHelpButton = function () {
-		panel.add(this.parameters, 'i').name('Help');
+	d.addHelpButton = () => {
+		panel.add(d.parameters, 'i').name('Help');
 	};
 })();
