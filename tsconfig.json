@@ -4,6 +4,7 @@
     "checkJs": true,
     "declaration": true,
     "emitDeclarationOnly": true,
+    "strict": false,
 
     "rootDir": "web/js",
     "outDir": "web/js/types",

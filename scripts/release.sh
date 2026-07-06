@@ -34,7 +34,6 @@ git commit -m "switch to release mode and translation release" > /dev/null 2>&1
 
 # remove dev files from git index
 git rm .gitignore
-git rm jsconfig.json
 git rm tsconfig.json
 git rm -r .github
 git rm -r docs
