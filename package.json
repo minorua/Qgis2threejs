@@ -1,0 +1,12 @@
+{
+  "name": "qgis2threejs",
+  "private": true,
+  "scripts": {
+    "release": "scripts/release.sh"
+  },
+  "author": "Minoru Akagi",
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}
