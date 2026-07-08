@@ -121,7 +121,7 @@ app.loadSceneFile("${scenefile}", function (scene) {
 }, function (scene) {
   // all associated files have been loaded
 
-  if (Q3D.Config.gui.customPlane) {
+  if (Q3D.conf.gui.customPlane) {
     // If not specified, z range of scene bounding box is used.
     var zMin = undefined,
         zMax = undefined;

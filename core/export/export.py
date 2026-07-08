@@ -145,29 +145,29 @@ class ThreeJSExporter(QObject):
         # scene
         sp = self.settings.sceneProperties()
         if sp.get("radioButton_Color"):
-            options.append("Q3D.Config.bgColor = {};".format(js_utils.hex_color(sp.get("colorButton_Color", 0), prefix="0x")))
+            options.append("Q3D.conf.bgColor = {};".format(js_utils.hex_color(sp.get("colorButton_Color", 0), prefix="0x")))
 
         if not self.settings.coordDisplay():
-            options.append("Q3D.Config.coord.visible = false;")
+            options.append("Q3D.conf.coord.visible = false;")
 
         if self.settings.isCoordLatLon():
-            options.append("Q3D.Config.coord.latlon = true;")
+            options.append("Q3D.conf.coord.latlon = true;")
 
         # camera
         if self.settings.isOrthoCamera():
-            options.append("Q3D.Config.orthoCamera = true;")
+            options.append("Q3D.conf.orthoCamera = true;")
 
         # web export options
         opts = self.settings.options()
         if opts:
             for key in opts:
-                options.append("Q3D.Config.{} = {};".format(key, js_utils.pyobj2js(self.settings.option(key))))
+                options.append("Q3D.conf.{} = {};".format(key, js_utils.pyobj2js(self.settings.option(key))))
 
         # North arrow
         p = self.settings.widgetProperties("NorthArrow")
         if p.get("visible"):
-            options.append("Q3D.Config.northArrow.enabled = true;")
-            options.append("Q3D.Config.northArrow.color = {};".format(js_utils.hex_color(p.get("color", 0), prefix="0x")))
+            options.append("Q3D.conf.northArrow.enabled = true;")
+            options.append("Q3D.conf.northArrow.color = {};".format(js_utils.hex_color(p.get("color", 0), prefix="0x")))
 
         # read html template
         with open(config["path"], "r", encoding="utf-8") as f:

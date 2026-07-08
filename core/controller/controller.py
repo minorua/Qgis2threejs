@@ -223,15 +223,15 @@ class Q3DController(QObject):
 
         configs = []
         if self.settings.isOrthoCamera():
-            configs.append("Q3D.Config.orthoCamera = true;")
+            configs.append("Q3D.conf.orthoCamera = true;")
 
         p = self.settings.widgetProperties("NorthArrow")
         if p.get("visible"):
-            configs.append("Q3D.Config.northArrow.enabled = true;")
-            configs.append("Q3D.Config.northArrow.color = {};".format(hex_color(p.get("color", 0), prefix="0x")))
+            configs.append("Q3D.conf.northArrow.enabled = true;")
+            configs.append("Q3D.conf.northArrow.color = {};".format(hex_color(p.get("color", 0), prefix="0x")))
 
         if not self.settings.isNavigationEnabled():
-            configs.append("Q3D.Config.navigation.enabled = false;")
+            configs.append("Q3D.conf.navigation.enabled = false;")
 
         if configs:
             self.runScript("\n".join(configs))
@@ -336,10 +336,10 @@ class Q3DController(QObject):
         lines.append("setBackgroundColor({});".format(params))
 
         # coordinate display
-        lines.append("Q3D.Config.coord.visible = {};".format(js_bool(self.settings.coordDisplay())))
+        lines.append("Q3D.conf.coord.visible = {};".format(js_bool(self.settings.coordDisplay())))
 
         latlon = self.settings.isCoordLatLon()
-        lines.append("Q3D.Config.coord.latlon = {};".format(js_bool(latlon)))
+        lines.append("Q3D.conf.coord.latlon = {};".format(js_bool(latlon)))
 
         if latlon:
             self.loadScriptFiles([ScriptFile.PROJ4])

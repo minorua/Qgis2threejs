@@ -1,18 +1,15 @@
 // (C) 2017 Minoru Akagi
 // SPDX-License-Identifier: MIT
 
-Q3D.Config.preview = {
+const { app, gui, conf, E } = window.Q3D;
+
+conf.preview = {
 
 	// showTriangleCount: debug_mode,
 
 	showFPS: false
 
 };
-
-const app = Q3D.application;
-const gui = Q3D.gui;
-const conf = Q3D.Config;
-const E = Q3D.E;
 
 const preview = {
 

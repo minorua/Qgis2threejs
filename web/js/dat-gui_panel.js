@@ -2,11 +2,9 @@
 // SPDX-License-Identifier: MIT
 
 import * as THREE from "three";
-import { Q3D, deg2rad } from "./Qgis2threejs.js";
+import { app, gui, conf, deg2rad } from "./Qgis2threejs.js";
 
-const app = Q3D.application;
-const gui = Q3D.gui;
-const conf = Q3D.Config;
+const isTouchDevice = ("ontouchstart" in window);
 
 gui.dat = {
 
@@ -50,7 +48,7 @@ d.init = (setupDefaultItems = true) => {
 			d.addAnimationFolder();
 		}
 
-		if (Q3D.isTouchDevice) {
+		if (isTouchDevice) {
 			d.addCommandsFolder();
 		}
 
