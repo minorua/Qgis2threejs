@@ -7,8 +7,10 @@
 *.qgs.qto3settings
 *.log
 *.zip
+*.map
 package-lock.json
 pyrightconfig.json
+web/js/Qgis2threejs.js
 
 .venv/
 .venv-pyqt5/
