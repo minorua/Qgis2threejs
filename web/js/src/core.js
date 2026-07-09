@@ -17,7 +17,7 @@ export const gui = {
 
 };
 
-export const Tweens = {};
+export const tweens = {};
 
 export const deg2rad = Math.PI / 180;
 
