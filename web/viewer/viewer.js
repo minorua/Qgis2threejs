@@ -1,7 +1,7 @@
 // (C) 2017 Minoru Akagi
 // SPDX-License-Identifier: MIT
 
-const { app, gui, conf, E } = window.Q3D;
+const { app, gui, modules, conf, E } = window.Q3D;
 
 conf.preview = {
 
@@ -183,9 +183,9 @@ function loadScriptFile(path, callback, isModule=false, isNamespace=false) {
 		const mod = path.split("/").pop().split(".")[0];
 		import(path).then(module => {
 			if (isNamespace) {
-				THREE_EX[mod] = module;
+				modules[mod] = module;
 			} else {
-				THREE_EX[mod] = module[mod];
+				modules[mod] = module[mod];
 			}
 			if (callback) callback();
 		});
@@ -450,7 +450,7 @@ function setPreviewEnabled(enabled) {
 function setOutlineEffectEnabled(enabled) {
 	if (enabled) {
 		loadScriptFile("../js/lib/threejs/effects/OutlineEffect.js", () => {
-			app.effect = new THREE_EX.OutlineEffect(app.renderer);
+			app.effect = new modules.OutlineEffect(app.renderer);
 		}, true);
 	}
 	else {

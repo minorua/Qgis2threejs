@@ -4,7 +4,7 @@
 
 import { THREE } from "./three.js";
 
-export const THREE_EX = {};
+export const modules = { THREE };
 
 export { conf } from "./conf.js";
 

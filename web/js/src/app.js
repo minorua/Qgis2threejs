@@ -4,7 +4,7 @@
 import { THREE } from "./three.js";
 import { OrbitControls } from "three/controls/OrbitControls.js";
 
-import { app, conf, deg2rad, gui, Group, LayerType, Tweens, THREE_EX } from "./core.js";
+import { app, conf, deg2rad, gui, modules, Group, LayerType, Tweens } from "./core.js";
 import { Scene } from "./scene.js";
 import { E } from "./utils.js";
 
@@ -102,7 +102,7 @@ app.init = (container) => {
     }
 
     // outline effect
-    if (THREE_EX.OutlineEffect) app.effect = new THREE_EX.OutlineEffect(app.renderer);
+    if (modules.OutlineEffect) app.effect = new modules.OutlineEffect(app.renderer);
 
     // scene
     app.scene = new Scene();
@@ -322,10 +322,10 @@ app.loadModelFile = (url, callback) => {
 
     let loader;
     if (ext == "dae") {
-        loader = new THREE_EX.ColladaLoader(app.loadingManager);
+        loader = new modules.ColladaLoader(app.loadingManager);
     }
     else if (ext == "gltf" || ext == "glb") {
-        loader = new THREE_EX.GLTFLoader(app.loadingManager);
+        loader = new modules.GLTFLoader(app.loadingManager);
     }
     else {
         console.warn("Model file type not supported: " + url);
@@ -347,11 +347,11 @@ app.loadModelFile = (url, callback) => {
 app.loadModelData = (data, ext, resourcePath, callback) => {
 
     if (ext == "dae") {
-        const model = new THREE_EX.ColladaLoader(app.loadingManager).parse(data, resourcePath);
+        const model = new modules.ColladaLoader(app.loadingManager).parse(data, resourcePath);
         if (callback) callback(model);
     }
     else if (ext == "gltf" || ext == "glb") {
-        new THREE_EX.GLTFLoader(app.loadingManager).parse(data, resourcePath, (model) => {
+        new modules.GLTFLoader(app.loadingManager).parse(data, resourcePath, (model) => {
             if (callback) callback(model);
         }, (e) => {
             console.warn("Failed to load a glTF model: " + e);
@@ -544,7 +544,7 @@ app.anim_timer = new THREE.Timer();
     let _pupListenerAdded = false;
 
     app.buildViewHelper = (container) => {
-        app.viewHelper = new THREE_EX.ViewHelper(app.camera, container);
+        app.viewHelper = new modules.ViewHelper(app.camera, container);
         app.viewHelper.center = app.controls.target;
         app.viewHelper.setLabels("X", "Y", "Z");
         app.viewHelper.location.top = conf.navigation.top;

@@ -3,7 +3,7 @@
 
 import { THREE } from "./three.js";
 
-import { app, conf, MaterialType, THREE_EX } from "./core.js";
+import { app, conf, modules, MaterialType } from "./core.js";
 
 
 export class Material {
@@ -98,7 +98,7 @@ export class Material {
 			}
 			// opt.sizeAttenuation = 1;
 
-			this.mtl = new THREE_EX.meshline.MeshLineMaterial(opt);
+			this.mtl = new modules.meshline.MeshLineMaterial(opt);
 			this._updateAspect = () => {
 				this.mtl.resolution.set(app.width, app.height);
 			};

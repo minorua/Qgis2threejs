@@ -145,29 +145,29 @@ class ThreeJSExporter(QObject):
         # scene
         sp = self.settings.sceneProperties()
         if sp.get("radioButton_Color"):
-            options.append("Q3D.conf.bgColor = {};".format(js_utils.hex_color(sp.get("colorButton_Color", 0), prefix="0x")))
+            options.append("conf.bgColor = {};".format(js_utils.hex_color(sp.get("colorButton_Color", 0), prefix="0x")))
 
         if not self.settings.coordDisplay():
-            options.append("Q3D.conf.coord.visible = false;")
+            options.append("conf.coord.visible = false;")
 
         if self.settings.isCoordLatLon():
-            options.append("Q3D.conf.coord.latlon = true;")
+            options.append("conf.coord.latlon = true;")
 
         # camera
         if self.settings.isOrthoCamera():
-            options.append("Q3D.conf.orthoCamera = true;")
+            options.append("conf.orthoCamera = true;")
 
         # web export options
         opts = self.settings.options()
         if opts:
             for key in opts:
-                options.append("Q3D.conf.{} = {};".format(key, js_utils.pyobj2js(self.settings.option(key))))
+                options.append("conf.{} = {};".format(key, js_utils.pyobj2js(self.settings.option(key))))
 
         # North arrow
         p = self.settings.widgetProperties("NorthArrow")
         if p.get("visible"):
-            options.append("Q3D.conf.northArrow.enabled = true;")
-            options.append("Q3D.conf.northArrow.color = {};".format(js_utils.hex_color(p.get("color", 0), prefix="0x")))
+            options.append("conf.northArrow.enabled = true;")
+            options.append("conf.northArrow.color = {};".format(js_utils.hex_color(p.get("color", 0), prefix="0x")))
 
         # read html template
         with open(config["path"], "r", encoding="utf-8") as f:
@@ -333,7 +333,7 @@ class ThreeJSExporter(QObject):
             else:
                 raise
 
-            script += f'THREE_EX.{obj} = {obj};\n'
+            script += f'modules.{obj} = {obj};\n'
 
         return script
 

@@ -102,11 +102,9 @@ ${narration}
 </div>
 
 <script type="module">
-import { Q3D } from "./Qgis2threejs.js";
+import { app, conf, gui, modules } from "./Qgis2threejs.js";
 import "./dat-gui_panel.js";
 ${imports}
-const app = Q3D.application;
-const gui = Q3D.gui;
 
 ${options}
 
@@ -121,7 +119,7 @@ app.loadSceneFile("${scenefile}", function (scene) {
 }, function (scene) {
   // all associated files have been loaded
 
-  if (Q3D.conf.gui.customPlane) {
+  if (conf.gui.customPlane) {
     // If not specified, z range of scene bounding box is used.
     var zMin = undefined,
         zMax = undefined;

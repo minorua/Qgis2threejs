@@ -3,7 +3,7 @@
 
 import { THREE } from "./three.js";
 
-import { app, conf, deg2rad, Group, LayerType, THREE_EX, UV } from "./core.js";
+import { app, conf, deg2rad, modules, Group, LayerType, UV } from "./core.js";
 import { MapLayer } from "./layer.js";
 import { Materials } from "./material.js";
 import { Models } from "./model.js";
@@ -542,11 +542,11 @@ export class LineLayer extends VectorLayer {
 		}
 		else if (objType == "Thick Line") {
 			return (f, vertices) => {
-				const geom = new THREE_EX.meshline.MeshLineGeometry();
+				const geom = new modules.meshline.MeshLineGeometry();
 				geom.setPoints(vertices);
 
 				const mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
-				mesh.raycast = THREE_EX.meshline.raycast;
+				mesh.raycast = modules.meshline.raycast;
 				return mesh;
 			};
 		}
@@ -689,7 +689,7 @@ export class LineLayer extends VectorLayer {
 				}
 
 				return new THREE.Mesh(
-					THREE_EX.BufferGeometryUtils.mergeGeometries(geometries, false),
+					modules.BufferGeometryUtils.mergeGeometries(geometries, false),
 					materials.mtl(f.mtl.idx)
 				);
 			};
@@ -738,7 +738,7 @@ export class LineLayer extends VectorLayer {
 				let mtl;
 
 				if (m.isMeshLineMaterial) {
-					mtl = new THREE_EX.meshline.MeshLineMaterial();
+					mtl = new modules.meshline.MeshLineMaterial();
 					mtl.color = m.color;
 					mtl.opacity = m.opacity;
 					mtl.lineWidth = m.lineWidth;
