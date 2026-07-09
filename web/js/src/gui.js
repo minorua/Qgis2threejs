@@ -6,6 +6,7 @@ import { convertToDMS, E } from "./utils.js";
 
 const VIS = "visible";
 
+// helper functions
 function CE(tagName, parent, innerHTML) {
     const elem = document.createElement(tagName);
     if (parent) parent.appendChild(elem);
@@ -17,6 +18,29 @@ function ON_CLICK(id, listener) {
     const e = document.getElementById(id);
     if (e) e.addEventListener("click", listener);
 }
+
+function createInputBox(parent, name, label, value, unit) {
+    const d = CE("div", parent);
+    d.style.cssFloat = "left";
+
+    const lbl = CE("label", d, label);
+    const input = CE("input", d);
+    CE("span", d, unit);
+    lbl.htmlFor = input.id = input.name = name;
+    input.type = "text";
+    input.value = value;
+    return input;
+}
+
+function createCheckbox(parent, label, checked=true) {
+    const d = CE("div", parent);
+    const input = CE("input", d);
+    input.type = "checkbox";
+    input.checked = checked;
+    CE("span", d, label);
+    return input;
+}
+
 
 gui.init = () => {
     // tool buttons
@@ -222,51 +246,28 @@ gui.showQueryResult = (point, layer, obj, show_coords) => {
 };
 
 gui.showPrintDialog = () => {
+    const form = CE("form");
+    form.className = "print";
 
-    var f = CE("form");
-    f.className = "print";
+    const h1 = CE("div", form, "Image Size");
+    h1.style.textDecoration = "underline";
 
-    var d1 = CE("div", f, "Image Size");
-    d1.style.textDecoration = "underline";
+    const width = createInputBox(form, "printwidth", "Width:", app.width, "px, ");
+    const height = createInputBox(form, "printheight", "Height:", app.height, "px");
 
-    var d2 = CE("div", f),
-        l1 = CE("label", d2, "Width:"),
-        width = CE("input", d2);
-    d2.style.cssFloat = "left";
-    l1.htmlFor = width.id = width.name = "printwidth";
-    width.type = "text";
-    width.value = app.width;
-    CE("span", d2, "px,");
+    const ka = createCheckbox(form, "Keep Aspect Ratio");
 
-    var d3 = CE("div", f),
-        l2 = CE("label", d3, "Height:"),
-        height = CE("input", d3);
-    l2.htmlFor = height.id = height.name = "printheight";
-    height.type = "text";
-    height.value = app.height;
-    CE("span", d3, "px");
+    const h2 = CE("div", form, "Option");
+    h2.style.textDecoration = "underline";
 
-    var d4 = CE("div", f),
-        ka = CE("input", d4);
-    ka.type = "checkbox";
-    ka.checked = true;
-    CE("span", d4, "Keep Aspect Ratio");
+    const bg = createCheckbox(form, "Fill Background");
 
-    var d5 = CE("div", f, "Option");
-    d5.style.textDecoration = "underline";
+    const btnBox = CE("div", form);
+    const ok = CE("span", btnBox, "OK");
+    const cancel = CE("span", btnBox, "Cancel");
+    btnBox.className = "buttonbox";
 
-    var d6 = CE("div", f),
-        bg = CE("input", d6);
-    bg.type = "checkbox";
-    bg.checked = true;
-    CE("span", d6, "Fill Background");
-
-    var d7 = CE("div", f),
-        ok = CE("span", d7, "OK"),
-        cancel = CE("span", d7, "Cancel");
-    d7.className = "buttonbox";
-
-    CE("input", f).type = "submit";
+    CE("input", form).type = "submit";
 
     // event handlers
     // width and height boxes
@@ -288,12 +289,12 @@ gui.showPrintDialog = () => {
     cancel.onclick = app.cleanView;
 
     // enter key pressed
-    f.onsubmit = () => {
+    form.onsubmit = () => {
         ok.onclick();
         return false;
     };
 
-    gui.popup.show(f, "Save Image", true);   // modal
+    gui.popup.show(form, "Save Image", true);   // modal
 };
 
 gui.layerPanel = {
