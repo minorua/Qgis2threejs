@@ -8,7 +8,7 @@ import { app, conf, deg2rad, gui, modules, Group, LayerType } from "./core.js";
 import { Scene } from "./scene.js";
 import { E } from "./utils.js";
 
-const vec3 = new THREE.Vector3();
+const _v = new THREE.Vector3();
 
 
 (() => {	// event system for the application
@@ -487,8 +487,8 @@ app.adjustCameraPosition = (force) => {
     const bbox = app.scene.boundingBox(true);
     if (bbox.isEmpty()) return;
 
-    bbox.getCenter(vec3);
-    app.cameraAction.zoom(vec3.x, vec3.y, (bbox.max.z + vec3.z) / 2, app.scene.userData.baseExtent.width);
+    bbox.getCenter(_v);
+    app.cameraAction.zoom(_v.x, _v.y, (bbox.max.z + _v.z) / 2, app.scene.userData.baseExtent.width);
 };
 
 // declination: clockwise from +y, in degrees
@@ -737,14 +737,14 @@ app.cameraAction = {
     vecZoom: new THREE.Vector3(0, -1, 1).normalize(),
 
     zoom: function (x, y, z, dist) {
-        if (x === undefined) vec3.copy(app.queryTargetPosition);
-        else vec3.set(x, y, z);
+        if (x === undefined) _v.copy(app.queryTargetPosition);
+        else _v.set(x, y, z);
 
         if (dist === undefined) dist = app.scene.userData.baseExtent.width * 0.1;
 
-        app.camera.position.copy(app.cameraAction.vecZoom).multiplyScalar(dist).add(vec3);
-        app.camera.lookAt(vec3);
-        if (app.controls.target !== undefined) app.controls.target.copy(vec3);
+        app.camera.position.copy(app.cameraAction.vecZoom).multiplyScalar(dist).add(_v);
+        app.camera.lookAt(_v);
+        if (app.controls.target !== undefined) app.controls.target.copy(_v);
         app.updateControlsAndRender();
         app.cleanView();
     },
@@ -753,11 +753,11 @@ app.cameraAction = {
         if (!layer) return;
 
         const bbox = layer.boundingBox();
-        bbox.getSize(vec3);
-        const dist = Math.max(vec3.x, vec3.y * 3 / 4) * 1.2;
+        bbox.getSize(_v);
+        const dist = Math.max(_v.x, _v.y * 3 / 4) * 1.2;
 
-        bbox.getCenter(vec3);
-        app.cameraAction.zoom(vec3.x, vec3.y, vec3.z, dist);
+        bbox.getCenter(_v);
+        app.cameraAction.zoom(_v.x, _v.y, _v.z, dist);
     },
 
     orbit: function (x, y, z) {
