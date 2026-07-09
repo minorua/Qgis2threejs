@@ -4,6 +4,7 @@
   "scripts": {
     "build": "esbuild web/js/src/index.js --bundle --format=esm --outfile=web/js/Qgis2threejs.js --external:three --external:three/* --sourcemap",
     "build:min": "esbuild web/js/src/index.js --bundle --format=esm --outfile=web/js/Qgis2threejs.js --external:three --external:three/* --minify",
+    "watch": "esbuild web/js/src/index.js --bundle --format=esm --outfile=web/js/Qgis2threejs.js --external:three --external:three/* --watch",
     "release": "scripts/release.sh"
   },
   "author": "Minoru Akagi",
