@@ -1,7 +1,12 @@
 // (C) 2017 Minoru Akagi
 // SPDX-License-Identifier: MIT
 
-const { app, gui, modules, conf, E } = window.Q3D;
+import { app, conf, gui, modules, E } from "../js/Qgis2threejs.js";
+const THREE = modules.THREE;
+export { app, conf, gui, THREE }
+
+import { ViewHelper } from "three/helpers/ViewHelper.js";
+modules.ViewHelper = ViewHelper;
 
 conf.preview = {
 
@@ -11,7 +16,7 @@ conf.preview = {
 
 };
 
-const preview = {
+export const preview = {
 
 	renderEnabled: true,
 
@@ -27,7 +32,7 @@ const preview = {
 };
 
 //// initialization
-function init(off_screen, debug_mode, qgis_version) {
+export function init(off_screen, debug_mode, qgis_version) {
 
 	conf.debugMode = debug_mode;
 	conf.qgisVersion = qgis_version;
@@ -178,7 +183,7 @@ function _requestCameraUpdate(sp) {
 	app.scene.requestCameraUpdate(pos, focal, near, far);
 }
 
-function loadScriptFile(path, callback, isModule=false, isNamespace=false) {
+export function loadScriptFile(path, callback, isModule=false, isNamespace=false) {
 	if (isModule) {
 		const mod = path.split("/").pop().split(".")[0];
 		import(path).then(module => {
@@ -207,7 +212,7 @@ function loadScriptFile(path, callback, isModule=false, isNamespace=false) {
 	return true;
 }
 
-function loadModel(url) {
+export function loadModel(url) {
 
 	const loadToScene = (res) => {
 		const boxsize = new THREE.Box3().setFromObject(res.scene).getSize();
@@ -250,7 +255,7 @@ function loadModel(url) {
 	}
 }
 
-function hideLayer(layerId, remove_obj) {
+export function hideLayer(layerId, remove_obj) {
 	const layer = app.scene.mapLayers[layerId];
 	if (layer === undefined) return;
 
@@ -311,7 +316,7 @@ function showFPS() {
 	}, 1000);
 }
 
-function saveModelAsGLTF(filename) {
+export function saveModelAsGLTF(filename) {
 	showStatusMessage('Saving the model to "' + filename + '"...');
 
 	const scene = new THREE.Scene();
@@ -391,7 +396,7 @@ function sendData(data, is_base64, filename, callback) {
     sendNext();
 }
 
-function requestRendering() {
+export function requestRendering() {
 	requestAnimationFrame(function () {
 		app.render(true);
 		pyObj.emitRequestedRenderingFinished();
@@ -399,7 +404,7 @@ function requestRendering() {
 }
 
 let barTimerId = null;
-function showMessageBar(message, timeout_ms, warning) {
+export function showMessageBar(message, timeout_ms, warning) {
 	if (barTimerId !== null) {
 		clearTimeout(barTimerId);
 		barTimerId = null;
@@ -434,7 +439,7 @@ function clearStatusMessage() {
 	showStatusMessage("");
 }
 
-function setPreviewEnabled(enabled) {
+export function setPreviewEnabled(enabled) {
 	const e = E("cover");
 
 	if (enabled) {
@@ -447,7 +452,7 @@ function setPreviewEnabled(enabled) {
 	e.style.display = (enabled) ? "none" : "block";
 }
 
-function setOutlineEffectEnabled(enabled) {
+export function setOutlineEffectEnabled(enabled) {
 	if (enabled) {
 		loadScriptFile("../js/lib/threejs/effects/OutlineEffect.js", () => {
 			app.effect = new modules.OutlineEffect(app.renderer);
@@ -458,19 +463,13 @@ function setOutlineEffectEnabled(enabled) {
 	}
 }
 
-function setBackgroundColor(color, alpha) {
+export function setBackgroundColor(color, alpha) {
 	app.renderer.setClearColor(color, alpha);
 	app.render();
 }
 
-function verifySize(width, height) {
-	const vec2 = new THREE.Vector2();
-	app.renderer.getSize(vec2);
-	return (vec2.x == width && vec2.y == height);
-}
-
 //// camera
-function switchCamera(is_ortho) {
+export function switchCamera(is_ortho) {
 	app.buildCamera(is_ortho);
 	app.controls.object = app.camera;
 	app.controls.reset();
@@ -493,7 +492,7 @@ function switchCamera(is_ortho) {
 }
 
 // current camera position and its target
-function cameraState(flat) {
+export function cameraState(flat) {
 	const p = app.scene.toMapCoordinates(app.camera.position),
 		  t = app.scene.toMapCoordinates(app.controls.target);
 	if (flat) {
@@ -521,7 +520,7 @@ function setCameraState(s) {
 	app.render();
 }
 
-function adjustCameraPos() {
+export function adjustCameraPos() {
 	if (conf.autoAdjustCameraPos) {
 		app.adjustCameraPosition();
 	}
@@ -529,7 +528,7 @@ function adjustCameraPos() {
 }
 
 //// lights
-function changeLight(type) {
+export function changeLight(type) {
 	app.scene.lightGroup.clear();
 	app.scene.buildLights(conf.lights[type], app.scene.userData.baseExtent.rotation);
 	app.scene.dispatchEvent({type: "lightChanged", light: type});
@@ -537,7 +536,7 @@ function changeLight(type) {
 }
 
 //// widgets
-function setNavigationEnabled(enabled) {
+export function setNavigationEnabled(enabled) {
 	if (enabled) {
 		if (app.viewHelper === undefined) {
 			app.buildViewHelper(app.container);
@@ -553,7 +552,7 @@ function setNavigationEnabled(enabled) {
 	app.render();
 }
 
-function setNorthArrowVisible(visible) {
+export function setNorthArrowVisible(visible) {
 	E("northarrow").style.display = (visible) ? "block" : "none";
 	if (visible && app.scene2 === undefined) {
 		app.buildNorthArrow(E("northarrow"), 0, app.scene.userData.baseExtent.rotation);
@@ -561,7 +560,7 @@ function setNorthArrowVisible(visible) {
 	}
 }
 
-function setNorthArrowColor(color) {
+export function setNorthArrowColor(color) {
 	if (app.scene2 === undefined) {
 		conf.northArrow.color = color;
 	}
@@ -586,7 +585,7 @@ function startAnimation(groups, repeat) {
 	});
 }
 
-function stopAnimation() {
+export function stopAnimation() {
 	app.animation.keyframes.stop();
 	closeNarrativeBox();
 }
@@ -603,24 +602,24 @@ function closeNarrativeBox() {
 	E("narrativebox").classList.remove("visible");
 }
 
-function setLayerOpacity(layerId, opacity) {
+export function setLayerOpacity(layerId, opacity) {
 	app.scene.mapLayers[layerId].opacity = opacity;
 }
 
-function saveCanvasImage(width, height) {
+export function saveCanvasImage(width, height) {
 	app._saveCanvasImage(width, height, true, (canvas) => {
 		pyObj.saveImage(canvas.toDataURL("image/png"));
 	});
 }
 
-function copyCanvasToClipboard(width, height) {
+export function copyCanvasToClipboard(width, height) {
 	app._saveCanvasImage(width, height, true, (canvas) => {
 		pyObj.copyToClipboard(canvas.toDataURL("image/png"));
 	});
 }
 
 
-//// overrides
+//// wraps
 app._initLoadingManager = app.initLoadingManager;
 app._render = app.render;
 app._saveCanvasImage = app.saveCanvasImage;

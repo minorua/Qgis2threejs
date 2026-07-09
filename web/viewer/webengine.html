@@ -15,11 +15,9 @@
 }
 </script>
 <script type="module">
-import "../js/Qgis2threejs.js";
-import { ViewHelper } from "three/helpers/ViewHelper.js";
-modules.ViewHelper = ViewHelper;
+  import * as exports from "./viewer.js";
+  Object.assign(window, exports);
 </script>
-<script defer src="viewer.js"></script>
 <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
 </head>
 <body>

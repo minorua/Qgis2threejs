@@ -44,7 +44,7 @@ class TestExportWebLM_datgui(TestExportWeb):
     def check_webpage(self, filename):
         checker =  super().check_webpage(filename)
 
-        panel = "Q3D.gui.dat.gui"
+        panel = "gui.dat.gui"
         layers = f"{panel}.__folders['Layers']"
         cp = f"{panel}.__folders['Custom Plane']"
 

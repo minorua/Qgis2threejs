@@ -114,7 +114,7 @@ class WebPageCheckerBase(QWebEngineView):
         timer.start(100)
 
         while True:
-            scene_loaded = self.runScript("Q3D.application.sceneLoaded")
+            scene_loaded = self.runScript("app.sceneLoaded")
             if scene_loaded:
                 break
             loop.exec()
@@ -123,7 +123,7 @@ class WebPageCheckerBase(QWebEngineView):
         logger.debug("Scene finished loading.")
 
     def renderScene(self):
-        self.runScript("Q3D.application.render();")
+        self.runScript("app.render();")
         logger.debug("Scene rendered.")
 
         loop = QEventLoop()
