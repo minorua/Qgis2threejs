@@ -29,7 +29,7 @@ This plugin is powered by the following JavaScript libraries:
 | [meshline](https://github.com/pmndrs/meshline) | 3.3.1 | Thick line rendering |
 | [Proj4js](https://trac.osgeo.org/proj4js/) | 2.2.1 | Coordinate transformation |
 | [tween.js](https://github.com/tweenjs/tween.js/) | 18.6.4 | Animation |
-| [dat-gui](https://github.com/dataarts/dat.gui) | 0.5.0 | 3DViewer (dat-gui) template export |
+| [dat-gui](https://github.com/dataarts/dat.gui) | 0.7.9 | 3DViewer (dat-gui) template export |
 
 JavaScript dependencies are listed in `package.json` to enable GitHub's dependency analysis.
 The plugin itself uses vendored copies of these libraries.
