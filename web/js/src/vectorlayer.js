@@ -715,7 +715,7 @@ export class LineLayer extends VectorLayer {
 		if (this.origMtls !== undefined) return;
 
 		const computeLineDistances = (obj) => {
-			if (!obj.material.isLineDashedMaterial) return;
+			if (obj.material.isLineDashedMaterial !== true) return;
 
 			obj.computeLineDistances();
 
@@ -737,25 +737,24 @@ export class LineLayer extends VectorLayer {
 				const m = f.objs[0].material;
 				let mtl;
 
-				if (m.isMeshLineMaterial) {
+				if (m.isLineDashedMaterial) {
+					mtl = m.clone();
+					mtl.gapSize = 1;
+				}
+				else if (m.isLineBasicMaterial) {
+					mtl = new THREE.LineDashedMaterial({
+						color: m.color,
+						opacity: m.opacity,
+						gapSize: 1
+					});
+				}
+				else {	// MeshLineMaterial
 					mtl = new modules.meshline.MeshLineMaterial();
 					mtl.color = m.color;
 					mtl.opacity = m.opacity;
 					mtl.lineWidth = m.lineWidth;
 					mtl.dashArray = 2;
 					mtl.transparent = true;
-				}
-				else {
-					if (m.isLineDashedMaterial) {
-						mtl = m.clone();
-					}
-					else {
-						mtl = new THREE.LineDashedMaterial({
-							color: m.color,
-							opacity: m.opacity
-						});
-					}
-					mtl.gapSize = 1;
 				}
 
 				for (const obj of f.objs) {
@@ -773,15 +772,15 @@ export class LineLayer extends VectorLayer {
 				if (mtl.isLineDashedMaterial) {
 					mtl.gapSize = 1;
 				}
-				else if (mtl.isMeshLineMaterial) {
-					mtl.dashArray = 2;
-					mtl.transparent = true;
-				}
 				else if (mtl.isLineBasicMaterial) {
 					mtl = new THREE.LineDashedMaterial({
 						color: mtl.color,
 						opacity: mtl.opacity
 					});
+				}
+				else {	// MeshLineMaterial
+					mtl.dashArray = 2;
+					mtl.transparent = true;
 				}
 
 				this.materials.add(mtl);
@@ -804,7 +803,7 @@ export class LineLayer extends VectorLayer {
 			if (m.isLineDashedMaterial) {
 				m.dashSize = length;
 			}
-			else if (m.isMeshLineMaterial) {
+			else { // MeshLineMaterial
 				m.uniforms.dashOffset.value = -length;
 			}
 		};
