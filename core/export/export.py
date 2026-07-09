@@ -208,20 +208,20 @@ class ThreeJSExporter(QObject):
 
     def filesToCopy(self):
         LIB = "web/js/lib"
-        THREE = LIB + "/threejs"
+        THREE = LIB + "/three"
 
         # three.js library
         files = [{"dirs": [THREE]}]
 
         # controls
-        files.append({"files": [THREE + "/controls/" + self.settings.controls()], "dest": "threejs/controls"})
+        files.append({"files": [THREE + "/controls/" + self.settings.controls()], "dest": "three/controls"})
 
         if self.settings.isNavigationEnabled():
-            files.append({"files": [THREE + "/helpers/ViewHelper.js"], "dest": "threejs/helpers"})
+            files.append({"files": [THREE + "/helpers/ViewHelper.js"], "dest": "three/helpers"})
 
         # outline effect
         if self.settings.useOutlineEffect():
-            files.append({"files": [THREE + "/effects/OutlineEffect.js"], "dest": "threejs/effects"})
+            files.append({"files": [THREE + "/effects/OutlineEffect.js"], "dest": "three/effects"})
 
         # template specific files
         config = self.settings.templateConfig()
@@ -253,7 +253,7 @@ class ThreeJSExporter(QObject):
                     added.add("meshline")
 
                 elif objType == "Box" and "geomutils" not in added:
-                    files.append({"files": [THREE + "/utils/BufferGeometryUtils.js"], "dest": "threejs/utils"})
+                    files.append({"files": [THREE + "/utils/BufferGeometryUtils.js"], "dest": "three/utils"})
                     added.add("geomutils")
 
         # model loades and model files

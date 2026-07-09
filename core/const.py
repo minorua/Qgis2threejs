@@ -48,7 +48,7 @@ class ScriptFile:
     TYPE_NAMESPACE = 2
 
     # relative paths to script files from js directory
-    THREE_DIR = "lib/threejs"
+    THREE_DIR = "lib/three"
     FILES = {
         GLTFLOADER: (THREE_DIR + "/loaders/GLTFLoader.js", TYPE_CLASS),
         COLLADALOADER: (THREE_DIR + "/loaders/ColladaLoader.js", TYPE_CLASS),

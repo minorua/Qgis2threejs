@@ -362,7 +362,7 @@ class ModelManager(DataManager):
         return False
 
     def filesToCopy(self):
-        THREE = "web/js/lib/threejs"
+        THREE = "web/js/lib/three"
         LOADER = THREE + "/loaders"
         UTILS = THREE + "/utils"
 
@@ -377,7 +377,7 @@ class ModelManager(DataManager):
                     "dirs": [
                         LOADER + "/collada"
                     ],
-                    "dest": "threejs/loaders"
+                    "dest": "three/loaders"
                 })
 
             if self.hasGLTFModel():
@@ -385,14 +385,14 @@ class ModelManager(DataManager):
                     "files": [
                         LOADER + "/GLTFLoader.js"
                     ],
-                    "dest": "threejs/loaders"
+                    "dest": "three/loaders"
                 })
                 f.append({
                     "files": [
                         UTILS + "/BufferGeometryUtils.js",
                         UTILS + "/SkeletonUtils.js"
                     ],
-                    "dest": "threejs/utils"
+                    "dest": "three/utils"
                 })
 
             f.append({"files": self._list, "dest": "./data/{}/models".format(self.exportSettings.outputFileTitle())})
@@ -402,10 +402,10 @@ class ModelManager(DataManager):
         files = []
         if self._list:
             if self.hasColladaModel():
-                files.append(("./threejs/loaders/ColladaLoader.js", ScriptFile.TYPE_CLASS))
+                files.append(("./three/loaders/ColladaLoader.js", ScriptFile.TYPE_CLASS))
 
             if self.hasGLTFModel():
-                files.append(("./threejs/loaders/GLTFLoader.js", ScriptFile.TYPE_CLASS))
+                files.append(("./three/loaders/GLTFLoader.js", ScriptFile.TYPE_CLASS))
 
         return files
 

@@ -10,8 +10,8 @@
     "outDir": "web/js/types",
 
     "paths": {
-      "three": ["./web/js/lib/threejs/three.module.js"],
-      "three/*": ["./web/js/lib/threejs/*"]
+      "three": ["./web/js/lib/three/three.module.js"],
+      "three/*": ["./web/js/lib/three/*"]
     }
   },
   "include": [

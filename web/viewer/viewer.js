@@ -454,7 +454,7 @@ export function setPreviewEnabled(enabled) {
 
 export function setOutlineEffectEnabled(enabled) {
 	if (enabled) {
-		loadScriptFile("../js/lib/threejs/effects/OutlineEffect.js", () => {
+		loadScriptFile("../js/lib/three/effects/OutlineEffect.js", () => {
 			app.effect = new modules.OutlineEffect(app.renderer);
 		}, true);
 	}
