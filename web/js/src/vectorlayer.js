@@ -171,48 +171,52 @@ class VectorLayer extends MapLayer {
 		}
 	}
 
-	loadData(data, scene) {
-		if (data.type == "layer") {
-			this.clearObjects();
-			this.clearLabels();
-			super.loadData(data, scene);
+	loadLayerData(data, scene) {
+		this.clearObjects();
+		this.clearLabels();
 
-			this.features = [];
+		super.loadLayerData(data, scene);
 
-			if (this.properties.label !== undefined) {
-				if (this.labelGroup === undefined) {
-					this.labelGroup = new Group();
-					this.labelGroup.userData.layerId = this.id;
-					this.labelGroup.visible = this.visible;
-					scene.labelGroup.add(this.labelGroup);
-				}
+		this.features = [];
 
-				if (this.labelConnectorGroup === undefined) {
-					this.labelConnectorGroup = new Group();
-					this.labelConnectorGroup.userData.layerId = this.id;
-					this.labelConnectorGroup.visible = this.visible;
-					scene.labelConnectorGroup.add(this.labelConnectorGroup);
-				}
+		if (this.properties.label !== undefined) {
+			if (this.labelGroup === undefined) {
+				this.labelGroup = new Group();
+				this.labelGroup.userData.layerId = this.id;
+				this.labelGroup.visible = this.visible;
+				scene.labelGroup.add(this.labelGroup);
 			}
 
-			if (data.body === undefined) return;
-
-			if (data.body.materials !== undefined) {
-				this.materials.loadData(data.body.materials);
+			if (this.labelConnectorGroup === undefined) {
+				this.labelConnectorGroup = new Group();
+				this.labelConnectorGroup.userData.layerId = this.id;
+				this.labelConnectorGroup.visible = this.visible;
+				scene.labelConnectorGroup.add(this.labelConnectorGroup);
 			}
+		}
 
-			(data.body.blocks || []).forEach((block) => {
-				if (block.url !== undefined) app.loadJSONFile(block.url);
-				else {
-					this.build(block.features, block.startIndex);
-					if (this.properties.label !== undefined) this.buildLabels(block.features);
-				}
-			});
+		if (data.body === undefined) return;
+
+		if (data.body.materials !== undefined) {
+			this.materials.loadData(data.body.materials);
 		}
-		else if (data.type == "block") {
-			this.build(data.features, data.startIndex);
-			if (this.properties.label !== undefined) this.buildLabels(data.features);
-		}
+
+		(data.body.blocks || []).forEach((block) => {
+			if (block.url !== undefined) {
+				app.loadJSONFile(block.url);
+			}
+			else {
+				this.build(block.features, block.startIndex);
+				if (this.properties.label !== undefined) this.buildLabels(block.features);
+			}
+		});
+	}
+
+	loadBlockData(data, scene) {
+		super.loadBlockData(data, scene);
+
+		this.build(data.features, data.startIndex);
+		if (this.properties.label !== undefined) this.buildLabels(data.features);
 	}
 
 	get visible() {

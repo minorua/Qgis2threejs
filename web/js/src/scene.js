@@ -50,102 +50,108 @@ export class Scene extends THREE.Scene {
 	}
 
 	loadData(data) {
-		if (data.type == "scene") {
-			const p = data.properties;
-			if (p !== undefined) {
-				// fog
-				if (p.fog) {
-					this.fog = new THREE.FogExp2(p.fog.color, p.fog.density);
-				}
+		switch (data.type) {
+			case "scene":
+				this.loadSceneData(data);
+				break;
 
-				// light
-				const rotation0 = (this.userData.baseExtent) ? this.userData.baseExtent.rotation : 0;
-				if (p.light != this.userData.light || p.baseExtent.rotation != rotation0) {
-					this.lightGroup.clear();
-					this.buildLights(conf.lights[p.light] || conf.lights.directional, p.baseExtent.rotation);
-					this.dispatchEvent({type: "lightChanged", light: p.light});
-				}
+			case "layer":
+				this.loadLayerData(data);
+				break;
 
-				const be = p.baseExtent;
-				p.pivot = new THREE.Vector3(be.cx, be.cy, p.origin.z).sub(p.origin);   // 2D center of extent in 3D world coordinates
-
-				// set initial camera position and parameters
-				if (this.userData.origin === undefined) {
-
-					const s = be.width;
-					let v = conf.viewpoint;
-					let pos, focal;
-
-					if (v.pos === undefined) {
-						v = v.default;
-						if (be.rotation) {
-							v = {
-								pos: v.pos.clone().applyAxisAngle(UV.k, be.rotation * deg2rad),
-								lookAt: v.lookAt.clone().applyAxisAngle(UV.k, be.rotation * deg2rad)
-							};
-						}
-						pos = v.pos.clone().multiplyScalar(s).add(p.pivot);
-						focal = v.lookAt.clone().multiplyScalar(s).add(p.pivot);
-					}
-					else {
-						pos = new THREE.Vector3().copy(v.pos).sub(p.origin);
-						focal = new THREE.Vector3().copy(v.lookAt).sub(p.origin);
-					}
-
-					pos.z *= p.zScale;
-					focal.z *= p.zScale;
-
-					const near = 0.001 * s,
-						  far = 100 * s;
-
-					this.requestCameraUpdate(pos, focal, near, far);
-				}
-
-				if (p.baseExtent.rotation != rotation0) {
-					this.dispatchEvent({type: "mapRotationChanged", rotation: p.baseExtent.rotation});
-				}
-
-				this.userData = p;
-			}
-
-			// load layers
-			if (data.layers !== undefined) {
-				data.layers.forEach((layer) => this.loadData(layer));
-			}
+			case "block":
+				this.loadBlockData(data);
+				break;
 		}
-		else if (data.type == "layer") {
-			let layer = this.mapLayers[data.id];
-			if (layer === undefined) {
-				// create a layer
-				const type = data.properties.type;
-				if (type == "dem") layer = new DEMLayer();
-				else if (type == "point") layer = new PointLayer();
-				else if (type == "line") layer = new LineLayer();
-				else if (type == "polygon") layer = new PolygonLayer();
+	}
+
+	loadSceneData(data) {
+		const p = data.properties;
+		if (p !== undefined) {
+			// fog
+			if (p.fog) {
+				this.fog = new THREE.FogExp2(p.fog.color, p.fog.density);
+			}
+
+			// light
+			const rotation0 = (this.userData.baseExtent) ? this.userData.baseExtent.rotation : 0;
+			if (p.light != this.userData.light || p.baseExtent.rotation != rotation0) {
+				this.lightGroup.clear();
+				this.buildLights(conf.lights[p.light] || conf.lights.directional, p.baseExtent.rotation);
+				this.dispatchEvent({type: "lightChanged", light: p.light});
+			}
+
+			const be = p.baseExtent;
+			p.pivot = new THREE.Vector3(be.cx, be.cy, p.origin.z).sub(p.origin);   // 2D center of extent in 3D world coordinates
+
+			// set initial camera position and parameters
+			if (this.userData.origin === undefined) {
+
+				const s = be.width;
+				let v = conf.viewpoint;
+				let pos, focal;
+
+				if (v.pos === undefined) {
+					v = v.default;
+					if (be.rotation) {
+						v = {
+							pos: v.pos.clone().applyAxisAngle(UV.k, be.rotation * deg2rad),
+							lookAt: v.lookAt.clone().applyAxisAngle(UV.k, be.rotation * deg2rad)
+						};
+					}
+					pos = v.pos.clone().multiplyScalar(s).add(p.pivot);
+					focal = v.lookAt.clone().multiplyScalar(s).add(p.pivot);
+				}
 				else {
-					console.error("unknown layer type:" + type);
-					return;
+					pos = new THREE.Vector3().copy(v.pos).sub(p.origin);
+					focal = new THREE.Vector3().copy(v.lookAt).sub(p.origin);
 				}
-				layer.id = data.id;
-				layer.objectGroup.userData.layerId = data.id;
-				layer.addEventListener("renderRequest", this.requestRender.bind(this));
 
-				this.mapLayers[data.id] = layer;
-				this.add(layer.objectGroup);
+				pos.z *= p.zScale;
+				focal.z *= p.zScale;
+
+				const near = 0.001 * s,
+					  far = 100 * s;
+
+				this.requestCameraUpdate(pos, focal, near, far);
 			}
 
-			layer.loadData(data, this);
+			if (p.baseExtent.rotation != rotation0) {
+				this.dispatchEvent({type: "mapRotationChanged", rotation: p.baseExtent.rotation});
+			}
 
-			this.requestRender();
+			this.userData = p;
 		}
-		else if (data.type == "block") {
-			const layer = this.mapLayers[data.layer];
-			if (layer === undefined) return;
 
-			layer.loadData(data, this);
-
-			this.requestRender();
+		// load layers
+		if (data.layers !== undefined) {
+			data.layers.forEach((layer) => this.loadLayerData(layer));
 		}
+	}
+
+	loadLayerData(data) {
+		let layer = this.mapLayers[data.id];
+		if (layer === undefined) {
+			layer = createLayer(data);
+			if (!layer) return;
+			layer.addEventListener("renderRequest", this.requestRender.bind(this));
+
+			this.mapLayers[data.id] = layer;
+			this.add(layer.objectGroup);
+		}
+
+		layer.loadData(data, this);
+
+		this.requestRender();
+	}
+
+	loadBlockData(data) {
+		const layer = this.mapLayers[data.layer];
+		if (layer === undefined) return;
+
+		layer.loadData(data, this);
+
+		this.requestRender();
 	}
 
 	buildLights(lights, rotation) {
@@ -234,4 +240,24 @@ export class Scene extends THREE.Scene {
 		return box;
 	}
 
+}
+
+function createLayer(data) {
+	const LayerClass = {
+		dem: DEMLayer,
+		point: PointLayer,
+		line: LineLayer,
+		polygon: PolygonLayer,
+	}[data.properties.type];
+
+	if (!LayerClass) {
+		console.error("Unknown layer type:" + data.properties.type);
+		return null;
+	}
+
+	const layer = new LayerClass();
+	layer.id = data.id;
+	layer.objectGroup.userData.layerId = data.id;
+
+	return layer;
 }

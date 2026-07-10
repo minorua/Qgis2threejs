@@ -504,45 +504,38 @@ export class DEMLayer extends MapLayer {
 		this.auxiliaryMtl = {};
 	}
 
-	loadData(data, scene) {
-		if (data.type == "layer") {
-			this.clearObjects();
-			super.loadData(data, scene);
+	loadLayerData(data, scene) {
+		this.clearObjects();
+		super.loadLayerData(data, scene);
 
-			this.blocks = [];
+		this.blocks = [];
 
-			var p = scene.userData,
-				rotation = p.baseExtent.rotation;
+		var p = scene.userData,
+			rotation = p.baseExtent.rotation;
 
-			if (data.properties.clipped) {
-				this.objectGroup.position.set(0, 0, 0);
-				this.objectGroup.rotation.z = 0;
+		if (data.properties.clipped) {
+			this.objectGroup.position.set(0, 0, 0);
+			this.objectGroup.rotation.z = 0;
 
-				if (rotation) {
-					// rotate around center of base extent
-					this.objectGroup.position.copy(p.pivot).negate();
-					this.objectGroup.position.applyAxisAngle(UV.k, rotation * deg2rad);
-					this.objectGroup.position.add(p.pivot);
-					this.objectGroup.rotateOnAxis(UV.k, rotation * deg2rad);
-				}
-			}
-			else {
-				this.objectGroup.position.copy(p.pivot);
-				this.objectGroup.position.z *= p.zScale;
-				this.objectGroup.rotation.z = rotation * deg2rad;
-			}
-			this.objectGroup.updateMatrixWorld();
-
-			this._loadAuxiliaryMaterials(data.properties);
-
-			if (data.body !== undefined && data.body.blocks !== undefined) {
-				data.body.blocks.forEach((block) => {
-					this.buildBlock(block, scene, this);
-				});
+			if (rotation) {
+				// rotate around center of base extent
+				this.objectGroup.position.copy(p.pivot).negate();
+				this.objectGroup.position.applyAxisAngle(UV.k, rotation * deg2rad);
+				this.objectGroup.position.add(p.pivot);
+				this.objectGroup.rotateOnAxis(UV.k, rotation * deg2rad);
 			}
 		}
-		else if (data.type == "block") {
-			this.buildBlock(data, scene, this);
+		else {
+			this.objectGroup.position.copy(p.pivot);
+			this.objectGroup.position.z *= p.zScale;
+			this.objectGroup.rotation.z = rotation * deg2rad;
+		}
+		this.objectGroup.updateMatrixWorld();
+
+		this._loadAuxiliaryMaterials(data.properties);
+
+		if (data.body && data.body.blocks) {
+			data.body.blocks.forEach((block) => this.loadBlockData(block, scene));
 		}
 	}
 
@@ -557,35 +550,27 @@ export class DEMLayer extends MapLayer {
 		});
 	}
 
-	buildBlock(data, scene, layer) {
+	loadBlockData(data, scene) {
+		super.loadBlockData(data, scene);
 
 		let block = this.blocks[data.block];
 		if (block === undefined) {
-			if (layer.properties.tiled) {
-				block = new DEMTileBlock();
-			}
-			else if (layer.properties.clipped) {
-				block = new ClippedDEMBlock();
-			}
-			else {
-				block = new DEMBlock();
-			}
-			this.blocks[data.block] = block;
+			block = this.blocks[data.block] = createBlock(this);
 		}
 
 		block.loadData(data, this, (mesh) => {
 			// add auxiliary objects
-			if (layer.properties.sides) {	// sides and bottom
-				block.buildSides(this, mesh, layer.auxiliaryMtl.sides.mtl, layer.properties.sides.bottom);
+			if (this.properties.sides) {	// sides and bottom
+				block.buildSides(this, mesh, this.auxiliaryMtl.sides.mtl, this.properties.sides.bottom);
 				this.sideVisible = true;
 			}
 
-			if (layer.properties.edges) {
-				block.addEdges(this, mesh, layer.auxiliaryMtl.edges.mtl, (layer.properties.sides) ? layer.properties.sides.bottom : undefined);
+			if (this.properties.edges) {
+				block.addEdges(this, mesh, this.auxiliaryMtl.edges.mtl, (this.properties.sides) ? this.properties.sides.bottom : undefined);
 			}
 
-			if (layer.properties.wireframe) {
-				block.addWireframe(this, mesh, layer.auxiliaryMtl.wireframe.mtl);
+			if (this.properties.wireframe) {
+				block.addWireframe(this, mesh, this.auxiliaryMtl.wireframe.mtl);
 
 				mesh.material.polygonOffset = true;
 				mesh.material.polygonOffsetFactor = 1;
@@ -729,4 +714,19 @@ export class DEMLayer extends MapLayer {
 			a.tex.needsUpdate = true;
 		}
 	}
+}
+
+
+function createBlock(layer) {
+	const { tiled, clipped } = layer.properties;
+
+	let BlockClass = DEMBlock;
+	if (tiled) {
+		BlockClass = DEMTileBlock;
+	}
+	else if (clipped) {
+		BlockClass = ClippedDEMBlock;
+	}
+
+	return new BlockClass();
 }

@@ -61,15 +61,24 @@ export class MapLayer extends THREE.EventDispatcher {
 
 	loadData(data, scene) {
 		if (data.type == "layer") {
-			// properties
-			if (data.properties !== undefined) {
-				this.properties = data.properties;
-				this.objectGroup.visible = (data.properties.visible || conf.allVisible) ? true : false;
-			}
-
-			this.sceneData = scene.userData;
+			this.loadLayerData(data, scene);
+		}
+		else if (data.type) {
+			this.loadBlockData(data, scene);
 		}
 	}
+
+	loadLayerData(data, scene) {
+		const p = data.properties;
+		if (p !== undefined) {
+			this.properties = p;
+			this.objectGroup.visible = (p.visible || conf.allVisible) ? true : false;
+		}
+
+		this.sceneData = scene.userData;
+	}
+
+	loadBlockData(data, scene) {}
 
 	get clickable() {
 		return this.properties.clickable;
