@@ -71,18 +71,18 @@ app.init = (container) => {
 };
 
 function applyUrlParameters(container) {
-    const params = {};
-    for (const param of window.location.search.substring(1).split('&').concat(window.location.hash.substring(1).split('&'))) {
-        const p = param.split('=');
-        params[p[0]] = p[1];
-    }
+    const params = Object.fromEntries([
+        ...new URLSearchParams(window.location.search),
+        ...new URLSearchParams(window.location.hash.slice(1)),
+    ]);
     app.urlParams = params;
 
     if ("popup" in params) {
-        // open popup window
-        const c = window.location.href.split("?");
-        window.open(c[0] + "?" + c[1].replace(/&?popup/, ""), "popup", "width=" + params.width + ",height=" + params.height);
-        gui.popup.show("Another window has been opened.");
+        const url = new URL(window.location.href);
+        url.searchParams.delete("popup");
+        window.open(url.toString(), "popup", `width=${params.width},height=${params.height}`);
+
+        gui.popup.show("A new window has been opened.");
         return false;
     }
 
