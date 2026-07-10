@@ -11,46 +11,71 @@ import { E } from "./utils.js";
 const _v = new THREE.Vector3();
 
 
-(() => {	// event system for the application
-    const listeners = {};
-    app.dispatchEvent = (event) => {
-        for (const listener of listeners[event.type] || []) {
-            listener(event);
-        }
-    };
+const listeners = {};
+app.dispatchEvent = (event) => {
+    for (const listener of listeners[event.type] || []) {
+        listener(event);
+    }
+};
 
-    app.addEventListener = (type, listener, prepend) => {
-        listeners[type] = listeners[type] || [];
-        if (prepend) {
-            listeners[type].unshift(listener);
-        }
-        else {
-            listeners[type].push(listener);
-        }
-    };
+app.addEventListener = (type, listener, prepend) => {
+    listeners[type] = listeners[type] || [];
+    if (prepend) {
+        listeners[type].unshift(listener);
+    }
+    else {
+        listeners[type].push(listener);
+    }
+};
 
-    app.removeEventListener = (type, listener) => {
-        const array = listeners[type];
-        if (!array) return;
+app.removeEventListener = (type, listener) => {
+    const array = listeners[type];
+    if (!array) return;
 
-        const idx = array.indexOf(listener);
-        if (idx !== -1) array.splice(idx, 1);
-    };
-})();
+    const idx = array.indexOf(listener);
+    if (idx !== -1) array.splice(idx, 1);
+};
+
 
 app.init = (container) => {
-
     app.container = container;
+
     app.sceneLoaded = false;
+    app._wireframeMode = false;
+    app.labelVisible = conf.label.visible;
 
     app.selectedObject = null;
     app.highlightObject = null;
 
     app.modelBuilders = [];
-    app._wireframeMode = false;
 
-    // URL parameters
-    const params = app.parseUrlParameters();
+    if (!applyUrlParameters(container)) return;
+
+    app.initLoadingManager();
+
+    setupRenderer(container);
+
+    setupScene();
+
+    app.buildCamera();
+    setupControls();
+
+    setupWidgets();
+
+    setupEventListeners();
+
+    setupQueryMarker();
+    app.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5, side: THREE.DoubleSide});
+
+    gui.init();
+};
+
+function applyUrlParameters(container) {
+    const params = {};
+    for (const param of window.location.search.substring(1).split('&').concat(window.location.hash.substring(1).split('&'))) {
+        const p = param.split('=');
+        params[p[0]] = p[1];
+    }
     app.urlParams = params;
 
     if ("popup" in params) {
@@ -58,7 +83,7 @@ app.init = (container) => {
         const c = window.location.href.split("?");
         window.open(c[0] + "?" + c[1].replace(/&?popup/, ""), "popup", "width=" + params.width + ",height=" + params.height);
         gui.popup.show("Another window has been opened.");
-        return;
+        return false;
     }
 
     if (params.hiDpi == "no") conf.renderer.hiDpi = false;
@@ -71,14 +96,10 @@ app.init = (container) => {
         container.style.width = params.width + "px";
         container.style.height = params.height + "px";
     }
+    return true;
+}
 
-    app.width = container.clientWidth;
-    app.height = container.clientHeight;
-
-    const bgcolor = conf.bgColor;
-    if (bgcolor === null) container.classList.add("sky");
-
-    // WebGLRenderer
+function setupRenderer(container) {
     app.renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
     app.renderer.autoClear = false;
 
@@ -86,10 +107,25 @@ app.init = (container) => {
         app.renderer.setPixelRatio(window.devicePixelRatio);
     }
 
-    app.renderer.setSize(app.width, app.height);
-    app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
-    app.container.appendChild(app.renderer.domElement);
+    const { clientWidth: width, clientHeight: height } = container;
+    app.width = width;
+    app.height = height;
+    app.renderer.setSize(width, height);
 
+    const bgcolor = conf.bgColor;
+    if (bgcolor === null) {
+        container.classList.add("sky");
+    }
+    app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
+
+    container.appendChild(app.renderer.domElement);
+
+    // set up effect
+    if (modules.OutlineEffect) {
+        app.effect = new modules.OutlineEffect(app.renderer);
+    }
+
+    // set an appropriate anisotropy value based on renderer's capabilities
     if (conf.texture.anisotropy <= 0) {
         const maxAnis = app.renderer.capabilities.getMaxAnisotropy() || 1;
 
@@ -100,20 +136,17 @@ app.init = (container) => {
             conf.texture.anisotropy = (maxAnis > -conf.texture.anisotropy) ? -maxAnis / conf.texture.anisotropy : 1;
         }
     }
+}
 
-    // outline effect
-    if (modules.OutlineEffect) app.effect = new modules.OutlineEffect(app.renderer);
-
-    // scene
+function setupScene() {
     app.scene = new Scene();
 
-    app.scene.addEventListener("renderRequest", (event) => {
-        app.render();
-    });
+    app.scene.addEventListener("renderRequest", (event) => app.render());
 
     app.scene.addEventListener("cameraUpdateRequest", (event) => {
         app.camera.position.copy(event.pos);
         app.camera.lookAt(event.focal);
+
         if (app.controls.target !== undefined) app.controls.target.copy(event.focal);
         if (app.controls.saveState !== undefined) app.controls.saveState();
 
@@ -141,31 +174,26 @@ app.init = (container) => {
             app.scene2.buildLights(conf.lights.directional, event.rotation);
         }
     });
+}
 
-    // camera
-    app.buildCamera(conf.orthoCamera);
-
-    // controls
+function setupControls() {
     app.controls = new OrbitControls(app.camera, app.renderer.domElement);
     app.controls.listenToKeyEvents(window);
-    app.controls.addEventListener("change", (event) => {
-        app.render();
-    });
+    app.controls.addEventListener("change", (event) => app.render());
     app.controls.update();
+}
 
-    // navigation
+function setupWidgets() {
     if (conf.navigation.enabled) {
         app.buildViewHelper(app.container);
     }
 
-    // north arrow
     if (conf.northArrow.enabled) {
         app.buildNorthArrow(E("northarrow"));
     }
+}
 
-    // labels
-    app.labelVisible = conf.label.visible;
-
+function setupQueryMarker() {
     // create a marker for queried point
     var opt = conf.qmarker;
     app.queryMarker = new THREE.Mesh(
@@ -178,13 +206,9 @@ app.init = (container) => {
         this.scale.setScalar(this.position.distanceTo(camera.position) * ((camera.isPerspectiveCamera) ? 1 : conf.qmarker.k));
         this.updateMatrixWorld();
     };
+}
 
-    app.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5, side: THREE.DoubleSide});
-
-    // loading manager
-    app.initLoadingManager();
-
-    // event listeners
+function setupEventListeners() {
     app.addEventListener("sceneLoaded", () => {
         E("progressbar").classList.add("fadeout");
 
@@ -212,18 +236,7 @@ app.init = (container) => {
 
     app.renderer.domElement.addEventListener("mousedown", app.eventListener.mousedown);
     app.renderer.domElement.addEventListener("mouseup", app.eventListener.mouseup);
-
-    gui.init();
-};
-
-app.parseUrlParameters = () => {
-    const vars = {};
-    for (const param of window.location.search.substring(1).split('&').concat(window.location.hash.substring(1).split('&'))) {
-        const p = param.split('=');
-        vars[p[0]] = p[1];
-    }
-    return vars;
-};
+}
 
 app.initLoadingManager = () => {
     app.loadingManager = new THREE.LoadingManager(
@@ -442,6 +455,7 @@ app.setCanvasSize = (width, height) => {
 };
 
 app.buildCamera = (is_ortho) => {
+    is_ortho = is_ortho === undefined ? conf.orthoCamera : is_ortho;
     if (is_ortho) {
         app.camera = new THREE.OrthographicCamera(-app.width / 10, app.width / 10, app.height / 10, -app.height / 10);
     }
