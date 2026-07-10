@@ -47,8 +47,15 @@ class GUITestBase(unittest.TestCase):
         self.updateTestLabels()
 
     def updateTestLabels(self):
-        self.WND.controller.updateWidget("Label", {"Header": f"{self.__class__.__name__} - {self.id().split(".")[-1]}",
-                                                   "Footer": self.shortDescription()})
+        testname = self.id().split(".")[-1]
+        desc = self.shortDescription() or ""
+        if testname.endswith("Animation"):
+            desc += "<br>Animation Running..."
+
+        self.WND.controller.updateWidget("Label", {
+            "Header": f"{self.__class__.__name__} - {testname}",
+            "Footer": desc
+        })
 
     def assertBox3(self, testName, box1, box2=UNDEF, precision=UNDEF):
         self.WND.runScript(f'assertBox3("{testName}", {box1}, {box2}, {precision})')
