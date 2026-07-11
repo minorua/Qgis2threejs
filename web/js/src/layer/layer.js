@@ -1,10 +1,10 @@
 // (C) 2014 Minoru Akagi
 // SPDX-License-Identifier: MIT
 
-import { THREE } from "./three.js";
+import { THREE } from "../three.js";
 
-import { conf, Group } from "./core.js";
-import { Materials } from "./material.js";
+import { conf, Group } from "../core.js";
+import { Materials } from "../material.js";
 
 
 export class MapLayer extends THREE.EventDispatcher {

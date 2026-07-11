@@ -1,12 +1,12 @@
 // (C) 2014 Minoru Akagi
 // SPDX-License-Identifier: MIT
 
-import { THREE } from "./three.js";
+import { THREE } from "../three.js";
 
-import { app, conf, deg2rad, LayerType, UV } from "./core.js";
+import { app, conf, deg2rad, LayerType, UV } from "../core.js";
 import { MapLayer } from "./layer.js";
-import { Material } from "./material.js";
-import * as Utils from "./utils.js";
+import { Material } from "../material.js";
+import * as Utils from "../utils.js";
 
 /*
  The GridGeometry class is almost the same as PlaneGeometry, but it does not

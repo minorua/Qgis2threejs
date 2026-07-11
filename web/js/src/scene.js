@@ -4,8 +4,10 @@
 import { THREE } from "./three.js";
 
 import { conf, deg2rad, Group, UV } from "./core.js";
-import { DEMLayer } from "./demlayer.js";
-import { PointLayer, LineLayer, PolygonLayer } from "./vectorlayer.js";
+import { DEMLayer } from "./layer/demlayer.js";
+import { PointLayer } from "./layer/pointlayer.js";
+import { LineLayer } from "./layer/linelayer.js";
+import { PolygonLayer } from "./layer/polygonlayer.js";
 
 /*
 Scene
