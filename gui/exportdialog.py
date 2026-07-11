@@ -5,6 +5,7 @@
 
 import os
 from datetime import datetime
+import traceback
 
 from qgis.PyQt.QtCore import Qt, QDir, QSettings, QUrl
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QPushButton
@@ -16,6 +17,7 @@ from ..conf import PLUGIN_NAME
 from ..core.export.export import ExportCancelled, ThreeJSExporter
 from ..utils.basic import getTemplateConfig, templateDir, temporaryOutputDir
 from ..utils.gui import openHelp, openUrl
+from ..utils.logging import logger
 
 
 class ExportToWebDialog(QDialog):
@@ -231,7 +233,8 @@ th {text-align:left;}
             self.progress(msg="<br>Export was canceled by the user.")
 
         except Exception as e:
-            self.progress(msg=f"<br>Export failed: {e}")
+            logger.error(traceback.format_exc())
+            self.progress(msg=f"<br>Export failed: {type(e).__name__}: {e}")
 
         elapsed = datetime.now() - t0
 
