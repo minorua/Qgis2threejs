@@ -4,12 +4,21 @@
 import { THREE } from "../three.js";
 
 import { modules, Group, LayerType, UV } from "../core.js";
-import { VectorLayer } from "./vectorlayer.js";
+import { BuilderBase, VectorLayer } from "./vectorlayer.js";
 import { Materials } from "../material.js";
 import { createWallGeometry } from "../utils.js";
 
 
 export class LineLayer extends VectorLayer {
+
+    BuilderFactory = {
+        "Line": LineBuilder,
+        "Thick Line": ThickLineBuilder,
+        "Pipe": PipeBuilder,
+        "Cone": ConeBuilder,
+        "Box": BoxBuilder,
+        "Wall": WallBuilder
+    }
 
     constructor() {
         super();
@@ -22,209 +31,6 @@ export class LineLayer extends VectorLayer {
         if (this.origMtls) {
             this.origMtls.dispose();
             this.origMtls = undefined;
-        }
-    }
-
-    build(features, startIndex) {
-
-        if (this._lastObjType !== this.properties.objType) this._createObject = null;
-
-        const createObject = this._createObject || this.createObjFunc(this.properties.objType);
-
-        for (let fidx = 0; fidx < features.length; fidx++) {
-            const f = features[fidx];
-            const objs = [];
-
-            for (const line of f.geom.lines) {
-                const obj = createObject(f, line);
-
-                obj.userData.properties = f.prop;
-                obj.userData.mtl = f.mtl;
-
-                objs.push(obj);
-            }
-
-            this.addFeature(fidx + startIndex, f, objs);
-        }
-
-        this._lastObjType = this.properties.objType;
-        this._createObject = createObject;
-    }
-
-    createObjFunc(objType) {
-        const materials = this.materials;
-
-        if (objType == "Line") {
-            return (f, vertices) => {
-                const obj = new THREE.Line(
-                    new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3)),
-                    materials.mtl(f.mtl.idx)
-                );
-                if (obj.material instanceof THREE.LineDashedMaterial) obj.computeLineDistances();
-                return obj;
-            };
-        }
-        else if (objType == "Thick Line") {
-            return (f, vertices) => {
-                const geom = new modules.meshline.MeshLineGeometry();
-                geom.setPoints(vertices);
-
-                const mesh = new THREE.Mesh(geom, materials.mtl(f.mtl.idx));
-                mesh.raycast = modules.meshline.raycast;
-                return mesh;
-            };
-        }
-        else if (objType == "Pipe" || objType == "Cone") {
-            let jointGeom, cylinGeom;
-            if (objType == "Pipe") {
-                jointGeom = new THREE.SphereGeometry(1, 32, 32);
-                cylinGeom = new THREE.CylinderGeometry(1, 1, 1, 32);
-            }
-            else {
-                cylinGeom = new THREE.CylinderGeometry(0, 1, 1, 32);
-            }
-
-            const axis = UV.j;
-            const pt0 = new THREE.Vector3();
-            const pt1 = new THREE.Vector3();
-            const sub = new THREE.Vector3();
-
-            return (f, points) => {
-                const group = new Group();
-                const material = materials.mtl(f.mtl.idx);
-
-                pt0.fromArray(points[0]);
-                for (let i = 1; i < points.length; i++) {
-                    pt1.fromArray(points[i]);
-
-                    const cylinder = new THREE.Mesh(cylinGeom, material);
-                    cylinder.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
-                    cylinder.position.set(
-                        (pt0.x + pt1.x) / 2,
-                        (pt0.y + pt1.y) / 2,
-                        (pt0.z + pt1.z) / 2
-                    );
-                    cylinder.quaternion.setFromUnitVectors(axis, sub.subVectors(pt1, pt0).normalize());
-
-                    group.add(cylinder);
-
-                    if (jointGeom && i < points.length - 1) {
-                        const joint = new THREE.Mesh(jointGeom, material);
-                        joint.scale.setScalar(f.geom.r);
-                        joint.position.copy(pt1);
-
-                        group.add(joint);
-                    }
-
-                    pt0.copy(pt1);
-                }
-                return group;
-            };
-        }
-        else if (objType == "Box") {
-            // In this method, box corners are exposed near joint when both azimuth and slope of
-            // the segments of both sides are different. Also, some unnecessary faces are created.
-            const jnt_idx = [
-                0, 5, 4, 4, 5, 1,   // left turn - top, side, bottom
-                3, 0, 7, 7, 0, 4,
-                6, 3, 2, 2, 3, 7,
-                4, 1, 0, 0, 1, 5,   // right turn - top, side, bottom
-                1, 2, 5, 5, 2, 6,
-                2, 7, 6, 6, 7, 3
-            ];
-
-            return (f, points) => {
-                const geometries = [];
-
-                let geom, vf4;
-                const pt0 = new THREE.Vector3(),
-                      pt1 = new THREE.Vector3(),
-                      sub = new THREE.Vector3(),
-                      pt = new THREE.Vector3(),
-                      ptM = new THREE.Vector3(),
-                      scale1 = new THREE.Vector3(1, 1, 1),
-                      matrix = new THREE.Matrix4(),
-                      quat = new THREE.Quaternion();
-
-                pt0.fromArray(points[0]);
-
-                for (let i = 1, l = points.length; i < l; i++) {
-                    pt1.fromArray(points[i]);
-
-                    const dist = pt0.distanceTo(pt1);
-
-                    sub.subVectors(pt1, pt0);
-
-                    const rx = Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y));
-                    const rz = Math.atan2(sub.y, sub.x) - Math.PI / 2;
-
-                    ptM.set(
-                        (pt0.x + pt1.x) / 2,
-                        (pt0.y + pt1.y) / 2,
-                        (pt0.z + pt1.z) / 2
-                    );
-
-                    quat.setFromEuler(new THREE.Euler(rx, 0, rz, "ZXY"));
-                    matrix.compose(ptM, quat, scale1);
-
-                    // segment box
-                    geom = new THREE.BoxGeometry(f.geom.w, dist, f.geom.h);
-                    geom.deleteAttribute("normal");
-                    geom.deleteAttribute("uv");
-                    geom.applyMatrix4(matrix);
-                    geometries.push(geom);
-
-                    // joint
-                    // backward side
-                    const wh4 = [
-                        [-f.geom.w / 2,  f.geom.h / 2],
-                        [ f.geom.w / 2,  f.geom.h / 2],
-                        [ f.geom.w / 2, -f.geom.h / 2],
-                        [-f.geom.w / 2, -f.geom.h / 2]
-                    ];
-
-                    const vb4 = [];
-
-                    for (let j = 0; j < 4; j++) {
-                        pt.set(wh4[j][0], -dist / 2, wh4[j][1]);
-                        pt.applyMatrix4(matrix);
-
-                        vb4.push(pt.x, pt.y, pt.z);
-                    }
-
-                    if (vf4) {
-                        geom = new THREE.BufferGeometry();
-                        geom.setAttribute("position", new THREE.Float32BufferAttribute(vf4.concat(vb4), 3));
-                        geom.setIndex(jnt_idx);
-                        geometries.push(geom);
-                    }
-
-                    // forward side
-                    vf4 = [];
-
-                    for (let j = 0; j < 4; j++) {
-                        pt.set(wh4[j][0], dist / 2, wh4[j][1]);
-                        pt.applyMatrix4(matrix);
-
-                        vf4.push(pt.x, pt.y, pt.z);
-                    }
-
-                    pt0.copy(pt1);
-                }
-
-                return new THREE.Mesh(
-                    modules.BufferGeometryUtils.mergeGeometries(geometries, false),
-                    materials.mtl(f.mtl.idx)
-                );
-            };
-        }
-        else if (objType == "Wall") {
-            return (f, vertices) => {
-                return new THREE.Mesh(
-                    createWallGeometry(vertices, () => f.geom.bh),
-                    materials.mtl(f.mtl.idx)
-                );
-            };
         }
     }
 
@@ -338,4 +144,255 @@ export class LineLayer extends VectorLayer {
             setLength(this.features[featureIdx].objs[0].material);
         }
     }
+}
+
+
+class Builder extends BuilderBase {
+
+    createObjects(f) {
+        const objs = [];
+        for (const line of f.geom.lines) {
+            const obj = this.createObject(f, line);
+            obj.userData.mtl = f.mtl;
+
+            objs.push(obj);
+        }
+        return objs;
+    }
+
+    createObject(f, vertices) {}
+
+}
+
+
+class LineBuilder extends Builder {
+
+    constructor(layer) {
+        super("Line", layer);
+    }
+
+    createObject(f, vertices) {
+        const obj = new THREE.Line(
+            new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3)),
+            this.materials.mtl(f.mtl.idx)
+        );
+        if (obj.material instanceof THREE.LineDashedMaterial) obj.computeLineDistances();
+        return obj;
+    }
+
+}
+
+
+class ThickLineBuilder extends Builder {
+
+    constructor(layer) {
+        super("Thick Line", layer);
+    }
+
+    createObject(f, vertices) {
+        const geom = new modules.meshline.MeshLineGeometry();
+        geom.setPoints(vertices);
+
+        const mesh = new THREE.Mesh(geom, this.materials.mtl(f.mtl.idx));
+        mesh.raycast = modules.meshline.raycast;
+        return mesh;
+    }
+
+}
+
+
+class CylinderBuilderBase extends Builder {
+
+    constructor(type, layer) {
+        super(type, layer);
+
+        this.cylinGeom = null;
+        this.jointGeom = null;
+
+        this.pt0 = new THREE.Vector3();
+        this.pt1 = new THREE.Vector3();
+        this.sub = new THREE.Vector3();
+    }
+
+    createObject(f, vertices) {
+        const { cylinGeom, jointGeom, pt0, pt1, sub, materials } = this;
+        const axis = UV.j;
+
+        const group = new Group();
+        const material = materials.mtl(f.mtl.idx);
+
+        pt0.fromArray(vertices[0]);
+        for (let i = 1; i < vertices.length; i++) {
+            pt1.fromArray(vertices[i]);
+
+            const cylinder = new THREE.Mesh(cylinGeom, material);
+            cylinder.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
+            cylinder.position.set(
+                (pt0.x + pt1.x) / 2,
+                (pt0.y + pt1.y) / 2,
+                (pt0.z + pt1.z) / 2
+            );
+            cylinder.quaternion.setFromUnitVectors(axis, sub.subVectors(pt1, pt0).normalize());
+
+            group.add(cylinder);
+
+            if (jointGeom && i < vertices.length - 1) {
+                const joint = new THREE.Mesh(jointGeom, material);
+                joint.scale.setScalar(f.geom.r);
+                joint.position.copy(pt1);
+
+                group.add(joint);
+            }
+
+            pt0.copy(pt1);
+        }
+        return group;
+    }
+
+}
+
+
+class PipeBuilder extends CylinderBuilderBase {
+
+    constructor(layer) {
+        super("Pipe", layer);
+
+        this.cylinGeom = new THREE.CylinderGeometry(1, 1, 1, 32);
+        this.jointGeom = new THREE.SphereGeometry(1, 32, 32);
+    }
+
+}
+
+
+class ConeBuilder extends CylinderBuilderBase {
+
+    constructor(layer) {
+        super("Cone", layer);
+
+        this.cylinGeom = new THREE.CylinderGeometry(0, 1, 1, 32);
+    }
+
+}
+
+
+class BoxBuilder extends Builder {
+
+    constructor(layer) {
+        super("Box", layer);
+
+        // In this method, box corners are exposed near joint when both azimuth and slope of
+        // the segments of both sides are different. Also, some unnecessary faces are created.
+        this.jnt_idx = [
+            0, 5, 4, 4, 5, 1,   // left turn - top, side, bottom
+            3, 0, 7, 7, 0, 4,
+            6, 3, 2, 2, 3, 7,
+            4, 1, 0, 0, 1, 5,   // right turn - top, side, bottom
+            1, 2, 5, 5, 2, 6,
+            2, 7, 6, 6, 7, 3
+        ];
+
+        this.pt0 = new THREE.Vector3();
+        this.pt1 = new THREE.Vector3();
+        this.sub = new THREE.Vector3();
+        this.pt = new THREE.Vector3();
+        this.ptM = new THREE.Vector3();
+        this.scale1 = new THREE.Vector3(1, 1, 1);
+        this.matrix = new THREE.Matrix4();
+        this.quat = new THREE.Quaternion();
+    }
+
+    createObject(f, vertices) {
+        const { jnt_idx, pt0, pt1, sub, pt, ptM, scale1, matrix, quat } = this;
+        const { w, h } = f.geom;
+
+        const geometries = [];
+
+        let vf4;
+        pt0.fromArray(vertices[0]);
+
+        for (let i = 1; i < vertices.length; i++) {
+            pt1.fromArray(vertices[i]);
+
+            const dist = pt0.distanceTo(pt1);
+
+            sub.subVectors(pt1, pt0);
+
+            const rx = Math.atan2(sub.z, Math.sqrt(sub.x * sub.x + sub.y * sub.y));
+            const rz = Math.atan2(sub.y, sub.x) - Math.PI / 2;
+
+            ptM.set(
+                (pt0.x + pt1.x) / 2,
+                (pt0.y + pt1.y) / 2,
+                (pt0.z + pt1.z) / 2
+            );
+
+            quat.setFromEuler(new THREE.Euler(rx, 0, rz, "ZXY"));
+            matrix.compose(ptM, quat, scale1);
+
+            // segment
+            const boxGeom = new THREE.BoxGeometry(w, dist, h);
+            boxGeom.deleteAttribute("normal");
+            boxGeom.deleteAttribute("uv");
+            boxGeom.applyMatrix4(matrix);
+            geometries.push(boxGeom);
+
+            // joint
+            // backward side
+            const wh4 = [
+                [-w / 2,  h / 2],
+                [ w / 2,  h / 2],
+                [ w / 2, -h / 2],
+                [-w / 2, -h / 2]
+            ];
+
+            const vb4 = [];
+
+            for (let j = 0; j < 4; j++) {
+                pt.set(wh4[j][0], -dist / 2, wh4[j][1]);
+                pt.applyMatrix4(matrix);
+
+                vb4.push(pt.x, pt.y, pt.z);
+            }
+
+            if (vf4) {
+                const jntGeom = new THREE.BufferGeometry();
+                jntGeom.setAttribute("position", new THREE.Float32BufferAttribute(vf4.concat(vb4), 3));
+                jntGeom.setIndex(jnt_idx);
+                geometries.push(jntGeom);
+            }
+
+            // forward side
+            vf4 = [];
+            for (let j = 0; j < 4; j++) {
+                pt.set(wh4[j][0], dist / 2, wh4[j][1]);
+                pt.applyMatrix4(matrix);
+
+                vf4.push(pt.x, pt.y, pt.z);
+            }
+
+            pt0.copy(pt1);
+        }
+
+        return new THREE.Mesh(
+            modules.BufferGeometryUtils.mergeGeometries(geometries, false),
+            this.materials.mtl(f.mtl.idx)
+        );
+    }
+
+}
+
+
+class WallBuilder extends Builder {
+
+    constructor(layer) {
+        super("Wall", layer);
+    }
+
+    createObject(f, vertices) {
+        return new THREE.Mesh(
+            createWallGeometry(vertices, () => f.geom.bh),
+            this.materials.mtl(f.mtl.idx)
+        );
+    }
+
 }
