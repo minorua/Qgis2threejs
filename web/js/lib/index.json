@@ -1,0 +1,22 @@
+{
+  "three": {
+    "name": "three.js",
+    "url": "https://threejs.org/"
+  },
+  "meshline": {
+    "name": "meshline",
+    "url": "https://github.com/pmndrs/meshline"
+  },
+  "proj4js": {
+    "name": "Proj4js",
+    "url": "https://trac.osgeo.org/proj4js/"
+  },
+  "tweenjs": {
+    "name": "tween.js",
+    "url": "https://github.com/tweenjs/tween.js/"
+  },
+  "dat-gui": {
+    "name": "dat.gui",
+    "url": "https://github.com/dataarts/dat.gui"
+  }
+}

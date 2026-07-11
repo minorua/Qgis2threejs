@@ -103,12 +103,6 @@ gui.init = () => {
     // narrative box
     ON_CLICK("nextbtn", () => app.animation.keyframes.resume());
 
-    // attribution
-    if (typeof proj4 === "undefined") {
-        const e = E("lib_proj4js");
-        if (e) e.classList.add("hidden");
-    }
-
     // initialize modules
     for (const mod of gui.modules) {
         mod.init();

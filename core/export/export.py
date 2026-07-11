@@ -20,6 +20,7 @@ from ...conf import DEBUG_MODE, PLUGIN_VERSION
 from ...gui.webview.const import WebViewType, WebViewMode
 from ...gui import webview
 from ...utils import file as file_utils, js as js_utils
+from ...utils.basic import pluginDir
 from ...utils.logging import logger
 
 
@@ -182,7 +183,8 @@ class ThreeJSExporter(QObject):
             "header": self.settings.headerLabel(),
             "footer": self.settings.footerLabel(),
             "narration": narration_html,
-            "version": PLUGIN_VERSION
+            "version": PLUGIN_VERSION,
+            "deps": ", ".join([f"<a href=\"{d['url']}\">{d['name']}</a>" for d in self.dependencies()])
         }
         for key, value in mapping.items():
             html = html.replace("${" + key + "}", value)
@@ -336,6 +338,24 @@ class ThreeJSExporter(QObject):
             script += f'modules.{obj} = {obj};\n'
 
         return script
+
+    def dependencies(self):
+        deps = ["three"]
+
+        config = self.settings.templateConfig()
+        for d in config.get("dirs", "").strip().split(","):
+            deps.append(d.split(">")[0].split("/")[-1])
+
+        if self.settings.isCoordLatLon():
+            deps.append("proj4js")
+
+        if self.settings.isAnimationEnabled():
+            deps.append("tweenjs")
+
+        with open(pluginDir("web/js/lib/index.json"), "r", encoding="utf-8") as f:
+            libs = json.load(f)
+
+        return [libs[lib] for lib in dict.fromkeys(deps)]
 
     def buildScene(self, settings):
         builder = ThreeJSBuilder(self, self.progress, self.log, isInUiThread=False)
