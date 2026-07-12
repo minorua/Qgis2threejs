@@ -16,7 +16,7 @@ export class MapLayer extends THREE.EventDispatcher {
 		this.properties = {};
 
 		this.materials = new Materials();
-		this.materials.addEventListener("renderRequest", this.requestRender.bind(this));
+		this.materials.addEventListener("renderRequest", () => this.requestRender());
 
 		this.objectGroup = new Group();
 		this.objectGroup.name = "layer";
