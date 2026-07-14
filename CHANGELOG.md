@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [3.1.1] - 2026-07-15
+- Updated dat.gui library to 0.7.9
+
+
 ## [3.1] - 2026-07-02
 - Updated three.js library to r184
 - Replaced meshline library with pmndrs/meshline v3.3.1
