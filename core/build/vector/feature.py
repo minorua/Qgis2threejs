@@ -78,7 +78,7 @@ class Feature:
 
         if border:
             bnds = grid.segmentizeBoundaries(self.geom)
-            g.bnds_list = [LineGeometry.fromQgsGeometry(bnd, zf, transform_func, useZM=VectorGeometry.UseZ) for bnd in bnds]
+            g.bnds_list = [LineGeometry.fromQgsGeometry(bnd, zf, transform_func) for bnd in bnds]
         return g
 
     def prop(self, pid, def_val=None):
