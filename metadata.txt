@@ -6,12 +6,20 @@ qgisMinimumVersion=4.0
 qgisMaximumVersion=4.99
 description=3D map visualization and web export powered by three.js JavaScript library
 about=This plugin visualizes DEM and vector data in 3D within web browsers. You can easily create various 3D objects, generate files for web publishing, and export 3D models in glTF format for 3DCG or 3D printing.
-version=3.1
+version=3.1.1
 author=Minoru Akagi
 email=akaginch@gmail.com
 
 # Optional items:
 changelog=
+    Version 3.1.1
+    - Split JavaScript code into multiple files and included a minified build in the release
+    - Updated dat.gui library to version 0.7.9
+    - Fixed animation of Thick Line objects
+    - Fixed generation of library list displayed in the About box
+    - Fixed z values of Overlay polygon borders
+    - Fixed remaining PyQt6 migration issue in GSIElevTileProvider
+
     Version 3.1
     - Updated three.js library to r184
     - Replaced meshline library with pmndrs/meshline v3.3.1

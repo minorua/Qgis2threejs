@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [3.1.1] - 2026-07-15
+- Split JavaScript code into multiple files and included a minified build in the release
+- Updated dat.gui library to version 0.7.9
+- Fixed animation of Thick Line objects
+- Fixed generation of library list displayed in the About box
+- Fixed z values of Overlay polygon borders
+- Fixed remaining PyQt6 migration issue in GSIElevTileProvider
+
 ## [3.1] - 2026-07-02
 - Updated three.js library to r184
 - Replaced meshline library with pmndrs/meshline v3.3.1
