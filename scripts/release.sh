@@ -70,6 +70,8 @@ git commit -m "switch to release mode"
 echo
 echo "== Removing development files =="
 git rm -q .gitignore
+git rm -q CONTRIBUTING.md
+git rm -q package.json
 git rm -q tsconfig.json
 git rm -q gui/ui/*.ui
 git rm -q -r .github
