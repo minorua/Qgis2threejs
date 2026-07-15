@@ -168,7 +168,7 @@ class Q3DWindow(QMainWindow):
             import traceback
             logger.error(traceback.format_exc())
 
-            self.qgisIface.messageBar().pushMessage("Qgis2threejs Error", str(e), level=Qgis.Warning)
+            self.qgisIface.messageBar().pushMessage("Qgis2threejs Error", str(e), level=Qgis.MessageLevel.Warning)
 
         QMainWindow.closeEvent(self, event)
 

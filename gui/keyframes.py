@@ -1008,7 +1008,7 @@ class KeyframeDialog(QDialog):
             self.ui.comboBox1.currentIndexChanged.connect(self.modeChanged)
 
             for w in [self.ui.expressionDelay, self.ui.expressionDuration]:
-                w.setFilters(QgsFieldProxyModel.Numeric)
+                w.setFilters(QgsFieldProxyModel.Filter.Numeric)
                 w.setLayer(layer.mapLayer)
 
         wth = [self.ui.expressionDelay, self.ui.expressionDuration]

@@ -73,7 +73,7 @@ class VectorLayerBuilder(LayerBuilderBase):
         request = QgsFeatureRequest()
         if p.get("radioButton_IntersectingFeatures", False):
             request.setFilterRect(vlayer.transform.transformBoundingBox(be.boundingBox(),
-                                                                        QgsCoordinateTransform.ReverseTransform))
+                                                                        QgsCoordinateTransform.TransformDirection.Reverse))
 
             # geometry for clipping
             if p.get("checkBox_Clip") and self._objTypeClass != ObjectType.Polygon:

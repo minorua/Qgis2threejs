@@ -7,7 +7,7 @@ import os
 
 from qgis.PyQt.QtCore import Qt, QBuffer, QByteArray, QIODevice, QSize, QUrl
 from qgis.PyQt.QtGui import QColor, QImage, QPainter
-from qgis.core import QgsMapLayer, QgsMapSettings
+from qgis.core import Qgis, QgsMapSettings
 
 from ..const import ScriptFile
 from ...utils.file import copyFile
@@ -78,7 +78,7 @@ class ImageManager(DataManager):
 
         has_pluginlayer = False
         for layer in settings.layers():
-            if layer and layer.type() == QgsMapLayer.PluginLayer:
+            if layer and layer.type() == Qgis.LayerType.Plugin:
                 has_pluginlayer = True
                 break
 

@@ -19,7 +19,7 @@ class VectorGeometry:
 
     @classmethod
     def nestedPointXYList(cls, geom):
-        if geom.wkbType() == QgsWkbTypes.GeometryCollection:
+        if geom.wkbType() == Qgis.WkbType.GeometryCollection:
             pts = []
             for g in geom.asGeometryCollection():
                 pts.extend(cls.nestedPointXYList(g))
@@ -95,7 +95,7 @@ class PointGeometry(VectorGeometry):
     @classmethod
     def nestedPointXYList(cls, geom):
         """geom: a QgsGeometry object"""
-        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(geom.wkbType())) == QgsWkbTypes.Point:
+        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(geom.wkbType())) == Qgis.WkbType.Point:
             return geom.asMultiPoint() if geom.isMultipart() else [geom.asPoint()]
 
         return super().nestedPointXYList(geom)
@@ -178,7 +178,7 @@ class LineGeometry(VectorGeometry):
     @classmethod
     def nestedPointXYList(cls, geom):
         """geom: a QgsGeometry object"""
-        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(geom.wkbType())) == QgsWkbTypes.LineString:
+        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(geom.wkbType())) == Qgis.WkbType.LineString:
             return geom.asMultiPolyline() if geom.isMultipart() else [geom.asPolyline()]
 
         return super().nestedPointXYList(geom)
@@ -283,7 +283,7 @@ class PolygonGeometry(VectorGeometry):
     @classmethod
     def nestedPointXYList(cls, geom):
         """geom: a QgsGeometry object"""
-        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(geom.wkbType())) == QgsWkbTypes.Polygon:
+        if QgsWkbTypes.singleType(QgsWkbTypes.flatType(geom.wkbType())) == Qgis.WkbType.Polygon:
             return geom.asMultiPolygon() if geom.isMultipart() else [geom.asPolygon()]
 
         return super().nestedPointXYList(geom)
@@ -740,7 +740,7 @@ def dissolvePolygonsWithinExtent(polygon_layer, extent, crs):
 
     combi = None
     request = QgsFeatureRequest()
-    request.setFilterRect(transform.transformBoundingBox(extent.boundingBox(), QgsCoordinateTransform.ReverseTransform))
+    request.setFilterRect(transform.transformBoundingBox(extent.boundingBox(), QgsCoordinateTransform.TransformDirection.Reverse))
     for f in polygon_layer.getFeatures(request):
         geometry = f.geometry()
         if geometry is None:

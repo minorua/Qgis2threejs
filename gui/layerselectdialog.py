@@ -31,7 +31,7 @@ class LayerSelectDialog(QDialog):
             layer.setItemVisibilityChecked(layer.layerId() in ids)
 
         self.model = QgsLayerTreeModel(self.root)
-        self.model.setFlags(QgsLayerTreeModel.AllowNodeChangeVisibility)
+        self.model.setFlags(QgsLayerTreeModel.Flag.AllowNodeChangeVisibility)
         self.ui.treeView.setModel(self.model)
 
     def setMapSettings(self, mapSettings):

@@ -7,7 +7,8 @@ import os
 import qgis
 from qgis.PyQt.QtCore import QDir, QSize
 from qgis.PyQt.QtXml import QDomDocument
-from qgis.core import (QgsCoordinateTransform,
+from qgis.core import (Qgis,
+                       QgsCoordinateTransform,
                        QgsExpression,
                        QgsGeometry,
                        QgsMemoryProviderUtils,
@@ -20,8 +21,7 @@ from qgis.core import (QgsCoordinateTransform,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterFolderDestination,
                        QgsProcessingParameterNumber,
-                       QgsProcessingParameterVectorLayer,
-                       QgsWkbTypes)
+                       QgsProcessingParameterVectorLayer)
 
 from ..export.export import ExportCancelled, ThreeJSExporter, ImageExporter, ModelExporter
 from ..exportsettings import ExportSettings
@@ -55,7 +55,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
         return self.__class__()
 
     def flags(self):
-        return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
+        return super().flags() | Qgis.ProcessingAlgorithmFlag.NoThreading
 
     # def tags(self):
     #  return []
@@ -86,7 +86,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             QgsProcessingParameterVectorLayer(
                 self.INPUT,
                 self.tr("Coverage Layer"),
-                [QgsProcessing.TypeVectorAnyGeometry]
+                [Qgis.ProcessingSourceType.VectorAnyGeometry]
             )
         )
 
@@ -96,7 +96,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
                 self.tr("Title Field"),
                 None,
                 self.INPUT,
-                QgsProcessingParameterField.Any
+                Qgis.ProcessingFieldParameterDataType.Any
             )
         )
 
@@ -248,7 +248,7 @@ class AlgorithmBase(QgsProcessingAlgorithm):
             geometry.transform(self.transform)
             center = geometry.centroid().asPoint()
 
-            if fixed_scale or geometry.type() == QgsWkbTypes.PointGeometry:
+            if fixed_scale or geometry.type() == Qgis.GeometryType.Point:
                 tex_height = orig_tex_height or int(tex_width * orig_size.height() / orig_size.width())
                 extent = MapExtent(center, be.width(), be.width() * tex_height / tex_width, rotation).scale(1 + buf / 100)
             else:

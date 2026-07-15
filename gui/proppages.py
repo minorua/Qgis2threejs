@@ -4,15 +4,14 @@
 # begin: 2014-03-27
 
 import os
-import json
 import math
 import re
 
-from qgis.PyQt.QtCore import Qt, QPoint, QSize, QUrl
+from qgis.PyQt.QtCore import Qt, QPoint, QSize
 from qgis.PyQt.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QGroupBox, QLineEdit,
                                  QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget)
 from qgis.PyQt.QtGui import QColor, QCursor, QIcon, QPixmap
-from qgis.core import QgsApplication, QgsCoordinateTransform, QgsFieldProxyModel, QgsMapLayer, QgsProject, QgsWkbTypes
+from qgis.core import Qgis, QgsApplication, QgsCoordinateTransform, QgsFieldProxyModel, QgsProject, QgsWkbTypes
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
 
 try:
@@ -551,7 +550,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.comboBox_ClipLayer.clear()
         self.hasPolygonLayer = False
         for mapLayer in getLayersInProject():
-            if mapLayer.type() == QgsMapLayer.VectorLayer and mapLayer.geometryType() == QgsWkbTypes.PolygonGeometry:
+            if mapLayer.type() == Qgis.LayerType.VectorLayer and mapLayer.geometryType() == Qgis.GeometryType.Polygon:
                 self.comboBox_ClipLayer.addItem(mapLayer.name(), mapLayer.id())
                 self.hasPolygonLayer = True
 
@@ -891,10 +890,8 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
 
         # z/m buttons
         wkbType = mapLayer.wkbType()
-        self.hasZ = wkbType in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D, QgsWkbTypes.Polygon25D,
-                                QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D, QgsWkbTypes.MultiPolygon25D]
-        self.hasZ = self.hasZ or (wkbType // 1000 in [1, 3])
-        self.hasM = (wkbType // 1000 in [2, 3])
+        self.hasZ = QgsWkbTypes.hasZ(wkbType)
+        self.hasM = QgsWkbTypes.hasM(wkbType)
         self.radioButton_zValue.setEnabled(self.hasZ)
         self.radioButton_mValue.setEnabled(self.hasM)
 
@@ -904,7 +901,7 @@ class VectorPropertyPage(PropertyPage, Ui_VectorPropertiesWidget):
             self.radioButton_Expression.setChecked(True)
 
         # expression
-        self.fieldExpressionWidget_altitude.setFilters(QgsFieldProxyModel.Numeric)
+        self.fieldExpressionWidget_altitude.setFilters(QgsFieldProxyModel.Filter.Numeric)
         self.fieldExpressionWidget_altitude.setLayer(mapLayer)
         self.fieldExpressionWidget_altitude.setExpression("0")
 

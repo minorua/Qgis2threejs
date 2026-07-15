@@ -4,7 +4,7 @@
 
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout
 
-from qgis.core import QgsMapLayer, QgsProject, QgsWkbTypes
+from qgis.core import Qgis, QgsMapLayer, QgsProject
 from qgis.gui import QgsCompoundColorWidget
 
 from ..core.const import LayerType
@@ -87,16 +87,16 @@ def shortTextFromSelectedLayerIds(layerIds):
 def layerTypeFromMapLayer(mapLayer):
     """mapLayer: QgsMapLayer sub-class object"""
     layerType = mapLayer.type()
-    if layerType == QgsMapLayer.VectorLayer:
+    if layerType == Qgis.LayerType.Vector:
         return {
-            QgsWkbTypes.PointGeometry: LayerType.POINT,
-            QgsWkbTypes.LineGeometry: LayerType.LINESTRING,
-            QgsWkbTypes.PolygonGeometry: LayerType.POLYGON}.get(mapLayer.geometryType())
+            Qgis.GeometryType.Point: LayerType.POINT,
+            Qgis.GeometryType.Line: LayerType.LINESTRING,
+            Qgis.GeometryType.Polygon: LayerType.POLYGON}.get(mapLayer.geometryType())
 
-    elif layerType == QgsMapLayer.RasterLayer and mapLayer.providerType() == "gdal" and mapLayer.bandCount() == 1:
+    elif layerType == Qgis.LayerType.Raster and mapLayer.providerType() == "gdal" and mapLayer.bandCount() == 1:
         return LayerType.DEM
 
-    # elif layerType == QgsMapLayer.PointCloudLayer:
+    # elif layerType == Qgis.LayerType.PointCloud:
     #     return LayerType.POINTCLOUD
 
     return None

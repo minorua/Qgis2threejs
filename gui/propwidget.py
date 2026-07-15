@@ -117,7 +117,7 @@ class ExpressionWidgetFunc(WidgetFuncBase):
         self.widget.comboBox.clear()
         self.widget.comboBox.addItem("Expression")
 
-        self.widget.expression.setFilters(QgsFieldProxyModel.Numeric)
+        self.widget.expression.setFilters(QgsFieldProxyModel.Filter.Numeric)
         self.widget.expression.setLayer(self.mapLayer)
 
 
@@ -138,10 +138,10 @@ class ColorWidgetFunc(WidgetFuncBase):
         self.widget.comboBox.addItem("Expression", ColorWidgetFunc.EXPRESSION)
 
         self.widget.expression.setExpression(str(options.get("defVal", "")))
-        self.widget.expression.setFilters(QgsFieldProxyModel.String)
+        self.widget.expression.setFilters(QgsFieldProxyModel.Filter.String)
         self.setPlaceholderText("e.g. color_rgb(255, 127, 0), '#FF7F00'")
 
-        self.widget.expression.setFilters(QgsFieldProxyModel.String | QgsFieldProxyModel.Int | QgsFieldProxyModel.LongLong)
+        self.widget.expression.setFilters(QgsFieldProxyModel.Filter.String | QgsFieldProxyModel.Filter.Int | QgsFieldProxyModel.Filter.LongLong)
         self.widget.expression.setLayer(self.mapLayer)
 
         self.widget.toolButton.setIcon(QgsApplication.getThemeIcon("mIconColorSwatches.svg"))
@@ -205,7 +205,7 @@ class FilePathWidgetFunc(WidgetFuncBase):
         else:
             self.widget.comboBox.addItem("File path", FilePathWidgetFunc.FILEPATH)
 
-        self.widget.expression.setFilters(QgsFieldProxyModel.String)
+        self.widget.expression.setFilters(QgsFieldProxyModel.Filter.String)
         self.widget.expression.setLayer(self.mapLayer)
 
         self.filterString = options.get("filterString", "")
@@ -236,11 +236,6 @@ class HeightWidgetFunc(WidgetFuncBase):
         comboBox.addItem("Absolute")
         for lyr in getDEMLayersInProject():
             comboBox.addItem('Relative to "{0}" layer'.format(lyr.name()), lyr.id())
-
-        # z value if layer has
-        # if layer and layer.wkbType() in [QgsWkbTypes.Point25D, QgsWkbTypes.LineString25D, QgsWkbTypes.MultiPoint25D, QgsWkbTypes.MultiLineString25D]:
-        #  comboBox.addItem("Z value", HeightWidgetFunc.Z_VALUE)
-        #  comboBox.insertSeparator(1)
 
         defaultValue = options.get("defVal")
         if defaultValue:
@@ -276,7 +271,7 @@ class LabelHeightWidgetFunc(WidgetFuncBase):
         self.widget.comboBox.addItem("Relative", self.RELATIVE)
         self.widget.comboBox.addItem("Absolute", self.ABSOLUTE)
 
-        self.widget.expression.setFilters(QgsFieldProxyModel.Numeric)
+        self.widget.expression.setFilters(QgsFieldProxyModel.Filter.Numeric)
         self.widget.expression.setLayer(self.mapLayer)
 
         self.defaultValue = options.get("defVal")
@@ -297,7 +292,7 @@ class OpacityWidgetFunc(WidgetFuncBase):
         self.widget.comboBox.addItem("Feature style", OpacityWidgetFunc.FEATURE)
         self.widget.comboBox.addItem("Expression", OpacityWidgetFunc.EXPRESSION)
 
-        self.widget.expression.setFilters(QgsFieldProxyModel.Numeric)
+        self.widget.expression.setFilters(QgsFieldProxyModel.Filter.Numeric)
         self.widget.expression.setLayer(self.mapLayer)
         self.setPlaceholderText("numeric (percentage. 0 - 100)")
 

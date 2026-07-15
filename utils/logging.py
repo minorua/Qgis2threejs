@@ -21,11 +21,11 @@ try:
         def emit(self, record):
             msg = self.format(record)
             if record.levelno >= logging.ERROR:
-                QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.Critical, notifyUser=True)
+                QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.MessageLevel.Critical, notifyUser=True)
             elif record.levelno >= logging.WARNING:
-                QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.Warning, notifyUser=True)
+                QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.MessageLevel.Warning, notifyUser=True)
             else:
-                QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.Info, notifyUser=False)
+                QgsMessageLog.logMessage(msg, tag=PLUGIN_NAME, level=Qgis.MessageLevel.Info, notifyUser=False)
 
 except ImportError:
     pass
