@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [3.1.2] - 2026-07-15
+- Fixed bandit security warnings (#426)
+- Fixed remaining Qt6 enum compatibility issues (#427)
+
 ## [3.1.1] - 2026-07-15
 - Split JavaScript code into multiple files and included a minified build in the release
 - Updated dat.gui library to version 0.7.9
