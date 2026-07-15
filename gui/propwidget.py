@@ -4,6 +4,7 @@
 # begin: 2014-01-06
 
 import os
+import traceback
 
 from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QVariant
 from qgis.PyQt.QtGui import QIcon
@@ -11,6 +12,7 @@ from qgis.PyQt.QtWidgets import QComboBox, QFileDialog, QWidget
 from qgis.core import QgsApplication, QgsFieldProxyModel, QgsProject
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget
+from ..utils.logging import logger
 from ..utils.qgis import getDEMLayersInProject, selectColor, shortTextFromSelectedLayerIds
 
 
@@ -70,7 +72,7 @@ class WidgetFuncBase:
             lineEdit.setPlaceholderText(text)
             lineEdit.setToolTip(text)
         except:
-            pass
+            logger.debug(traceback.format_exc())
 
     def values(self):
         return {"type": self.widget.funcType,

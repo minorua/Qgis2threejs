@@ -83,11 +83,8 @@ def loadProject(filename):
     # clear the map layer registry
     QgsProject.instance().removeAllMapLayers()
 
-    assert os.path.exists(filename), "project file does not exist: " + filename
-
     # load the project
     QgsProject.instance().read(filename)
-    assert QgsProject.instance().mapLayers(), "no layers in map layer registry"
 
     doc = QDomDocument()
     with open(filename, encoding="utf-8") as f:

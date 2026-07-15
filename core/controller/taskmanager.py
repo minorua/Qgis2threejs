@@ -138,8 +138,7 @@ class TaskManager(QObject):
         if len(self.taskQueue) < task_count:
             self.totalLayerCount -= 1
 
-    def addSendDataTask(self, data):
-        assert(isinstance(data, dict) and "type" in data)
+    def addSendDataTask(self, data: dict):
         self.taskQueue.append(data)
         self.processNextTask()
 

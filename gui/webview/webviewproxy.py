@@ -4,7 +4,7 @@
 
 import json
 import os
-import subprocess
+import subprocess       # nosec B404 - preview process
 
 from qgis.PyQt.QtCore import QObject, QSize, QProcess, QUrl, pyqtSignal
 from qgis.PyQt.QtWidgets import QMessageBox
@@ -216,11 +216,6 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
             self.viewProcess.start(args[0], args[1:])
             return
 
-        # env = os.environ.copy()
-        # env["PYTHONPATH"] = os.pathsep.join(sys.path)
-        # del env["QT3D_RENDERER"]
-        # env["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-logging --v=1"
-
         if hasattr(subprocess, "STARTUPINFO"):
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -232,7 +227,7 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
         else:
             startupinfo = None
 
-        self.viewProcess = subprocess.Popen(args, cwd=cwd, startupinfo=startupinfo)        # env=env
+        self.viewProcess = subprocess.Popen(args, cwd=cwd, startupinfo=startupinfo)     # nosec B603 - start preview process
 
     def viewProcessFinished(self, exitCode, exitStatus):
         if exitCode not in (0, 15):

@@ -4,7 +4,6 @@
 # begin: 2016-02-10
 
 import os
-from datetime import datetime
 
 from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QSettings, QTimer, QUrl, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QColor, QDesktopServices, QIcon
@@ -20,7 +19,7 @@ from .ui.propertiesdialog import Ui_PropertiesDialog
 from .webview.webview import getWebViewClass
 from .webview.webviewcontainer import WebViewContainer
 from ..conf import DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
-from ..core.const import LayerType, ScriptFile
+from ..core.const import LayerType
 from ..core.controller.controller import Q3DController
 from ..core.exportsettings import Layer
 from ..core.plugin.pluginmanager import pluginManager
@@ -684,12 +683,8 @@ class PropertiesDialog(QDialog):
         self.restoreGeometry(settings.value("/Qgis2threejs/propdlg/geometry", b""))
 
     def closeEvent(self, event):
-        try:
-            # save dialog geometry
-            settings = QSettings()
-            settings.setValue("/Qgis2threejs/propdlg/geometry", self.saveGeometry())
-        except:
-            pass
+        settings = QSettings()
+        settings.setValue("/Qgis2threejs/propdlg/geometry", self.saveGeometry())
 
         QDialog.closeEvent(self, event)
 

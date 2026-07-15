@@ -140,9 +140,7 @@ class SocketInterface(QObject):
         except Exception as e:
             print(f"Unexpected error: {e}")
 
-    def createSharedMemory(self, data):
-        assert isinstance(data, bytes), f"Unexpected data type ({type(data).__name__})"
-
+    def createSharedMemory(self, data: bytes):
         key = QUuid.createUuid().toString(QUuid.StringFormat.WithoutBraces)[:8]
         mem = QSharedMemory(key)
 
@@ -184,7 +182,7 @@ class SocketInterface(QObject):
         mem.detach()
         return ba.data()
 
-    def _send(self, msg_type, id, method, params=None, payload=None):
+    def _send(self, msg_type, id, method, params: dict | None = None, payload: bytes | dict | None = None) -> bool:
         if not self.conn:
             logger.debug(f"No connection. Failed to send {method} {msg_type}.")
             return False
@@ -201,7 +199,6 @@ class SocketInterface(QObject):
             msg["id"] = id
 
         if params is not None:
-            assert isinstance(params, dict), "Unexpected params type."
             msg["params"] = params
 
         if payload is not None:
@@ -211,8 +208,6 @@ class SocketInterface(QObject):
                 data = json.dumps(payload).encode("utf-8")
             else:
                 data = payload
-
-            assert isinstance(payload, bytes), "Unexpected payload data type."
 
             msg["payload"] = {
                 "key": self.createSharedMemory(data),

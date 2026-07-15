@@ -62,4 +62,4 @@ def assertMessagesAppearInOrder(logs, expected):
             if msg in log:
                 break
         else:
-            assert False, f'"{msg}" not found in logs in order'
+            raise Exception(f'"{msg}" not found in logs in order.')

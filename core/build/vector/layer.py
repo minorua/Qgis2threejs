@@ -324,7 +324,7 @@ class VectorLayer:
 
         if mode == ColorWidgetFunc.RANDOM or feat is None:
             self.colorNames = self.colorNames or QColor.colorNames()
-            color = random.choice(self.colorNames)
+            color = random.choice(self.colorNames)      # nosec: B311 - random color selection
             self.colorNames.remove(color)
             return hex_color(QColor(color).name(), prefix="0x")
 

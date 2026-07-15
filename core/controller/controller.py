@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2016-02-10
 
-from collections import deque
 from functools import wraps
 from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal, pyqtSlot
 from qgis.core import Qgis, QgsProject
@@ -129,8 +128,8 @@ class Q3DController(QObject):
             self.thread.setObjectName("builderThread")
 
             # move builder to worker thread and start event loop
-            if DEBUG_MODE:
-                assert self.builder.parent() is None
+            if DEBUG_MODE and self.builder.parent() is not None:
+                raise AssertionError("builder.parent() must be None")
 
             self.builder.moveToThread(self.thread)
             self.thread.start()

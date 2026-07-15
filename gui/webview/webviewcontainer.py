@@ -24,7 +24,8 @@ class WebViewContainer(QStackedWidget):
 
     def setWebView(self, webView):
         # webView: Q3DWebEngineView (INPROCESS) or Q3DWebViewProxy (EMBEDDED)
-        assert self.count() == 1
+        if self.count() != 1:
+            raise AssertionError("Web view container has an unexpected number of widgets.")
 
         if isinstance(webView, QWidget):
             # INPROCESS
@@ -46,7 +47,8 @@ class WebViewContainer(QStackedWidget):
                 self.removeEmbeddedWnd()
 
     def showPreview(self):
-        assert self.count() == 2
+        if self.count() != 2:
+            raise AssertionError("Web view container has an unexpected number of widgets.")
 
         self.setCurrentIndex(1)
 

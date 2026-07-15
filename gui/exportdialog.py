@@ -94,8 +94,9 @@ class ExportToWebDialog(QDialog):
             self.ui.pushButton_Publish.clicked.connect(self.publish)
             try:
                 self.ui.pushButton_Publish.setIcon(self.q2om.action.icon())
-            except:
-                pass
+
+            except Exception:
+                logger.warning(traceback.format_exc())
         else:
             self.ui.pushButton_Publish.setEnabled(False)
 
