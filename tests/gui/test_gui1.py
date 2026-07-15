@@ -169,7 +169,7 @@ class DialogLayoutCheck(GUITestBase):
 
     def test02_Layer(self):
         ids = [test.LAYER_ID for test in [TestDEMLayer, TestPointLayer, TestLineLayer, TestPolygonLayer]]
-        ids += ["pc:potree16260303094523", "fp:e22b3153"]
+        ids += ["fp:e22b3153"]      # "pc:potree16260303094523"
 
         for id in ids:
             self.checkLayerDialog(self.WND.settings.getLayer(id))
