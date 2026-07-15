@@ -4,7 +4,7 @@
 
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout
 
-from qgis.core import Qgis, QgsMapLayer, QgsProject
+from qgis.core import Qgis, QgsProject
 from qgis.gui import QgsCompoundColorWidget
 
 from ..core.const import LayerType
@@ -31,7 +31,7 @@ def getDEMLayersInProject():
     """
     layers = []
     for layer in getLayersInProject():
-        if layer.type() == QgsMapLayer.RasterLayer:
+        if layer.type() == Qgis.LayerType.Raster:
             if layer.providerType() == "gdal" and layer.bandCount() == 1:
                 layers.append(layer)
     return layers

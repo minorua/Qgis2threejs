@@ -550,7 +550,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.comboBox_ClipLayer.clear()
         self.hasPolygonLayer = False
         for mapLayer in getLayersInProject():
-            if mapLayer.type() == Qgis.LayerType.VectorLayer and mapLayer.geometryType() == Qgis.GeometryType.Polygon:
+            if mapLayer.type() == Qgis.LayerType.Vector and mapLayer.geometryType() == Qgis.GeometryType.Polygon:
                 self.comboBox_ClipLayer.addItem(mapLayer.name(), mapLayer.id())
                 self.hasPolygonLayer = True
 
