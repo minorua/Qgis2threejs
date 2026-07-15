@@ -61,7 +61,7 @@ class Downloader(QObject):
             del self.requestingReplies[url]
 
         httpStatusCode = reply.attribute(QNetworkRequest.Attribute.HttpStatusCodeAttribute)
-        if reply.error() == QNetworkReply.NoError:
+        if reply.error() == QNetworkReply.NetworkError.NoError:
             self._successes += 1
 
             if reply.attribute(QNetworkRequest.Attribute.SourceIsFromCacheAttribute):
