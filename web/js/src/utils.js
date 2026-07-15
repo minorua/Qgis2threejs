@@ -75,12 +75,6 @@ export const flatArrayToVec2Array = (vertices, itemSize) => {
 	return pts;
 };
 
-export const setGeometryUVs = (geom, baseWidth, baseHeight) => {
-	const uvs = geom.vertices.map(({ x, y }) => new THREE.Vector2(x / baseWidth + 0.5, y / baseHeight + 0.5));
-
-	geom.faceVertexUvs[0] = geom.faces.map(({ a, b, c }) => [uvs[a], uvs[b], uvs[c]]);
-};
-
 export const base64ToUint8Array = (base64) => {
 	var bin = atob(base64);
 	var len = bin.length;

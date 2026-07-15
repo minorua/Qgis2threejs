@@ -728,14 +728,6 @@ app.intersectObjects = (offsetX, offsetY) => {
     return ray.intersectObjects(app.scene.visibleObjects(app.labelVisible));
 };
 
-app._offset = (elm) => {
-    let top = 0, left = 0;
-    do {
-        top += elm.offsetTop || 0; left += elm.offsetLeft || 0; elm = elm.offsetParent;
-    } while (elm);
-    return {top: top, left: left};
-};
-
 app.queryTargetPosition = new THREE.Vector3();
 
 app.cameraAction = {
@@ -832,6 +824,14 @@ app.highlightFeature = (object) => {
     app.highlightObject = clone;
 };
 
+const elemOffset = (elm) => {
+    let top = 0, left = 0;
+    do {
+        top += elm.offsetTop || 0; left += elm.offsetLeft || 0; elm = elm.offsetParent;
+    } while (elm);
+    return {top: top, left: left};
+};
+
 app.canvasClicked = (e) => {
     // button 2: right click
     if (e.button == 2 && app.measure.isActive) {
@@ -839,7 +839,7 @@ app.canvasClicked = (e) => {
         return;
     }
 
-    const canvasOffset = app._offset(app.renderer.domElement);
+    const canvasOffset = elemOffset(app.renderer.domElement);
     for (const obj of app.intersectObjects(e.clientX - canvasOffset.left, e.clientY - canvasOffset.top)) {
 
         if (app.measure.isActive) {

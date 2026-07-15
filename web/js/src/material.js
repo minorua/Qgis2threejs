@@ -99,9 +99,7 @@ export class Material {
 			// opt.sizeAttenuation = 1;
 
 			this.mtl = new modules.meshline.MeshLineMaterial(opt);
-			this._updateAspect = () => {
-				this.mtl.resolution.set(app.width, app.height);
-			};
+			this._updateAspect = () => this.mtl.resolution.set(app.width, app.height);
 
 			this._updateAspect();
 			app.addEventListener("canvasSizeChanged", this._updateAspect);
