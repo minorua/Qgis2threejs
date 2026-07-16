@@ -6,10 +6,11 @@
     "noEmit": true,
     "strict": false,
 
-    "rootDir": "web/src/",
+    "rootDir": "web/",
     "outDir": "web/src/types",
 
     "paths": {
+      "lib/*": ["./web/js/lib/*"],
       "three": ["./node_modules/@types/three"],
       "three/addons/*": ["./node_modules/@types/three/examples/jsm/*"]
     }

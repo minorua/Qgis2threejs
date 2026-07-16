@@ -14,7 +14,7 @@ const ctx = await esbuild.context({
     bundle: true,
     format: "esm",
     outdir: "./web/js/dist",
-    external: ["three", "three/*", "./Qgis2threejs.js"],
+    external: ["lib/*", "three", "three/*", "./Qgis2threejs.js"],
     minify,
     sourcemap,
 
