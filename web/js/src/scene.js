@@ -201,6 +201,8 @@ export class Scene extends THREE.Scene {
 			}
 		}
 
+		objs = objs.concat(this.tiles);
+
 		return objs;
 	}
 

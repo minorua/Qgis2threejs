@@ -4,12 +4,18 @@
 import { THREE } from "./three.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
+import { TilesRenderer } from '../lib/3d-tiles-renderer/3d-tiles-renderer.js';
+import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+
 import { app, conf, deg2rad, gui, modules, Group, LayerType } from "./core.js";
 import { Scene } from "./scene.js";
 import { E } from "./utils.js";
 
 const _v = new THREE.Vector3();
 
+let tilesRenderer;
 
 const listeners = {};
 app.dispatchEvent = (event) => {
@@ -68,6 +74,55 @@ app.init = (container) => {
     app.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5, side: THREE.DoubleSide});
 
     gui.init();
+
+
+    const url = "file:///D:/Users/akagi/Desktop/13104_shinjuku-ku_pref_2023_citygml_2_op_bldg_3dtiles_13104_shinjuku-ku_lod2/tileset.json";
+    tilesRenderer = new TilesRenderer(url);
+    tilesRenderer.setCamera(app.camera);
+    tilesRenderer.setResolutionFromRenderer(app.camera, app.renderer);
+    tilesRenderer.addEventListener("load-root-tileset", () => {
+        /*
+        // optionally center the tileset in case it's far off center
+        const sphere = new THREE.Sphere();
+        tilesRenderer.getBoundingSphere(sphere);
+        tilesRenderer.group.position.copy(sphere.center).multiplyScalar(-1);
+        */
+
+        const bbox = new THREE.Box3();
+        tilesRenderer.getBoundingBox(bbox);
+        bbox.getSize(_v);
+        const dist = Math.max(_v.x, _v.y * 3 / 4) * 1.2;
+
+        bbox.getCenter(_v);
+        app.cameraAction.zoom(_v.x, _v.y, _v.z, dist);
+
+    });
+
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderConfig({type: "js"});
+    dracoLoader.setDecoderPath("../js/lib/draco/");
+
+    const loader = new GLTFLoader(tilesRenderer.manager);
+    loader.setDRACOLoader(dracoLoader);
+    loader.register((parser) => {
+        return {
+            name: "CESIUM_RTC",
+
+            afterRoot(gltf) {
+                if (parser.json.extensions?.CESIUM_RTC?.center != null) {
+                    const center = parser.json.extensions.CESIUM_RTC.center
+                    gltf.scene.position.set(...center)
+                }
+                return null;
+            }
+        };
+    });
+
+    tilesRenderer.manager.addHandler(/\.(gltf|glb)$/g, loader);
+
+    app.scene.add(tilesRenderer.group);
+    app.scene.tiles = tilesRenderer.group;
+
 };
 
 function applyUrlParameters(container) {
@@ -646,6 +701,10 @@ app.updateControlsAndRender = () => {
             app.camera.updateMatrixWorld();
         }
 
+        if (tilesRenderer) {
+            tilesRenderer.update();
+        }
+
         // rendering
         app.renderer.clear()
         if (app.effect) {
@@ -850,6 +909,7 @@ app.canvasClicked = (e) => {
         // get layerId of clicked object
         let o = obj.object;
         let layerId;
+        /*
         while (o) {
             layerId = o.userData.layerId;
             if (layerId !== undefined) break;
@@ -857,9 +917,10 @@ app.canvasClicked = (e) => {
         }
 
         if (layerId === undefined) break;
+        */
 
         const layer = app.scene.mapLayers[layerId];
-        if (!layer.clickable) break;
+        // if (!layer.clickable) break;
 
         app.selectedLayer = layer;
         app.queryTargetPosition.copy(obj.point);
@@ -868,9 +929,11 @@ app.canvasClicked = (e) => {
         app.queryMarker.position.copy(obj.point);
         app.scene.add(app.queryMarker);
 
+        /*
         if (o.userData.isLabel) {
             o = o.userData.objs[o.userData.partIdx];    // label -> object
         }
+        */
 
         app.highlightFeature(o);
         app.render();
