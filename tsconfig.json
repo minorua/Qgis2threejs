@@ -11,7 +11,7 @@
 
     "paths": {
       "three": ["./web/js/lib/three/three.module.js"],
-      "three/*": ["./web/js/lib/three/*"]
+      "three/addons/*": ["./web/js/lib/three/*"]
     }
   },
   "include": [

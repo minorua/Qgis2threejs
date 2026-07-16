@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import { THREE } from "./three.js";
-import { OrbitControls } from "three/controls/OrbitControls.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 import { app, conf, deg2rad, gui, modules, Group, LayerType } from "./core.js";
 import { Scene } from "./scene.js";

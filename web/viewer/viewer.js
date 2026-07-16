@@ -5,7 +5,7 @@ import { app, conf, gui, modules, E } from "../js/Qgis2threejs.js";
 const THREE = modules.THREE;
 export { app, conf, gui, THREE }
 
-import { ViewHelper } from "three/helpers/ViewHelper.js";
+import { ViewHelper } from "three/addons/helpers/ViewHelper.js";
 modules.ViewHelper = ViewHelper;
 
 conf.preview = {
@@ -242,13 +242,13 @@ export function loadModel(url) {
 
 	const ext = url.split(".").pop();
 	if (ext == "dae") {
-		import("three/loaders/ColladaLoader.js").then(({ ColladaLoader }) => {
+		import("three/addons/loaders/ColladaLoader.js").then(({ ColladaLoader }) => {
 			const loader = new ColladaLoader(app.loadingManager);
 			loader.load(url, loadToScene, undefined, onError);
 		});
 	}
 	else if (ext == "gltf" || ext == "glb") {
-		import("three/loaders/GLTFLoader.js").then(({ GLTFLoader }) => {
+		import("three/addons/loaders/GLTFLoader.js").then(({ GLTFLoader }) => {
 			const loader = new GLTFLoader(app.loadingManager);
 			loader.load(url, loadToScene, undefined, onError);
 		});
@@ -333,7 +333,7 @@ export function saveModelAsGLTF(filename) {
 		binary: (filename.split(".").pop().toLowerCase() == "glb")
 	};
 
-	import("three/exporters/GLTFExporter.js").then(({ GLTFExporter }) => {
+	import("three/addons/exporters/GLTFExporter.js").then(({ GLTFExporter }) => {
 		const gltfExporter = new GLTFExporter();
 		gltfExporter.parse(scene, (result) => {
 			const showStatus = () => {
@@ -454,9 +454,9 @@ export function setPreviewEnabled(enabled) {
 
 export function setOutlineEffectEnabled(enabled) {
 	if (enabled) {
-		loadScriptFile("../js/lib/three/effects/OutlineEffect.js", () => {
-			app.effect = new modules.OutlineEffect(app.renderer);
-		}, true);
+		import("three/addons/effects/OutlineEffect.js").then(( { OutlineEffect } ) => {
+			app.effect = new OutlineEffect(app.renderer);
+		});
 	}
 	else {
 		app.effect = undefined;
