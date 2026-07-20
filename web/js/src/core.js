@@ -71,11 +71,4 @@ export class Group extends THREE.Group {
 		return this;
 	}
 
-	clear() {
-		for (let i = this.children.length - 1; i >= 0; i--) {
-			this.remove(this.children[i]);
-		}
-		return this;
-	}
-
 }
