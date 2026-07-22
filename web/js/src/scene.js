@@ -51,6 +51,9 @@ export class Scene extends THREE.Scene {
 		}
 	}
 
+	/**
+	 * @param {import("./types.js").AppData} data
+	 */
 	loadData(data) {
 		switch (data.type) {
 			case "scene":
@@ -67,6 +70,9 @@ export class Scene extends THREE.Scene {
 		}
 	}
 
+	/**
+	 * @param {import("./types.js").SceneData} data
+	 */
 	loadSceneData(data) {
 		const p = data.properties;
 		if (p !== undefined) {
@@ -131,6 +137,9 @@ export class Scene extends THREE.Scene {
 		}
 	}
 
+	/**
+	 * @param {import("./types.js").LayerData} data
+	 */
 	loadLayerData(data) {
 		let layer = this.mapLayers[data.id];
 		if (layer === undefined) {
@@ -147,6 +156,9 @@ export class Scene extends THREE.Scene {
 		this.requestRender();
 	}
 
+	/**
+	 * @param {import("./types.js").BlockData} data
+	 */
 	loadBlockData(data) {
 		const layer = this.mapLayers[data.layer];
 		if (layer === undefined) return;

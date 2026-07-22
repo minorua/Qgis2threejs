@@ -25,7 +25,7 @@ class GridGeometry extends THREE.BufferGeometry {
 	}
 
 	/**
-	 * @param {object} grid
+	 * @param {import("../types.js").DEMGridData}  grid
 	 * @param {number} width      - Plane width (or tile size).
 	 * @param {number} height     - Plane height (ignored when `segments` is given).
 	 * @param {number} [segments] - When supplied, the grid is treated as a square tile.
@@ -93,6 +93,11 @@ class DEMBlockBase {
 		this.currentMtlIndex = 0;
 	}
 
+	/**
+	 * @param {import("../types.js").DEMBlockData} data
+	 * @param {DEMLayer} layer
+	 * @param {(mesh: THREE.Mesh) => void} callback
+	 */
 	loadData(data, layer, callback) {
 		this.data = data;
 
@@ -297,6 +302,12 @@ class DEMBlockBase {
 
 class DEMBlock extends DEMBlockBase {
 
+	/**
+	 * @param {import("../types.js").DEMGridBlockData} data
+	 * @param {DEMLayer} layer
+	 * @param {(mesh: THREE.Mesh) => void} callback
+	 * @returns {THREE.Mesh | undefined}
+	 */
 	loadData(data, layer, callback) {
 		super.loadData(data, layer, callback);
 
@@ -350,6 +361,12 @@ class DEMBlock extends DEMBlockBase {
 
 class DEMTileBlock extends DEMBlockBase {
 
+	/**
+	 * @param {import("../types.js").DEMTileGridBlockData} data
+	 * @param {DEMLayer} layer
+	 * @param {(mesh: THREE.Mesh) => void} callback
+	 * @returns {THREE.Mesh | undefined}
+	 */
 	loadData(data, layer, callback) {
 		const grid = data.grid;
 
@@ -405,6 +422,12 @@ class DEMTileBlock extends DEMBlockBase {
 
 class ClippedDEMBlock extends DEMBlockBase {
 
+	/**
+	 * @param {import("../types.js").DEMGridBlockData} data
+	 * @param {DEMLayer} layer
+	 * @param {(mesh: THREE.Mesh) => void} callback
+	 * @returns {THREE.Mesh | undefined}
+	 */
 	loadData(data, layer, callback) {
 		super.loadData(data, layer, callback);
 
@@ -504,6 +527,10 @@ export class DEMLayer extends MapLayer {
 		this.auxiliaryMtl = {};
 	}
 
+	/**
+	 * @param {import("../types.js").DEMLayerData} data
+	 * @param {import("../scene.js").Scene} scene
+	 */
 	loadLayerData(data, scene) {
 		this.clearObjects();
 		super.loadLayerData(data, scene);
@@ -550,6 +577,10 @@ export class DEMLayer extends MapLayer {
 		});
 	}
 
+	/**
+	 * @param {import("../types.js").DEMBlockData} data
+	 * @param {import("../scene.js").Scene} scene
+	 */
 	loadBlockData(data, scene) {
 		super.loadBlockData(data, scene);
 

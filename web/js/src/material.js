@@ -19,7 +19,10 @@ export class Material {
 		return this;
 	}
 
-	// callback is called when material has been completely loaded
+	/**
+	 * @param {import("./types.js").MaterialData} data
+	 * @param {() => void} callback Called after material data has been completely loaded.
+	 */
 	loadData(data, callback) {
 		this.origProp = data;
 		this.groupId = data.mtlIndex;
@@ -178,6 +181,9 @@ export class Materials extends THREE.EventDispatcher {
 		return this.array[index].mtl;
 	}
 
+	/**
+	 * @param {import("./types.js").MaterialData[]} data
+	 */
 	loadData(data) {
 		let iterated = false;
 

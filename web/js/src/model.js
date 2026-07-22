@@ -13,6 +13,20 @@ export class Model {
 		this.loaded = false;
 	}
 
+	/**
+	 * @param {import("./types.js").ModelData} data
+	 * @param {(scene: THREE.Group) => void} callback Called after model data has been completely loaded.
+	 */
+	loadData(data, callback) {
+		if (data.url !== undefined) {
+			this.load(data.url, callback);
+		}
+		else {
+			const bytes = base64ToUint8Array(data.base64);
+			this.loadBytes(bytes.buffer, data.ext, data.resourcePath, callback);
+		}
+	}
+
 	// callback is called when model has been completely loaded
 	load(url, callback) {
 		app.loadModelFile(url, (model) => {
@@ -26,16 +40,6 @@ export class Model {
 			this.model = model;
 			this._loadCompleted(callback);
 		});
-	}
-
-	loadData(data, callback) {
-		if (data.url !== undefined) {
-			this.load(data.url, callback);
-		}
-		else {
-			const bytes = base64ToUint8Array(data.base64);
-			this.loadBytes(bytes.buffer, data.ext, data.resourcePath, callback);
-		}
 	}
 
 	_loadCompleted(anotherCallback) {
@@ -70,6 +74,9 @@ export class Models extends THREE.EventDispatcher {
 		this.cache = {};
 	}
 
+	/**
+	 * @param {import("./types.js").ModelData[]} data
+	 */
 	loadData(data) {
 		const callback = (model) => {
 			this.dispatchEvent({type: "modelLoaded", model: model});

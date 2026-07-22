@@ -279,10 +279,16 @@ app.loadFile = (url, type, callback) => {
     }
 };
 
+/**
+ * @param {import("./types.js").AppData} data
+ * @returns {boolean} true if no error occurs.
+ */
 app.loadData = (data) => {
     try {
         app.scene.loadData(data);
-        if (data.animation !== undefined) app.animation.keyframes.load(data.animation.tracks);
+        if (data.type == "scene" && data.animation) {
+            app.animation.keyframes.load(data.animation.tracks);
+        }
         return true;
     }
     catch (e) {
@@ -357,6 +363,12 @@ app.loadModelFile = (url, callback) => {
     });
 };
 
+/**
+ * @param {Uint8Array} data
+ * @param {string} ext
+ * @param {string} resourcePath
+ * @param {(scene: THREE.Group) => void} callback
+ */
 app.loadModelData = (data, ext, resourcePath, callback) => {
 
     if (ext == "dae") {
@@ -372,7 +384,6 @@ app.loadModelData = (data, ext, resourcePath, callback) => {
     }
     else {
         console.warn("Model file type not supported: " + ext);
-        return;
     }
 };
 

@@ -6,6 +6,10 @@ import { THREE } from "../three.js";
 import { conf, Group } from "../core.js";
 import { Materials } from "../material.js";
 
+/**
+ * @import { LayerData, BlockData } from "../types.js"
+ */
+
 
 export class MapLayer extends THREE.EventDispatcher {
 
@@ -59,6 +63,10 @@ export class MapLayer extends THREE.EventDispatcher {
 		return (this.visible) ? this.objects : [];
 	}
 
+	/**
+	 * @param {LayerData | BlockData} data
+	 * @param {import("../scene.js").Scene} scene
+	 */
 	loadData(data, scene) {
 		if (data.type == "layer") {
 			this.loadLayerData(data, scene);
@@ -68,6 +76,10 @@ export class MapLayer extends THREE.EventDispatcher {
 		}
 	}
 
+	/**
+	 * @param {LayerData} data
+	 * @param {import("../scene.js").Scene} scene
+	 */
 	loadLayerData(data, scene) {
 		const p = data.properties;
 		if (p !== undefined) {
@@ -78,6 +90,10 @@ export class MapLayer extends THREE.EventDispatcher {
 		this.sceneData = scene.userData;
 	}
 
+	/**
+	 * @param {BlockData} data
+	 * @param {import("../scene.js").Scene} scene
+	 */
 	loadBlockData(data, scene) {}
 
 	get clickable() {

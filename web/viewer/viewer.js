@@ -31,7 +31,13 @@ export const preview = {
 	}
 };
 
-//// initialization
+/**
+ * Initialize the viewer
+ *
+ * @param {boolean} off_screen
+ * @param {number} debug_mode
+ * @param {number} qgis_version
+ */
 export function init(off_screen, debug_mode, qgis_version) {
 
 	conf.debugMode = debug_mode;
@@ -110,6 +116,13 @@ function _init(off_screen) {
 //// load functions
 const appLoadDataTypes = ["scene", "layer", "block"];
 
+/**
+ * Loads JSON-compatible data or handles signals, commands and requests
+ *
+ * @param {import("../js/src/types.js").PreviewData} data
+ * @param {boolean} viaQueue
+ * @returns {boolean} true if no error occurs.
+ */
 function loadData(data, viaQueue) {
 	let result = true;
 
@@ -578,7 +591,7 @@ function loadKeyframeGroups(groups) {
 
 function startAnimation(groups, repeat) {
 	if (groups) loadKeyframeGroups(groups);
-	conf.animation.repeat = Boolean(repeat);
+	conf.animation.repeat = repeat;
 
 	loadScriptFile("../js/lib/tweenjs/tween.js", () => {
 		app.animation.keyframes.start();

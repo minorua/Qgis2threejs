@@ -15,9 +15,11 @@
     }
   },
   "include": [
-    "web/js/**/*.js"
+    "web/js/**/*.js",
+    "web/js/**/*.ts"
   ],
   "exclude": [
-    "web/js/lib"
+    "web/js/lib",
+    "web/js/types"
   ]
 }

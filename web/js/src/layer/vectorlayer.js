@@ -182,6 +182,10 @@ export class VectorLayer extends MapLayer {
 		}
 	}
 
+	/**
+	 * @param {import("../types.js").VectorLayerData} data
+	 * @param {import("../scene.js").Scene} scene
+	 */
 	loadLayerData(data, scene) {
 		this.clearObjects();
 		this.clearLabels();
@@ -223,6 +227,10 @@ export class VectorLayer extends MapLayer {
 		});
 	}
 
+	/**
+	 * @param {import("../types.js").FeatureBlockData} data
+	 * @param {import("../scene.js").Scene} scene
+	 */
 	loadBlockData(data, scene) {
 		super.loadBlockData(data, scene);
 
