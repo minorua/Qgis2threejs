@@ -14,7 +14,7 @@ from ..layerbuilderbase import LayerBuilderBase
 from ...const import DEMMtlType
 from ...geometry import dissolvePolygonsWithinExtent
 from ...mapextent import MapExtent
-from ....conf import DEBUG_MODE, DEF_SETS
+from ....conf import DEF_SETS
 from ....utils.basic import  parseFloat
 from ....utils.js import hex_color
 from ....utils.logging import logger
@@ -64,8 +64,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                 "blocks": list(self.buildBlocks())
             }
 
-        if DEBUG_MODE:
-            d["PROPERTIES"] = self.properties
+        # d["PROPERTIES"] = self.properties
 
         return d
 

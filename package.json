@@ -6,19 +6,21 @@
     "build:min": "esbuild web/js/src/index.js --bundle --format=esm --outfile=web/js/Qgis2threejs.js --external:three --external:three/* --minify",
     "watch": "esbuild web/js/src/index.js --bundle --format=esm --outfile=web/js/Qgis2threejs.js --external:three --external:three/* --watch",
     "release": "./scripts/release.sh",
-    "setup-debug": "./scripts/setup-debug.sh"
+    "setup-debug": "./scripts/setup-debug.sh",
+    "setup-test": "ts-json-schema-generator --path web/js/src/types.ts --type PreviewData --out web/js/preview.schema.json"
   },
   "author": "Minoru Akagi",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "three": "0.184.0",
+    "@tweenjs/tween.js": "18.6.4",
+    "dat.gui": "0.7.9",
     "meshline": "3.3.1",
     "proj4": "2.2.1",
-    "@tweenjs/tween.js": "18.6.4",
-    "dat.gui": "0.7.9"
+    "three": "0.184.0"
   },
   "devDependencies": {
     "esbuild": "^0.28.1",
+    "ts-json-schema-generator": "^2.9.0",
     "typescript": "^6.0.3"
   }
 }

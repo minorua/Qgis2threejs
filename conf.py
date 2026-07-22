@@ -22,13 +22,13 @@ P_OPEN_DIRECTORY = True
 
 # debugging and testing
 DEBUG_MODE = 1
+                # 0: No debug output
+                # 1: Output debug information to log panel and/or JS console
+                # 2: Same as 1, plus JSON schema validation
+                # 3: Same as 2, plus write debug information to log files
 
-# DEBUG_MODE values:
-#  0: No debug output
-#  1: Output debug information to log panel and/or JS console
-#  2: Same as 1, plus write debug information to log files
-
-TESTING = False
+TESTING = False                         # logger configuration
+VALIDATE_DATA = bool(DEBUG_MODE >= 2)   # enables JSON schema validation
 
 # help
 HELP_URL_BASE = "https://minorua.github.io/Qgis2threejs/help/"

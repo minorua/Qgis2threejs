@@ -196,8 +196,10 @@ class AnimationPanel(QWidget):
         self.ui.toolButtonRemove.setEnabled(b)
 
     def showNarrativeBox(self, content):
-        self.controller.sendData({"type": "narration",
-                                  "content": content})
+        self.controller.sendData({
+            "type": "narration",
+            "content": content
+        })
 
 
 class AnimationTreeWidget(QTreeWidget):

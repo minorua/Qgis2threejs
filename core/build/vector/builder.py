@@ -13,7 +13,7 @@ from ..layerbuilderbase import LayerBuilderBase
 from ..datamanager import MaterialManager, ModelManager
 from ...const import LayerType
 from ...geometry import VectorGeometry
-from ....conf import DEF_SETS, FEATURES_PER_BLOCK, DEBUG_MODE
+from ....conf import DEF_SETS, FEATURES_PER_BLOCK
 from ....utils.js import css_color, int_color
 from ....utils.logging import logger
 
@@ -109,8 +109,7 @@ class VectorLayerBuilder(LayerBuilderBase):
             "body": data
         }
 
-        if DEBUG_MODE:
-            d["PROPERTIES"] = p
+        # d["PROPERTIES"] = p
 
         return d
 

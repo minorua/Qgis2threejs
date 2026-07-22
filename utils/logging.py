@@ -9,6 +9,7 @@ import logging
 from .basic import NoopClass, pluginDir
 from ..conf import PLUGIN_NAME, DEBUG_MODE, TESTING
 
+WRITE_LOG_FILE = bool(DEBUG_MODE == 3)
 
 QGIS_AVAILABLE = False
 try:
@@ -93,12 +94,12 @@ def configureLoggers(is_test=False, log_to_stream=False):
     logger = getLogger(name=PLUGIN_NAME,
                        stream=log_to_stream,
                        qgis_log=not TESTING,
-                       filepath=pluginDir("qgis2threejs.log") if DEBUG_MODE == 2 else "",
+                       filepath=pluginDir("qgis2threejs.log") if WRITE_LOG_FILE else "",
                        list_handler=list_handler)
 
     web_logger = getLogger(name=PLUGIN_NAME + "Web",
                            stream=log_to_stream,
-                           filepath=pluginDir("qgis2threejs_web.log") if DEBUG_MODE == 2 else "",
+                           filepath=pluginDir("qgis2threejs_web.log") if WRITE_LOG_FILE else "",
                            list_handler=list_handler)
 
 

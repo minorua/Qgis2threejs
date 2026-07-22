@@ -18,6 +18,7 @@ from .ui.q3dwindow import Ui_Q3DWindow
 from .ui.propertiesdialog import Ui_PropertiesDialog
 from .webview.webview import getWebViewClass
 from .webview.webviewcontainer import WebViewContainer
+from .. import conf
 from ..conf import DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
 from ..core.const import LayerType
 from ..core.controller.controller import Q3DController
@@ -650,8 +651,12 @@ class Q3DWindow(QMainWindow):
 
     # Dev menu
     def runTest(self):
+        conf.TESTING = True
+
         from ..tests.gui.test_gui import runTest
         runTest(self)
+
+        conf.TESTING = False
 
     def showJSInfo(self):
         def showInfo(info):

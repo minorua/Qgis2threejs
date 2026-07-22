@@ -11,6 +11,7 @@ from .taskmanager import Task, TaskManager
 from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
+from ... import conf
 from ...conf import DEBUG_MODE
 from ...utils.js import hex_color, js_bool
 from ...utils.logging import logger
@@ -244,9 +245,11 @@ class Q3DController(QObject):
         header = self.settings.headerLabel()
         footer = self.settings.footerLabel()
         if header or footer:
-            self.sendData({"type": "labels",
-                           "Header": header,
-                           "Footer": footer})
+            self.sendData({
+                "type": "labels",
+                "Header": header,
+                "Footer": footer
+            })
         # crs check
         if QgsProject.instance().crs().isGeographic():
             self.webPage.showMessageBar("Current CRS is a geographic coordinate system. Please change it to a projected coordinate system.", warning=True)
@@ -390,10 +393,10 @@ class Q3DController(QObject):
                 logger.debug(f'Discarded {data.get("type")} data: processing aborted')
             return
 
-        if DEBUG_MODE and len(self.webPage.sendQueue) > 1:
-            logger.debug(f'Sending/loading data is busy. Added data: {data.get("type")}, Queue length: {len(self.webPage.sendQueue)}')
+        # if DEBUG_MODE and len(self.webPage.sendQueue) > 1:
+        #     logger.debug(f'Sending/loading data is busy. Added data: {data.get("type")}, Queue length: {len(self.webPage.sendQueue)}')
 
-        self.webPage.sendQueue.append(data)
+        self.sendData(data, viaQueue=True)
 
     # web page access methods
     def updateWidget(self, name, properties):
@@ -435,8 +438,7 @@ class Q3DController(QObject):
 
     @pyqtSlot(int, int, str)
     def builderProgressUpdated(self, current, total, msg):
-        # if DEBUG_MODE:
-        #    logger.debug(f"{current} / {total} ({msg}) Dequeued: {self.taskManager.dequeuedLayerCount}, Total: {self.taskManager.totalLayerCount}")
+        # logger.debug(f"{current} / {total} ({msg}) Dequeued: {self.taskManager.dequeuedLayerCount}, Total: {self.taskManager.totalLayerCount}")
 
         total = total or 100
         if self.taskManager.totalLayerCount:
@@ -453,6 +455,9 @@ class Q3DController(QObject):
     def sendData(self, data, viaQueue=False):
         self.webPage.sendData(data, viaQueue)
 
+        if conf.VALIDATE_DATA:
+            self.validateData(data)
+
     @requires_enabled
     def runScript(self, string, message="", sourceID="controller.py", callback=None, wait=False):
         return self.webPage.runScript(string, message, sourceID, callback, wait)
@@ -460,3 +465,9 @@ class Q3DController(QObject):
     @requires_enabled
     def loadScriptFiles(self, script_ids, callback=None):
         self.webPage.loadScriptFiles(script_ids, callback=callback)
+
+    def validateData(self, data):
+        from ...utils.debug import validateData
+        e = validateData(data)
+        if e and conf.TESTING:
+            raise e

@@ -4,6 +4,7 @@
 
 from ... import conf
 conf.TESTING = True
+conf.VALIDATE_DATA = True
 
 import os
 import sys
