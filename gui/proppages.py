@@ -26,7 +26,7 @@ from .ui.vectorproperties import Ui_VectorPropertiesWidget
 
 from .propwidget import PropertyWidget
 from ..conf import DEF_SETS, PLUGIN_NAME
-from ..core.build.datamanager import MaterialManager
+from ..core.build.datamanager import MaterialType
 from ..core.build.vector.object import ObjectType
 from ..core.const import LayerType, DEMMtlType, GEOM_WIDGET_MAX_COUNT, MTL_WIDGET_MAX_COUNT
 from ..core.exportsettings import calculateGridSegments
@@ -245,9 +245,9 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             self.initMapTool(canvas)
 
         # material type
-        self.comboBox_MaterialType.addItem("Lambert Material", MaterialManager.MESH_LAMBERT)
-        self.comboBox_MaterialType.addItem("Phong Material", MaterialManager.MESH_PHONG)
-        self.comboBox_MaterialType.addItem("Toon Material", MaterialManager.MESH_TOON)
+        self.comboBox_MaterialType.addItem("Lambert Material", MaterialType.MESH_LAMBERT)
+        self.comboBox_MaterialType.addItem("Phong Material", MaterialType.MESH_PHONG)
+        self.comboBox_MaterialType.addItem("Toon Material", MaterialType.MESH_TOON)
 
         # restore properties
         if properties:

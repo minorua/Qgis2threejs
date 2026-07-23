@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from .property_reader import DEMPropertyReader
-from ..datamanager import MaterialManager
+from ..datamanager import MaterialManager, MaterialType
 from ...const import DEMMtlType
 from ....utils.js import hex_color
 
@@ -46,30 +46,29 @@ class DEMMaterialBuilder:
 
         isJPEG = p.get("radioButton_JPEG")
         fmt = "JPEG" if isJPEG else "PNG"
-        transp_background = p.get("checkBox_TransparentBackground", False) and not isJPEG
+        transparent_bg = p.get("checkBox_TransparentBackground", False) and not isJPEG
         shading = p.get("checkBox_Shading", True)
 
         # material type
         mtype = m.get("type", DEMMtlType.MAPCANVAS)
         if mtype == DEMMtlType.MAPCANVAS:
             mi = self.materialManager.getMapImageIndex(tex_size.width(), tex_size.height(), self.extent,
-                                                       opacity, transp_background, shading, fmt)
+                                                       opacity, transparent_bg, shading, fmt)
 
         elif mtype == DEMMtlType.LAYER:
             layerids = p.get("layerIds", [])
             mi = self.materialManager.getLayerImageIndex(layerids, tex_size.width(), tex_size.height(), self.extent,
-                                                         opacity, transp_background, shading, fmt)
+                                                         opacity, transparent_bg, shading, fmt)
 
         elif mtype == DEMMtlType.FILE:
             filepath = p.get("lineEdit_ImageFile", "")
-            mi = self.materialManager.getImageFileIndex(filepath, opacity, transp_background=True, doubleSide=True, shading=shading)
+            mi = self.materialManager.getImageFileIndex(filepath, opacity, transparent_bg=True, doubleSide=True, shading=shading)
 
         else:  # const.MTL_COLOR
+            mt = MaterialType.DEFAULT_MESH if shading else MaterialType.MESH_BASIC
             color = hex_color(p.get("colorButton_Color", 0), prefix="0x")
-            if shading:
-                mi = self.materialManager.getMeshMaterialIndex(color, opacity, True)
-            else:
-                mi = self.materialManager.getMeshBasicMaterialIndex(color, opacity, True)
+
+            mi = self.materialManager.getMeshIndex(mt, color, opacity, doubleSide=True)
 
         # build material
         ext = fmt.lower().replace("jpeg", "jpg")

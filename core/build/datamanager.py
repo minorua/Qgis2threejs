@@ -4,12 +4,14 @@
 # begin: 2014-01-16
 
 import os
+from typing import NamedTuple
 
 from qgis.PyQt.QtCore import Qt, QBuffer, QByteArray, QIODevice, QSize, QUrl
 from qgis.PyQt.QtGui import QColor, QImage, QPainter
 from qgis.core import Qgis, QgsMapSettings
 
 from ..const import ScriptFile
+from ..mapextent import MapExtent
 from ...utils.file import copyFile
 from ...utils.js import base64file, image2dataUri, imageFile2dataUri
 from ...utils.logging import logger
@@ -48,19 +50,19 @@ class ImageManager(DataManager):
     def setBaseMapSettings(self, mapSettings):
         self.baseMapSettings = QgsMapSettings(mapSettings) if mapSettings else QgsMapSettings()
 
-    def mapImageIndex(self, width, height, extent, transp_background, format):
-        img = (self.IMG_MAP, (None, width, height, extent, transp_background), format)
+    def mapImageIndex(self, width, height, extent, transparent_bg, format):
+        img = (self.IMG_MAP, (None, width, height, extent, transparent_bg), format)
         return self._index(img)
 
-    def layerImageIndex(self, layerids, width, height, extent, transp_background, format):
-        img = (self.IMG_LAYER, (layerids, width, height, extent, transp_background), format)
+    def layerImageIndex(self, layerids, width, height, extent, transparent_bg, format):
+        img = (self.IMG_LAYER, (layerids, width, height, extent, transparent_bg), format)
         return self._index(img)
 
     def imageFileIndex(self, path):
         img = (self.IMG_FILE, path, "")
         return self._index(img)
 
-    def _renderImage(self, layerids, width, height, extent, transp_background=False):
+    def _renderImage(self, layerids, width, height, extent, transparent_bg=False):
         # render layers with QgsMapRendererCustomPainterJob
         from qgis.core import QgsMapRendererCustomPainterJob
         antialias = True
@@ -73,7 +75,7 @@ class ImageManager(DataManager):
         if layerids:
             settings.setLayers(getLayersByLayerIds(layerids))
 
-        if transp_background:
+        if transparent_bg:
             settings.setBackgroundColor(QColor(Qt.GlobalColor.transparent))
 
         has_pluginlayer = False
@@ -146,112 +148,118 @@ class ImageManager(DataManager):
         self.image(index).save(path)
 
 
-class MaterialManager(DataManager):
-
-    # following six material types are defined also in JS
-    # first three types are basic material types
+class MaterialType:
     MESH_LAMBERT = 0
     MESH_PHONG = 1
     MESH_TOON = 2
+    MESH_BASIC = 3
 
-    LINE = 3
-    LINE_MESH = 4
-    SPRITE_IMAGE = 5
-    POINT = 6
+    LINE = 10
+    LINE_MESH = 11
+    SPRITE_IMAGE = 12
+    POINT = 13
 
-    # other material types for internal use
-    MESH_MATERIAL = 10
-    MESH_FLAT = 11
-    MESH_BASIC = 13
-    WIREFRAME = 12
+    DEFAULT_MESH = 20
 
-    MAP_IMAGE = 21
-    LAYER_IMAGE = 22
-    IMAGE_FILE = 23
+
+class TextureType:
+    MAP_IMAGE = 1
+    LAYER_IMAGE = 2
+    IMAGE_FILE = 3
+
+
+class Texture(NamedTuple):
+    type: int
+    src: list | str | None = None
+    width: int | None = None
+    height: int | None = None
+    extent: MapExtent | None = None
+    transparent_bg: bool = False
+    format: str = "PNG"
+
+
+class Material(NamedTuple):
+    type: int
+    color: str = ""
+    opacity: float = 1.0
+    doubleSide: bool = False
+    flat: bool = False
+    options: tuple | Texture | None = None
+
+
+
+class MaterialManager(DataManager):
 
     ERROR_COLOR = "0"
 
-    def __init__(self, imageManager, basicType=MESH_LAMBERT):
+    def __init__(self, imageManager: ImageManager, defaultMaterialType=MaterialType.MESH_LAMBERT):
         super().__init__()
         self.imageManager = imageManager
-        self.basicMaterialType = basicType
+        self.defaultMaterialType = defaultMaterialType
 
-    def _indexCol(self, type, color, opacity=1, doubleSide=False, opts=None):
-        if color[0:2] != "0x":
-            color = self.ERROR_COLOR
-        mtl = (type, color, opacity, doubleSide, opts)
+    def _indexCol(self, mtl: Material):
+        if mtl.color[0:2] != "0x":
+            logger.warning(f"Invalid color value: {mtl.color}")
+            mtl = mtl._replace(color=self.ERROR_COLOR)
+
         return self._index(mtl)
 
-    def getMeshMaterialIndex(self, color, opacity=1, doubleSide=False):
-        return self._indexCol(self.MESH_MATERIAL, color, opacity, doubleSide)
-
-    def getMeshFlatMaterialIndex(self, color, opacity=1, doubleSide=False):
-        return self._indexCol(self.MESH_FLAT, color, opacity, doubleSide)
-
-    def getMeshBasicMaterialIndex(self, color, opacity=1, doubleSide=False):
-        return self._indexCol(self.MESH_BASIC, color, opacity, doubleSide)
-
-    def getPointMaterialIndex(self, color, opacity=1, size=1):
-        return self._indexCol(self.POINT, color, opacity, False, size)
+    def getMeshIndex(self, type=MaterialType.DEFAULT_MESH, color="", opacity=1.0, doubleSide=False, flat=False, options: tuple | Texture | None = None):
+        return self._indexCol(Material(type, color, opacity, doubleSide, flat, options))
 
     def getLineIndex(self, color, opacity=1, dashed=False):
-        return self._indexCol(self.LINE, color, opacity, opts=dashed)
+        return self._indexCol(Material(MaterialType.LINE, color, opacity, options=(dashed,)))
 
     def getMeshLineIndex(self, color, opacity=1, thickness=1, dashed=False):
-        return self._indexCol(self.LINE_MESH, color, opacity, opts=(thickness, dashed))
+        return self._indexCol(Material(MaterialType.LINE_MESH, color, opacity, options=(thickness, dashed)))
 
-    def getWireframeIndex(self, color, opacity=1):
-        return self._indexCol(self.WIREFRAME, color, opacity)
+    def _indexTex(self, texture, opacity, shading, doubleSide=True):
+        m = Material(MaterialType.DEFAULT_MESH if shading else MaterialType.MESH_BASIC, opacity=opacity, doubleSide=doubleSide, options=texture)
+        return self._index(m)
 
-    def getMapImageIndex(self, width, height, extent, opacity=1, transp_background=False, shading=True, format="PNG"):
-        doubleSide = True
-        mtl = (self.MAP_IMAGE, None, opacity, doubleSide, ((width, height, extent, transp_background, format), shading))
-        return self._index(mtl)
+    def getMapImageIndex(self, width, height, extent, opacity=1, transparent_bg=False, shading=True, format="PNG"):      # TODO: order
+        tex = Texture(TextureType.MAP_IMAGE, None, width, height, extent, transparent_bg, format)
+        return self._indexTex(tex, opacity, shading)
 
-    def getLayerImageIndex(self, layerids, width, height, extent, opacity=1, transp_background=False, shading=True, format="PNG"):
-        doubleSide = True
-        mtl = (self.LAYER_IMAGE, None, opacity, doubleSide, ((layerids, width, height, extent, transp_background, format), shading))
-        return self._index(mtl)
+    def getLayerImageIndex(self, layerids, width, height, extent, opacity=1, transparent_bg=False, shading=True, format="PNG"):
+        tex = Texture(TextureType.LAYER_IMAGE, layerids, width, height, extent, transparent_bg, format)
+        return self._indexTex(tex, opacity, shading)
 
-    def getImageFileIndex(self, path, opacity=1, transp_background=False, doubleSide=False, shading=True):
-        mtl = (self.IMAGE_FILE, None, opacity, doubleSide, (path, transp_background, shading))
-        return self._index(mtl)
+    def getImageFileIndex(self, path, opacity=1, transparent_bg=False, doubleSide=False, shading=True):
+        tex = Texture(TextureType.IMAGE_FILE, src=path, transparent_bg=transparent_bg)
+        return self._indexTex(tex, opacity, shading, doubleSide)
 
     def getSpriteImageIndex(self, path_url, opacity=1):
-        transp_background = True
-        mtl = (self.SPRITE_IMAGE, None, opacity, False, (path_url, transp_background))
-        return self._index(mtl)
+        tex = Texture(TextureType.IMAGE_FILE, src=path_url, transparent_bg=True)
+        m = Material(MaterialType.SPRITE_IMAGE, opacity=opacity, options=tex)
+        return self._index(m)
 
     def build(self, index, filepath=None, url=None, base64=False):
-
-        mt, color, opacity, doubleSide, opts = self._list[index]
-        transp_background = False
-        shading = True
+        mtl: Material = self._list[index]
 
         m = {
-            "type": mt if mt in [self.POINT, self.LINE, self.LINE_MESH, self.SPRITE_IMAGE] else self.basicMaterialType
+            "type": self.defaultMaterialType if mtl.type == MaterialType.DEFAULT_MESH else mtl.type
         }
 
-        if color is None:
-            if mt == self.MAP_IMAGE:
-                args, shading = opts
-                imgIndex = self.imageManager.mapImageIndex(*args)
+        if isinstance(mtl.options, Texture):
+            tex = mtl.options
+            match tex.type:
+                case TextureType.MAP_IMAGE:
+                    imgIndex = self.imageManager.mapImageIndex(tex.width, tex.height, tex.extent, tex.transparent_bg, tex.format)
 
-            elif mt == self.LAYER_IMAGE:
-                args, shading = opts
-                imgIndex = self.imageManager.layerImageIndex(*args)
+                case TextureType.LAYER_IMAGE:
+                    imgIndex = self.imageManager.layerImageIndex(tex.src, tex.width, tex.height, tex.extent, tex.transparent_bg, tex.format)
 
-            elif mt == self.IMAGE_FILE:
-                imagepath, transp_background, shading = opts
-                imgIndex = self.imageManager.imageFileIndex(imagepath)
-
-            elif mt == self.SPRITE_IMAGE:
-                path_url, transp_background = opts
-                if path_url.startswith("http:") or path_url.startswith("https:"):
-                    url = path_url
-                    filepath = None
-                else:
-                    imgIndex = self.imageManager.imageFileIndex(path_url)
+                case TextureType.IMAGE_FILE:
+                    if mtl.type == MaterialType.SPRITE_IMAGE:
+                        path_url = tex.src
+                        if path_url.startswith("http:") or path_url.startswith("https:"):
+                            url = path_url
+                            filepath = None
+                        else:
+                            imgIndex = self.imageManager.imageFileIndex(path_url)
+                    else:
+                        imgIndex = self.imageManager.imageFileIndex(tex.src)
 
             if url is None:
                 m["image"] = {"base64": self.imageManager.dataUri(imgIndex)}
@@ -259,59 +267,52 @@ class MaterialManager(DataManager):
                 m["image"] = {"url": url}
 
                 if filepath:
-                    # write image to a file
                     self.imageManager.write(imgIndex, filepath)
+
+            if tex.transparent_bg:
+                m["t"] = 1
+
         else:
-            m["c"] = int(color, 16)
+            m["c"] = int(mtl.color, 16)
 
-            if mt == self.POINT:
-                m["s"] = opts   # size
+            match mtl.type:
+                case MaterialType.POINT:
+                    size = mtl.options[0]
+                    m["s"] = size
 
-            elif mt == self.LINE:
-                m["dashed"] = opts
+                case MaterialType.LINE:
+                    dashed = mtl.options[0]
+                    m["dashed"] = dashed
 
-            elif mt == self.LINE_MESH:
-                thickness, dashed = opts
-                m["thickness"] = thickness
-                m["dashed"] = dashed
+                case MaterialType.LINE_MESH:
+                    thickness, dashed = mtl.options
+                    m["thickness"] = thickness
+                    m["dashed"] = dashed
 
-            elif mt == self.MESH_BASIC:
-                shading = False
+        if mtl.opacity < 1:
+            m["o"] = mtl.opacity
 
-        if transp_background:
-            m["t"] = 1
-
-        if mt == self.WIREFRAME:
-            m["w"] = 1
-
-        if mt == self.MESH_FLAT:
+        if mtl.flat:
             m["flat"] = 1
 
-        if opacity < 1:
-            m["o"] = opacity
-
-        if doubleSide:
+        if mtl.doubleSide:
             m["ds"] = 1
-
-        if not shading:
-            m["bm"] = True
 
         return m
 
     def buildAll(self, pathRoot=None, urlRoot=None, base64=False):
         mList = []
-        for i, item in enumerate(self._list):
-            mt, color, _opacity, _doubleSide, opts = item
+        for i, mtl in enumerate(self._list):
             filepath = url = None
 
-            if pathRoot and color is None:
-                if mt == self.SPRITE_IMAGE:
-                    path_url = opts[0]
-                    if not path_url.startswith("http:") and not path_url.startswith("https:"):
-                        ext = os.path.splitext(path_url)[1].lower()
-                        suffix = "{}{}".format(i, ext)
-                        filepath = pathRoot + suffix
-                        url = urlRoot + suffix
+            if pathRoot and mtl.type == MaterialType.SPRITE_IMAGE:
+                tex = mtl.options
+                path_url = tex.src
+                if not path_url.startswith("http:") and not path_url.startswith("https:"):
+                    ext = os.path.splitext(path_url)[1].lower()
+                    suffix = f"{i}{ext}"
+                    filepath = pathRoot + suffix
+                    url = urlRoot + suffix
 
             m = self.build(i, filepath, url, base64)
             mList.append(m)

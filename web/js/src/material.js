@@ -61,12 +61,7 @@ export class Material {
 
 		if (m.t) opt.transparent = true;
 
-		if (m.w) opt.wireframe = true;
-
-		if (m.bm) {
-			this.mtl = new THREE.MeshBasicMaterial(opt);
-		}
-		else if (m.type == MaterialType.MeshLambert) {
+		if (m.type == MaterialType.MeshLambert) {
 			this.mtl = new THREE.MeshLambertMaterial(opt);
 		}
 		else if (m.type == MaterialType.MeshPhong) {
@@ -74,6 +69,9 @@ export class Material {
 		}
 		else if (m.type == MaterialType.MeshToon) {
 			this.mtl = new THREE.MeshToonMaterial(opt);
+		}
+		else if (m.type == MaterialType.MeshBasic) {
+			this.mtl = new THREE.MeshBasicMaterial(opt);
 		}
 		else if (m.type == MaterialType.Point) {
 			opt.size = m.s;

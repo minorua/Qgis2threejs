@@ -102,18 +102,16 @@ export interface MaterialImageData {
 }
 
 export interface MaterialData {
-    type: string;
+    type: number;
     mtlIndex: number;
-    ds?: boolean;       // double-sided
-    flat?: boolean;
-    image?: MaterialImageData;
     c?: number;         // color
     o?: number;         // opacity
-    t?: boolean;        // transparent
-    w?: boolean;        // wireframe
-    bm?: boolean;       // basic (no shading)
+    ds?: boolean | number;  // double-sided
+    flat?: boolean | number;
+    image?: MaterialImageData;
+    t?: boolean | number;        // transparent
     s?: number;         // point size
-    dashed?: boolean;
+    dashed?: boolean | number;
     thickness?: number;
     metalness?: number;
     roughness?: number;

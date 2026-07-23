@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2014-01-11
 
+from ..datamanager import MaterialManager, MaterialType
 from ...const import LayerType, PropertyID as PID
 from ....gui.propwidget import PropertyWidget, WVT
 
@@ -24,7 +25,7 @@ class ObjectTypeBase:
                 Note: mtlManager needs to be set before calling .material()
         """
         self.settings = settings
-        self.mtlManager = mtlManager
+        self.mtlManager: MaterialManager = mtlManager
 
     def setupWidgets(self, ppage):
         """Setup UI widgets for object type properties.
@@ -112,7 +113,9 @@ class PolygonTypeBase(ObjectTypeBase):
 class PointBasicTypeBase(PointTypeBase):
 
     def material(self, feat):
-        return {"idx": self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))}
+        return {
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP))
+        }
 
 
 class PointType(PointTypeBase):
@@ -124,7 +127,9 @@ class PointType(PointTypeBase):
         ppage.setupWidgets(mtlItems=[{"name": "Size", "defVal": 1}])
 
     def material(self, feat):
-        return {"idx": self.mtlManager.getPointMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.M0))}
+        return {
+            "idx": self.mtlManager.getMeshIndex(MaterialType.POINT, feat.prop(PID.C), feat.prop(PID.OP), options=(feat.prop(PID.M0),))
+        }
 
     def geometry(self, feat, geom):
         v = []
@@ -197,7 +202,9 @@ class DiskType(PointTypeBase):
                                       {"name": "Dip direction", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0, "label_field": None}])
 
     def material(self, feat):
-        return {"idx": self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), doubleSide=True)}
+        return {
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), doubleSide=True)
+        }
 
     def geometry(self, feat, geom):
         return {"pts": geom.toList(),
@@ -219,7 +226,9 @@ class PlaneType(PointTypeBase):
                                       {"name": "Dip direction", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0, "label_field": None}])
 
     def material(self, feat):
-        return {"idx": self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), doubleSide=True)}
+        return {
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), doubleSide=True)
+        }
 
     def geometry(self, feat, geom):
         return {"pts": geom.toList(),
@@ -239,7 +248,9 @@ class LineType(LineTypeBase):
         ppage.setupWidgets(mtlItems=[{"name": "Dashed", "type": PropertyWidget.CHECKBOX}])
 
     def material(self, feat):
-        return {"idx": self.mtlManager.getLineIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.M0))}
+        return {
+            "idx": self.mtlManager.getLineIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), dashed=feat.prop(PID.M0))
+        }
 
     def geometry(self, feat, geom):
         return {"lines": geom.toList(flat=True)}
@@ -270,7 +281,9 @@ class PipeType(LineTypeBase):
         ppage.setupWidgets(geomItems=[{"name": "Radius", "defVal": self.defaultValue()}])
 
     def material(self, feat):
-        return {"idx": self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))}
+        return {
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP))
+        }
 
     def geometry(self, feat, geom):
         r = feat.prop(PID.G0)
@@ -294,7 +307,9 @@ class BoxLineType(LineTypeBase):
                                       {"name": "Height", "defVal": val}])
 
     def material(self, feat):
-        return {"idx": self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))}
+        return {
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP))
+        }
 
     def geometry(self, feat, geom):
         return {"lines": geom.toList(),
@@ -311,7 +326,9 @@ class WallType(LineTypeBase):
         ppage.setupWidgets(alt2=True)
 
     def material(self, feat):
-        return {"idx": self.mtlManager.getMeshFlatMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), doubleSide=True)}
+        return {
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), doubleSide=True, flat=True)
+        }
 
     def geometry(self, feat, geom):
         return {"lines": geom.toList(flat=True),
@@ -330,7 +347,9 @@ class PolygonType(PolygonTypeBase):
         ppage.setupWidgets()
 
     def material(self, feat):
-        return {"idx": self.mtlManager.getMeshFlatMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), True)}
+        return {
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), doubleSide=True, flat=True)
+        }
 
     def geometry(self, feat, geom):
         g = geom.toDict(flat=True)
@@ -351,11 +370,13 @@ class ExtrudedType(PolygonTypeBase):
                                    "defVal": None})
 
     def material(self, feat):
-        mtl = {"idx": self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP))}
+        mtl = {
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP))
+        }
 
         # edges
         if feat.prop(PID.C2) is not None:
-            mtl["edge"] = self.mtlManager.getLineIndex(feat.prop(PID.C2), feat.prop(PID.OP))
+            mtl["edge"] = self.mtlManager.getLineIndex(color=feat.prop(PID.C2), opacity=feat.prop(PID.OP))
         return mtl
 
     def geometry(self, feat, geom):
@@ -379,11 +400,13 @@ class OverlayType(PolygonTypeBase):
                                    "defVal": None})
 
     def material(self, feat):
-        mtl = {"idx": self.mtlManager.getMeshMaterialIndex(feat.prop(PID.C), feat.prop(PID.OP), True)}
+        mtl = {
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), doubleSide=True)
+        }
 
         # border
         if feat.prop(PID.C2) is not None:
-            mtl["brdr"] = self.mtlManager.getLineIndex(feat.prop(PID.C2), feat.prop(PID.OP))
+            mtl["brdr"] = self.mtlManager.getLineIndex(color=feat.prop(PID.C2), opacity=feat.prop(PID.OP))
         return mtl
 
     def geometry(self, feat, geom):

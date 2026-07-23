@@ -36,11 +36,15 @@ export const MaterialType = {
 	MeshLambert: 0,
 	MeshPhong: 1,
 	MeshToon: 2,
-	Line: 3,
-	MeshLine: 4,
-	Sprite: 5,
-	Point: 6,
+	MeshBasic: 3,
+
 	MeshStandard: 7,
+
+	Line: 10,
+	MeshLine: 11,
+	Sprite: 12,
+	Point: 13,
+
 	Unknown: -1
 
 };
