@@ -124,7 +124,11 @@ class PointType(PointTypeBase):
     pids = [PID.C, PID.OP, PID.M0]
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(mtlItems=[{"name": "Size", "defVal": 1}])
+        ppage.setupWidgets(
+            mtlItems=[
+                {"name": "Size", "defVal": 1}
+            ]
+        )
 
     def material(self, feat):
         return {
@@ -144,11 +148,17 @@ class SphereType(PointBasicTypeBase):
     pids = [PID.C, PID.OP, PID.G0]
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(geomItems=[{"name": "Radius", "defVal": self.defaultValue()}])
+        ppage.setupWidgets(
+            geomItems=[
+                {"name": "Radius", "defVal": self.defaultValue()}
+            ]
+        )
 
     def geometry(self, feat, geom):
-        return {"pts": geom.toList(),
-                "r": feat.prop(PID.G0)}
+        return {
+            "pts": geom.toList(),
+            "r": feat.prop(PID.G0)
+        }
 
 
 class CylinderType(PointBasicTypeBase):
@@ -157,14 +167,19 @@ class CylinderType(PointBasicTypeBase):
     pids = [PID.C, PID.OP, PID.G0, PID.G1]
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(geomItems=[{"name": "Radius", "defVal": self.defaultValue()},
-                                      {"name": "Height", "defVal": self.defaultValueZ()}])
+        ppage.setupWidgets(
+            geomItems=[
+                {"name": "Radius", "defVal": self.defaultValue()},
+                {"name": "Height", "defVal": self.defaultValueZ()}
+            ]
+        )
 
     def geometry(self, feat, geom):
-        r = feat.prop(PID.G0)
-        return {"pts": geom.toList(),
-                "r": r,
-                "h": feat.prop(PID.G1) * self.settings.mapTo3d().zScale}
+        return {
+            "pts": geom.toList(),
+            "r": feat.prop(PID.G0),
+            "h": feat.prop(PID.G1) * self.settings.mapTo3d().zScale
+        }
 
 
 class ConeType(CylinderType):
@@ -180,15 +195,21 @@ class BoxType(PointBasicTypeBase):
     def setupWidgets(self, ppage):
         val = self.defaultValue()
 
-        ppage.setupWidgets(geomItems=[{"name": "Width", "defVal": val},
-                                      {"name": "Depth", "defVal": val},
-                                      {"name": "Height", "defVal": self.defaultValueZ()}])
+        ppage.setupWidgets(
+            geomItems=[
+                {"name": "Width", "defVal": val},
+                {"name": "Depth", "defVal": val},
+                {"name": "Height", "defVal": self.defaultValueZ()}
+            ]
+        )
 
     def geometry(self, feat, geom):
-        return {"pts": geom.toList(),
-                "w": feat.prop(PID.G0),
-                "d": feat.prop(PID.G1),
-                "h": feat.prop(PID.G2) * self.settings.mapTo3d().zScale}
+        return {
+            "pts": geom.toList(),
+            "w": feat.prop(PID.G0),
+            "d": feat.prop(PID.G1),
+            "h": feat.prop(PID.G2) * self.settings.mapTo3d().zScale
+        }
 
 
 class DiskType(PointTypeBase):
@@ -197,9 +218,25 @@ class DiskType(PointTypeBase):
     pids = [PID.C, PID.OP, PID.G0, PID.G1, PID.G2]
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(geomItems=[{"name": "Radius", "defVal": self.defaultValue()},
-                                      {"name": "Dip", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0, "label_field": None},
-                                      {"name": "Dip direction", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0, "label_field": None}])
+        ppage.setupWidgets(
+            geomItems=[
+                {"name": "Radius", "defVal": self.defaultValue()},
+                {
+                    "name": "Dip",
+                    "label": "Degrees",
+                    "valType": WVT.ANGLE,
+                    "defVal": 0,
+                    "label_field": None
+                },
+                {
+                    "name": "Dip direction",
+                    "label": "Degrees",
+                    "valType": WVT.ANGLE,
+                    "defVal": 0,
+                    "label_field": None
+                }
+            ]
+        )
 
     def material(self, feat):
         return {
@@ -207,10 +244,12 @@ class DiskType(PointTypeBase):
         }
 
     def geometry(self, feat, geom):
-        return {"pts": geom.toList(),
-                "r": feat.prop(PID.G0),
-                "d": feat.prop(PID.G1),
-                "dd": feat.prop(PID.G2)}
+        return {
+            "pts": geom.toList(),
+            "r": feat.prop(PID.G0),
+            "d": feat.prop(PID.G1),
+            "dd": feat.prop(PID.G2)
+        }
 
 
 class PlaneType(PointTypeBase):
@@ -220,10 +259,26 @@ class PlaneType(PointTypeBase):
 
     def setupWidgets(self, ppage):
         val = self.defaultValue()
-        ppage.setupWidgets(geomItems=[{"name": "Width", "defVal": val},
-                                      {"name": "Length", "defVal": val},
-                                      {"name": "Dip", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0, "label_field": None},
-                                      {"name": "Dip direction", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0, "label_field": None}])
+        ppage.setupWidgets(
+            geomItems=[
+                {"name": "Width", "defVal": val},
+                {"name": "Length", "defVal": val},
+                {
+                    "name": "Dip",
+                    "label": "Degrees",
+                    "valType": WVT.ANGLE,
+                    "defVal": 0,
+                    "label_field": None
+                },
+                {
+                    "name": "Dip direction",
+                    "label": "Degrees",
+                    "valType": WVT.ANGLE,
+                    "defVal": 0,
+                    "label_field": None
+                }
+            ]
+        )
 
     def material(self, feat):
         return {
@@ -231,11 +286,13 @@ class PlaneType(PointTypeBase):
         }
 
     def geometry(self, feat, geom):
-        return {"pts": geom.toList(),
-                "w": feat.prop(PID.G0),
-                "l": feat.prop(PID.G1),
-                "d": feat.prop(PID.G2),
-                "dd": feat.prop(PID.G3)}
+        return {
+            "pts": geom.toList(),
+            "w": feat.prop(PID.G0),
+            "l": feat.prop(PID.G1),
+            "d": feat.prop(PID.G2),
+            "dd": feat.prop(PID.G3)
+        }
 
 
 # Line
@@ -245,7 +302,11 @@ class LineType(LineTypeBase):
     pids = [PID.C, PID.OP, PID.M0]
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(mtlItems=[{"name": "Dashed", "type": PropertyWidget.CHECKBOX}])
+        ppage.setupWidgets(
+            mtlItems=[
+                {"name": "Dashed", "type": PropertyWidget.CHECKBOX}
+            ]
+        )
 
     def material(self, feat):
         return {
@@ -253,7 +314,9 @@ class LineType(LineTypeBase):
         }
 
     def geometry(self, feat, geom):
-        return {"lines": geom.toList(flat=True)}
+        return {
+            "lines": geom.toList(flat=True)
+        }
 
 
 class ThickLineType(LineTypeBase):
@@ -262,14 +325,24 @@ class ThickLineType(LineTypeBase):
     pids = [PID.C, PID.OP, PID.G0, PID.M0]
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(geomItems=[{"name": "Thickness", "defVal": 1}],
-                           mtlItems=[{"name": "Dashed", "type": PropertyWidget.CHECKBOX}])
+        ppage.setupWidgets(
+            geomItems=[
+                {"name": "Thickness", "defVal": 1}
+            ],
+            mtlItems=[
+                {"name": "Dashed", "type": PropertyWidget.CHECKBOX}
+            ]
+        )
 
     def material(self, feat):
-        return {"idx": self.mtlManager.getMeshLineIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.G0), feat.prop(PID.M0))}
+        return {
+            "idx": self.mtlManager.getMeshLineIndex(feat.prop(PID.C), feat.prop(PID.OP), feat.prop(PID.G0), feat.prop(PID.M0))
+        }
 
     def geometry(self, feat, geom):
-        return {"lines": geom.toList(flat=True)}
+        return {
+            "lines": geom.toList(flat=True)
+        }
 
 
 class PipeType(LineTypeBase):
@@ -278,7 +351,11 @@ class PipeType(LineTypeBase):
     pids = [PID.C, PID.OP, PID.G0]
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(geomItems=[{"name": "Radius", "defVal": self.defaultValue()}])
+        ppage.setupWidgets(
+            geomItems=[
+                {"name": "Radius", "defVal": self.defaultValue()}
+            ]
+        )
 
     def material(self, feat):
         return {
@@ -286,9 +363,10 @@ class PipeType(LineTypeBase):
         }
 
     def geometry(self, feat, geom):
-        r = feat.prop(PID.G0)
-        return {"lines": geom.toList(),
-                "r": r}
+        return {
+            "lines": geom.toList(),
+            "r": feat.prop(PID.G0)
+        }
 
 
 class ConeLineType(PipeType):
@@ -303,8 +381,12 @@ class BoxLineType(LineTypeBase):
 
     def setupWidgets(self, ppage):
         val = self.defaultValue()
-        ppage.setupWidgets(geomItems=[{"name": "Width", "defVal": val},
-                                      {"name": "Height", "defVal": val}])
+        ppage.setupWidgets(
+            geomItems=[
+                {"name": "Width", "defVal": val},
+                {"name": "Height","defVal": val}
+            ]
+        )
 
     def material(self, feat):
         return {
@@ -312,9 +394,11 @@ class BoxLineType(LineTypeBase):
         }
 
     def geometry(self, feat, geom):
-        return {"lines": geom.toList(),
-                "w": feat.prop(PID.G0),
-                "h": feat.prop(PID.G1)}
+        return {
+            "lines": geom.toList(),
+            "w": feat.prop(PID.G0),
+            "h": feat.prop(PID.G1)
+        }
 
 
 class WallType(LineTypeBase):
@@ -331,8 +415,10 @@ class WallType(LineTypeBase):
         }
 
     def geometry(self, feat, geom):
-        return {"lines": geom.toList(flat=True),
-                "bh": feat.prop(PID.ALT2) * self.settings.mapTo3d().zScale}
+        return {
+            "lines": geom.toList(flat=True),
+            "bh": feat.prop(PID.ALT2) * self.settings.mapTo3d().zScale
+        }
 
 
 # Polygon
@@ -364,10 +450,16 @@ class ExtrudedType(PolygonTypeBase):
     pids = [PID.C, PID.C2, PID.OP, PID.G0]
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(geomItems=[{"name": "Height", "defVal": self.defaultValueZ()}],
-                           color2={"name": "Edge color",
-                                   "itemText": {None: "No edge"},
-                                   "defVal": None})
+        ppage.setupWidgets(
+            geomItems=[
+                {"name": "Height", "defVal": self.defaultValueZ()}
+            ],
+            color2={
+                "name": "Edge color",
+                "itemText": {None: "No edge"},
+                "defVal": None
+            }
+        )
 
     def material(self, feat):
         mtl = {
@@ -395,9 +487,15 @@ class OverlayType(PolygonTypeBase):
     pids = [PID.C, PID.C2, PID.OP]
 
     def setupWidgets(self, ppage):
-        ppage.setupWidgets(color2={"name": "Border color",
-                                   "itemText": {None: "No border"},
-                                   "defVal": None})
+        ppage.setupWidgets(
+            color2={
+                "name": "Border color",
+                "itemText": {
+                    None: "No border"
+                },
+                "defVal": None
+            }
+        )
 
     def material(self, feat):
         mtl = {
@@ -428,9 +526,17 @@ class BillboardType(PointTypeBase):
     def setupWidgets(self, ppage):
         filterString = "Images (*.png *.jpg *.gif *.bmp);;All files (*.*)"
 
-        ppage.setupWidgets(filepath={"name": "Image file", "filterString": filterString, "allowURL": True},
-                           geomItems=[{"name": "Size", "valType": WVT.OTHERS, "defVal": 1}],
-                           color=False)
+        ppage.setupWidgets(
+            filepath={
+                "name": "Image file",
+                "filterString": filterString,
+                "allowURL": True
+            },
+            geomItems=[
+                {"name": "Size", "valType": WVT.OTHERS, "defVal": 1}
+            ],
+            color=False
+        )
 
     def material(self, feat):
         if feat.prop(PID.PATH):
@@ -438,8 +544,10 @@ class BillboardType(PointTypeBase):
         return None
 
     def geometry(self, feat, geom):
-        return {"pts": geom.toList(),
-                "size": feat.prop(PID.G0)}
+        return {
+            "pts": geom.toList(),
+            "size": feat.prop(PID.G0)
+        }
 
 
 # ModelFileType
@@ -456,15 +564,42 @@ class ModelFileType(PointTypeBase):
     def setupWidgets(self, ppage):
         filterString = "Model files (*.dae *.gltf *.glb);;All files (*.*)"
 
-        ppage.setupWidgets(filepath={"name": "Model file", "filterString": filterString, "allowURL": True},
-                           geomItems=[{"name": "Scale", "defVal": 1},
-                                      {"name": "Rotation (x)", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0},
-                                      {"name": "Rotation (y)", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0},
-                                      {"name": "Rotation (z)", "label": "Degrees", "valType": WVT.ANGLE, "defVal": 0},
-                                      {"name": "Rotation order", "type": PropertyWidget.COMBOBOX,
-                                       "defVal": "XYZ", "items": ["XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"]}],
-                           color=False,
-                           opacity=False)
+        ppage.setupWidgets(
+            filepath={
+                "name": "Model file",
+                "filterString": filterString,
+                "allowURL": True
+            },
+            geomItems=[
+                {"name": "Scale", "defVal": 1},
+                {
+                    "name": "Rotation (x)",
+                    "label": "Degrees",
+                    "valType": WVT.ANGLE,
+                    "defVal": 0
+                },
+                {
+                    "name": "Rotation (y)",
+                    "label": "Degrees",
+                    "valType": WVT.ANGLE,
+                    "defVal": 0
+                },
+                {
+                    "name": "Rotation (z)",
+                    "label": "Degrees",
+                    "valType": WVT.ANGLE,
+                    "defVal": 0
+                },
+                {
+                    "name": "Rotation order",
+                    "type": PropertyWidget.COMBOBOX,
+                    "defVal": "XYZ",
+                    "items": ["XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"]
+                }
+            ],
+            color=False,
+            opacity=False
+        )
 
     def model(self, feat):
         if feat.prop(PID.PATH):
@@ -472,14 +607,17 @@ class ModelFileType(PointTypeBase):
         return None
 
     def geometry(self, feat, geom):
-        d = {"pts": geom.toList(),
-             "rotateX": feat.prop(PID.G1),
-             "rotateY": feat.prop(PID.G2),
-             "rotateZ": feat.prop(PID.G3),
-             "scale": feat.prop(PID.G0)}
+        d = {
+            "pts": geom.toList(),
+            "rotateX": feat.prop(PID.G1),
+            "rotateY": feat.prop(PID.G2),
+            "rotateZ": feat.prop(PID.G3),
+            "scale": feat.prop(PID.G0)
+        }
 
         if feat.prop(PID.G4) != "XYZ":    # added in 2.4
             d["rotateO"] = feat.prop(PID.G4)
+
         return d
 
 
@@ -509,11 +647,11 @@ class ObjectType:
     Extruded = ExtrudedType
     Overlay = OverlayType
 
-    Grouped = {LayerType.POINT: [SphereType, CylinderType, ConeType, BoxType, DiskType,
-                                 PlaneType, PointType, BillboardType, ModelFileType],
-               LayerType.LINESTRING: [LineType, ThickLineType, PipeType, ConeLineType, BoxLineType, WallType],
-               LayerType.POLYGON: [PolygonType, ExtrudedType, OverlayType]
-               }
+    Grouped = {
+        LayerType.POINT: [SphereType, CylinderType, ConeType, BoxType, DiskType, PlaneType, PointType, BillboardType, ModelFileType],
+        LayerType.LINESTRING: [LineType, ThickLineType, PipeType, ConeLineType, BoxLineType, WallType],
+        LayerType.POLYGON: [PolygonType, ExtrudedType, OverlayType]
+    }
 
     @classmethod
     def typesByGeomType(cls, geom_type):
