@@ -10,7 +10,6 @@ from qgis.core import QgsPoint, QgsProject
 from .grid_builder import DEMGridBuilder, DEMTileGridBuilder
 from .material_builder import DEMMaterialBuilder
 from .property_reader import DEMPropertyReader
-from ..datamanager import MaterialType
 from ..layerbuilderbase import LayerBuilderBase
 from ...const import DEMMtlType
 from ...geometry import dissolvePolygonsWithinExtent

@@ -11,7 +11,7 @@ from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from ..const import LayerType
 from ..exportsettings import ExportSettings, Layer
-from .datamanager import ImageManager
+from .datamanager.image import ImageManager
 from .dem.builder import DEMLayerBuilder
 from .vector.builder import VectorLayerBuilder
 from ...utils.basic import noop

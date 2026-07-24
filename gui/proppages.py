@@ -26,7 +26,7 @@ from .ui.vectorproperties import Ui_VectorPropertiesWidget
 
 from .propwidget import PropertyWidget
 from ..conf import DEF_SETS, PLUGIN_NAME
-from ..core.build.datamanager import MaterialType
+from ..core.build.datamanager.material import MaterialType
 from ..core.build.vector.object import ObjectType
 from ..core.const import LayerType, DEMMtlType, GEOM_WIDGET_MAX_COUNT, MTL_WIDGET_MAX_COUNT
 from ..core.exportsettings import calculateGridSegments

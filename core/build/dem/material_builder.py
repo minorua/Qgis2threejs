@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from .property_reader import DEMPropertyReader
-from ..datamanager import MaterialManager, MaterialType
+from ..datamanager.material import MaterialManager, MaterialType
 from ...const import DEMMtlType
 from ....utils.js import hex_color
 

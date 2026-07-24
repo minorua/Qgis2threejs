@@ -10,7 +10,8 @@ from .feature_block_builder import FeatureBlockBuilder
 from .layer import VectorLayer
 from .object import ObjectType
 from ..layerbuilderbase import LayerBuilderBase
-from ..datamanager import MaterialManager, ModelManager
+from ..datamanager.material import MaterialManager
+from ..datamanager.model import ModelManager
 from ...const import LayerType
 from ...geometry import VectorGeometry
 from ....conf import DEF_SETS, FEATURES_PER_BLOCK

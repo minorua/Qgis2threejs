@@ -11,7 +11,7 @@ from qgis.PyQt.QtCore import QDir, QEventLoop, QFileInfo, QObject, QSize, QTimer
 from qgis.PyQt.QtGui import QImage, QPainter
 
 from ..build.builder import ThreeJSBuilder, LayerBuilderFactory
-from ..build.datamanager import ImageManager
+from ..build.datamanager.image import ImageManager
 from ..build.vector.builder import VectorLayerBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings
