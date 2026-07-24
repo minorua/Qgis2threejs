@@ -37,8 +37,7 @@ export const MaterialType = {
 	MeshPhong: 1,
 	MeshToon: 2,
 	MeshBasic: 3,
-
-	MeshStandard: 7,
+	MeshStandard: 4,
 
 	Line: 10,
 	MeshLine: 11,

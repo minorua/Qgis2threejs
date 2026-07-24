@@ -61,17 +61,14 @@ export class Material {
 
 		if (m.t) opt.transparent = true;
 
-		if (m.type == MaterialType.MeshLambert) {
-			this.mtl = new THREE.MeshLambertMaterial(opt);
+		if (m.type == MaterialType.MeshStandard) {
+			if (m.roughness !== undefined) opt.roughness = m.roughness;
+			if (m.metalness !== undefined) opt.metalness = m.metalness;
 		}
-		else if (m.type == MaterialType.MeshPhong) {
-			this.mtl = new THREE.MeshPhongMaterial(opt);
-		}
-		else if (m.type == MaterialType.MeshToon) {
-			this.mtl = new THREE.MeshToonMaterial(opt);
-		}
-		else if (m.type == MaterialType.MeshBasic) {
-			this.mtl = new THREE.MeshBasicMaterial(opt);
+
+		const MaterialClass = MaterialFactory[m.type];
+		if (MaterialClass) {
+			this.mtl = new MaterialClass(opt);
 		}
 		else if (m.type == MaterialType.Point) {
 			opt.size = m.s;
@@ -108,12 +105,6 @@ export class Material {
 		else if (m.type == MaterialType.Sprite) {
 			opt.color = 0xffffff;
 			this.mtl = new THREE.SpriteMaterial(opt);
-		}
-		else {
-			if (m.roughness !== undefined) opt.roughness = m.roughness;
-			if (m.metalness !== undefined) opt.metalness = m.metalness;
-
-			this.mtl = new THREE.MeshStandardMaterial(opt);
 		}
 
 		if (!defer) this._loadCompleted(callback);
@@ -270,3 +261,12 @@ export class Materials extends THREE.EventDispatcher {
 	}
 
 }
+
+
+const MaterialFactory = {
+	[MaterialType.MeshBasic]: THREE.MeshBasicMaterial,
+	[MaterialType.MeshLambert]: THREE.MeshLambertMaterial,
+	[MaterialType.MeshPhong]: THREE.MeshPhongMaterial,
+	[MaterialType.MeshToon]: THREE.MeshToonMaterial,
+	[MaterialType.MeshStandard]: THREE.MeshStandardMaterial
+};

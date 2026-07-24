@@ -242,10 +242,15 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         if HAVE_PROCESSING:
             self.initMapTool(canvas)
 
-        # material type
-        self.comboBox_MaterialType.addItem("Lambert Material", MaterialType.MESH_LAMBERT)
-        self.comboBox_MaterialType.addItem("Phong Material", MaterialType.MESH_PHONG)
-        self.comboBox_MaterialType.addItem("Toon Material", MaterialType.MESH_TOON)
+        mtl_types = [
+            ["Basic Material", MaterialType.MESH_BASIC],
+            ["Lambert Material", MaterialType.MESH_LAMBERT],
+            ["Phong Material", MaterialType.MESH_PHONG],
+            ["Toon Material", MaterialType.MESH_TOON],
+            ["Standard Material", MaterialType.MESH_STANDARD],
+        ]
+        for text, data in mtl_types:
+            self.comboBox_MaterialType.addItem(text, data)
 
         # restore properties
         if properties:
@@ -254,6 +259,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             self.radioButton_UseCanvasExtent.setChecked(True)
             self.lineEdit_zFactor.setText(str(DEF_SETS.Z_EXAGGERATION))
             self.colorButton_Fog.setColor(QColor(Qt.GlobalColor.white))
+            self.comboBox_MaterialType.setCurrentIndex(1)       # Lambert
 
         # supported projections
         # https://github.com/proj4js/proj4js

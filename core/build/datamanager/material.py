@@ -17,6 +17,7 @@ class MaterialType:
     MESH_PHONG = 1
     MESH_TOON = 2
     MESH_BASIC = 3
+    MESH_STANDARD = 4
 
     LINE = 10
     LINE_MESH = 11
