@@ -111,12 +111,15 @@ class AnimationPanel(QWidget):
         else:
             for item in items:
                 t = item.type()
-                if t in (ATConst.ITEM_TRK_TEXTURE, ATConst.ITEM_TRK_GROWING_LINE):
-                    mapLayerId = item.parent().data(0, ATConst.DATA_LAYER_ID)
-                elif t in (ATConst.ITEM_TEXTURE, ATConst.ITEM_GROWING_LINE):
-                    mapLayerId = item.parent().parent().data(0, ATConst.DATA_LAYER_ID)
-                else:
-                    mapLayerId = None
+                match t:
+                    case ATConst.ITEM_TRK_TEXTURE | ATConst.ITEM_TRK_GROWING_LINE:
+                        mapLayerId = item.parent().data(0, ATConst.DATA_LAYER_ID)
+
+                    case ATConst.ITEM_TEXTURE | ATConst.ITEM_GROWING_LINE:
+                        mapLayerId = item.parent().parent().data(0, ATConst.DATA_LAYER_ID)
+
+                    case _:
+                        mapLayerId = None
 
                 if mapLayerId:
                     layer = settings.getLayer(mapLayerId)
@@ -316,6 +319,7 @@ class AnimationTreeWidget(QTreeWidget):
             if item.type() == dest.type():
                 if item.parent().parent() == item.parent().parent():
                     accept = True
+
             elif item.parent().type() == dest.type():
                 if item.parent().parent() == dest.parent():
                     accept = True
@@ -394,31 +398,35 @@ class AnimationTreeWidget(QTreeWidget):
                 self.ctxMenuLayerAdd.popup(QCursor.pos())
             return
 
-        trk_type = typ if typ & ATConst.ITEM_TRK else typ - ATConst.ITEM_MBR + ATConst.ITEM_TRK
-        if trk_type == ATConst.ITEM_TRK_CAMERA:
-            added = self.addKeyframeItem()
-            self.setCurrentItem(added)
+        track_type = typ if typ & ATConst.ITEM_TRK else typ - ATConst.ITEM_MBR + ATConst.ITEM_TRK
+        match track_type:
+            case ATConst.ITEM_TRK_CAMERA:
+                added = self.addKeyframeItem()
+                self.setCurrentItem(added)
 
-        elif trk_type == ATConst.ITEM_TRK_OPACITY:
-            self.addOpacityItem()
+            case ATConst.ITEM_TRK_OPACITY:
+                self.addOpacityItem()
 
-        elif trk_type == ATConst.ITEM_TRK_TEXTURE:
-            self.addTextureItem()
+            case ATConst.ITEM_TRK_TEXTURE:
+                self.addTextureItem()
 
-        elif trk_type == ATConst.ITEM_TRK_GROWING_LINE:
-            if typ == ATConst.ITEM_TRK_GROWING_LINE and item.childCount() == 0:
-                self.addGrowLineItem()
-            else:
-                QMessageBox.warning(self, PLUGIN_NAME, "This track can't have more than one item.")
+            case ATConst.ITEM_TRK_GROWING_LINE:
+                if typ == ATConst.ITEM_TRK_GROWING_LINE and item.childCount() == 0:
+                    self.addGrowLineItem()
+                else:
+                    QMessageBox.warning(self, PLUGIN_NAME, "This track can't have more than one item.")
 
     def removeSelectedItems(self):
         items = self.selectedItems() or [self.currentItem()]
-        if len(items) == 0:
+        n = len(items)
+        if n == 0:
             return
-        elif len(items) == 1:
+
+        elif n == 1:
             msg = "Are you sure you want to remove '{}'?".format(items[0].text(0))
+
         else:
-            msg = "Are you sure you want to remove {} items?".format(len(items))
+            msg = "Are you sure you want to remove {} items?".format(n)
 
         if QMessageBox.question(self, PLUGIN_NAME, msg) != QMessageBox.StandardButton.Yes:
             return
@@ -470,10 +478,10 @@ class AnimationTreeWidget(QTreeWidget):
             iidx = 0
 
         keyframe = keyframe or {}
-        typ = keyframe.get("type", parent.type() - ATConst.ITEM_TRK + ATConst.ITEM_MBR)
+        kf_type = keyframe.get("type", parent.type() - ATConst.ITEM_TRK + ATConst.ITEM_MBR)
         name = keyframe.get("name") or self.uniqueChildName(parent, "keyframe", omit_one=False)
 
-        item = QTreeWidgetItem(typ)
+        item = QTreeWidgetItem(kf_type)
         item.setText(0, name)
 
         item.setData(0, ATConst.DATA_EASING, keyframe.get("easing", ATConst.EASING_LINEAR))
@@ -481,19 +489,20 @@ class AnimationTreeWidget(QTreeWidget):
         item.setData(0, ATConst.DATA_DELAY, keyframe.get("delay", 0))
 
         icon = None
-        if typ == ATConst.ITEM_CAMERA:
-            item.setData(0, ATConst.DATA_CAMERA, keyframe.get("camera") or self.controller.cameraState(flat=True))
+        match kf_type:
+            case ATConst.ITEM_CAMERA:
+                item.setData(0, ATConst.DATA_CAMERA, keyframe.get("camera") or self.controller.cameraState(flat=True))
 
-        elif typ == ATConst.ITEM_OPACITY:
-            item.setData(0, ATConst.DATA_OPACITY, keyframe.get("opacity", 1))
+            case ATConst.ITEM_OPACITY:
+                item.setData(0, ATConst.DATA_OPACITY, keyframe.get("opacity", 1))
 
-        elif typ == ATConst.ITEM_TEXTURE:
-            item.setData(0, ATConst.DATA_MTL_ID, keyframe.get("mtlId", ""))
-            item.setData(0, ATConst.DATA_EFFECT, keyframe.get("effect", 0))
+            case ATConst.ITEM_TEXTURE:
+                item.setData(0, ATConst.DATA_MTL_ID, keyframe.get("mtlId", ""))
+                item.setData(0, ATConst.DATA_EFFECT, keyframe.get("effect", 0))
 
-        elif typ == ATConst.ITEM_GROWING_LINE:
-            item.setData(0, ATConst.DATA_SEQ, keyframe.get("sequential", False))
-            icon = self.effectIcon
+            case ATConst.ITEM_GROWING_LINE:
+                item.setData(0, ATConst.DATA_SEQ, keyframe.get("sequential", False))
+                icon = self.effectIcon
 
         nar = keyframe.get("narration")
         if nar:
@@ -515,10 +524,10 @@ class AnimationTreeWidget(QTreeWidget):
         if not item or not (item.type() & ATConst.ITEM_MBR):
             return
 
-        typ = item.type()
+        kf_type = item.type()
 
         k = {
-            "type": typ,
+            "type": kf_type,
             "name": item.text(0)
         }
 
@@ -533,22 +542,23 @@ class AnimationTreeWidget(QTreeWidget):
         if n:
             k["narration"] = n
 
-        if typ == ATConst.ITEM_CAMERA:
-            k["camera"] = item.data(0, ATConst.DATA_CAMERA)
+        match kf_type:
+            case ATConst.ITEM_CAMERA:
+                k["camera"] = item.data(0, ATConst.DATA_CAMERA)
 
-        elif typ == ATConst.ITEM_OPACITY:
-            k["opacity"] = item.data(0, ATConst.DATA_OPACITY)
+            case ATConst.ITEM_OPACITY:
+                k["opacity"] = item.data(0, ATConst.DATA_OPACITY)
 
-        elif typ == ATConst.ITEM_TEXTURE:
-            layer = self.getLayerFromLayerItem(item.parent().parent())
-            if layer:
-                id = item.data(0, ATConst.DATA_MTL_ID)
-                k["mtlId"] = id
-                k["mtlIndex"] = layer.mtlIndex(id)
-                k["effect"] = item.data(0, ATConst.DATA_EFFECT)
+            case ATConst.ITEM_TEXTURE:
+                layer = self.getLayerFromLayerItem(item.parent().parent())
+                if layer:
+                    id = item.data(0, ATConst.DATA_MTL_ID)
+                    k["mtlId"] = id
+                    k["mtlIndex"] = layer.mtlIndex(id)
+                    k["effect"] = item.data(0, ATConst.DATA_EFFECT)
 
-        elif typ == ATConst.ITEM_GROWING_LINE:
-            k["sequential"] = item.data(0, ATConst.DATA_SEQ)
+            case ATConst.ITEM_GROWING_LINE:
+                k["sequential"] = item.data(0, ATConst.DATA_SEQ)
 
         return k
 
@@ -726,31 +736,32 @@ class AnimationTreeWidget(QTreeWidget):
         if not current:
             return
 
-        typ = current.type()
-        if not (typ & ATConst.ITEM_MBR):
+        item_type = current.type()
+        if not (item_type & ATConst.ITEM_MBR):
             return
 
-        if typ == ATConst.ITEM_CAMERA:
-            # restore the view of current keyframe
-            k = self.keyframe()
-            if k:
-                self.controller.setCameraState(k.get("camera") or {})
+        match item_type:
+            case ATConst.ITEM_CAMERA:
+                # restore the view of current keyframe
+                k = self.keyframe()
+                if k:
+                    self.controller.setCameraState(k.get("camera") or {})
 
-        elif typ == ATConst.ITEM_OPACITY:
-            layerId = current.parent().parent().data(0, ATConst.DATA_LAYER_ID)
-            layer = self.settings.getLayer(layerId)
-            if layer:
-                opacity = current.data(0, ATConst.DATA_OPACITY)
-                self.webPage.runScript("setLayerOpacity({}, {})".format(layer.jsLayerId, opacity))
+            case ATConst.ITEM_OPACITY:
+                layerId = current.parent().parent().data(0, ATConst.DATA_LAYER_ID)
+                layer = self.settings.getLayer(layerId)
+                if layer:
+                    opacity = current.data(0, ATConst.DATA_OPACITY)
+                    self.webPage.runScript("setLayerOpacity({}, {})".format(layer.jsLayerId, opacity))
 
-        elif typ == ATConst.ITEM_TEXTURE:
-            layerId = current.parent().parent().data(0, ATConst.DATA_LAYER_ID)
-            layer = self.settings.getLayer(layerId)
-            if layer:
-                layer = layer.clone()
-                layer.properties["mtlId"] = current.data(0, ATConst.DATA_MTL_ID)
-                layer.opt.onlyMaterial = True
-                self.controller.taskManager.addBuildLayerTask(layer)
+            case ATConst.ITEM_TEXTURE:
+                layerId = current.parent().parent().data(0, ATConst.DATA_LAYER_ID)
+                layer = self.settings.getLayer(layerId)
+                if layer:
+                    layer = layer.clone()
+                    layer.properties["mtlId"] = current.data(0, ATConst.DATA_MTL_ID)
+                    layer.opt.onlyMaterial = True
+                    self.controller.taskManager.addBuildLayerTask(layer)
 
     def onItemDoubleClicked(self, item=None, column=0):
         item = item or self.currentItem()
@@ -1108,23 +1119,24 @@ class KeyframeDialog(QDialog):
             self.narId = nar.get("id")
             self.ui.plainTextEdit.setPlainText(nar.get("text") or "")
 
-        if self.type == ATConst.ITEM_CAMERA:
-            self.ui.lineEditName.setText(item.text(0))
+        match self.type:
+            case ATConst.ITEM_CAMERA:
+                self.ui.lineEditName.setText(item.text(0))
 
-        elif self.type == ATConst.ITEM_OPACITY:
-            self.ui.doubleSpinBoxOpacity.setValue(item.data(0, ATConst.DATA_OPACITY))
+            case ATConst.ITEM_OPACITY:
+                self.ui.doubleSpinBoxOpacity.setValue(item.data(0, ATConst.DATA_OPACITY))
 
-        elif self.type == ATConst.ITEM_TEXTURE:
-            idx = self.ui.comboBox1.findData(item.data(0, ATConst.DATA_MTL_ID))
-            if idx != -1:
-                self.ui.comboBox1.setCurrentIndex(idx)
+            case ATConst.ITEM_TEXTURE:
+                idx = self.ui.comboBox1.findData(item.data(0, ATConst.DATA_MTL_ID))
+                if idx != -1:
+                    self.ui.comboBox1.setCurrentIndex(idx)
 
-            idx = self.ui.comboBox2.findData(item.data(0, ATConst.DATA_EFFECT))
-            if idx != -1:
-                self.ui.comboBox2.setCurrentIndex(idx)
+                idx = self.ui.comboBox2.findData(item.data(0, ATConst.DATA_EFFECT))
+                if idx != -1:
+                    self.ui.comboBox2.setCurrentIndex(idx)
 
-        elif self.type == ATConst.ITEM_GROWING_LINE:
-            self.ui.lineEditName.setText(item.text(0))
+            case ATConst.ITEM_GROWING_LINE:
+                self.ui.lineEditName.setText(item.text(0))
 
         if self.isKF and value >= self.kfCount - 2:
             for w in [self.ui.labelDelay, self.ui.lineEditDelay, self.ui.labelDuration, self.ui.lineEditDuration,
@@ -1207,23 +1219,24 @@ class KeyframeDialog(QDialog):
         item.setData(0, ATConst.DATA_DURATION, duration)
 
         icon = None
-        if self.type == ATConst.ITEM_CAMERA:
-            item.setText(0, self.ui.lineEditName.text())
+        match self.type:
+            case ATConst.ITEM_CAMERA:
+                item.setText(0, self.ui.lineEditName.text())
 
-        elif self.type == ATConst.ITEM_OPACITY:
-            opacity = self.ui.doubleSpinBoxOpacity.value()
-            item.setText(0, "opacity '{}'".format(opacity))
-            item.setData(0, ATConst.DATA_OPACITY, opacity)
+            case ATConst.ITEM_OPACITY:
+                opacity = self.ui.doubleSpinBoxOpacity.value()
+                item.setText(0, "opacity '{}'".format(opacity))
+                item.setData(0, ATConst.DATA_OPACITY, opacity)
 
-        elif self.type == ATConst.ITEM_TEXTURE:
-            item.setText(0, self.ui.comboBox1.currentText())
-            item.setData(0, ATConst.DATA_MTL_ID, self.ui.comboBox1.currentData())
-            item.setData(0, ATConst.DATA_EFFECT, self.ui.comboBox2.currentData())
+            case ATConst.ITEM_TEXTURE:
+                item.setText(0, self.ui.comboBox1.currentText())
+                item.setData(0, ATConst.DATA_MTL_ID, self.ui.comboBox1.currentData())
+                item.setData(0, ATConst.DATA_EFFECT, self.ui.comboBox2.currentData())
 
-        elif self.type == ATConst.ITEM_GROWING_LINE:
-            item.setText(0, self.ui.lineEditName.text())
-            item.setData(0, ATConst.DATA_SEQ, self.ui.comboBox1.currentData())
-            icon = self.panel.tree.effectIcon
+            case ATConst.ITEM_GROWING_LINE:
+                item.setText(0, self.ui.lineEditName.text())
+                item.setData(0, ATConst.DATA_SEQ, self.ui.comboBox1.currentData())
+                icon = self.panel.tree.effectIcon
 
         if self.isKF:
             text = self.ui.plainTextEdit.toPlainText()

@@ -123,36 +123,35 @@ class PropertyPage(QWidget):
 
     # collect property widget values into a properties dictionary
     def properties(self, widgets=None):
-        widgets = widgets or self.propertyWidgets
-
         p = {}
-        for w in widgets:
+        for w in widgets or self.propertyWidgets:
             v = None
-            if isinstance(w, QComboBox):
-                v = w.currentData()
-                if v is None and w.isEditable():
-                    v = w.currentText()
-            elif isinstance(w, QRadioButton):
-                if not w.isChecked():
-                    continue
-                v = w.isChecked()
-            elif isinstance(w, (QCheckBox, QGroupBox)):
-                v = w.isChecked()
-            elif isinstance(w, (QSlider, QSpinBox)):
-                v = w.value()
-            elif isinstance(w, QLineEdit):
-                v = w.text()
-            elif isinstance(w, PropertyWidget):
-                v = w.values()
-            elif isinstance(w, QgsFieldExpressionWidget):
-                v = w.expression()
-            elif isinstance(w, QgsColorButton):
-                c = w.color()
-                v = [c.red(), c.green(), c.blue(), c.alpha()]
-            elif isinstance(w, HiddenProperty):
-                v = w.value
-            else:
-                logger.warning("[proppages.py] Not recognized widget type: " + str(type(w)))
+            match w:
+                case QComboBox():
+                    v = w.currentData()
+                    if v is None and w.isEditable():
+                        v = w.currentText()
+                case QRadioButton():
+                    if not w.isChecked():
+                        continue
+                    v = w.isChecked()
+                case QCheckBox() | QGroupBox():
+                    v = w.isChecked()
+                case QSlider() | QSpinBox():
+                    v = w.value()
+                case QLineEdit():
+                    v = w.text()
+                case PropertyWidget():
+                    v = w.values()
+                case QgsFieldExpressionWidget():
+                    v = w.expression()
+                case QgsColorButton():
+                    c = w.color()
+                    v = [c.red(), c.green(), c.blue(), c.alpha()]
+                case HiddenProperty():
+                    v = w.value
+                case _:
+                    logger.warning("[proppages.py] Not recognized widget type: " + str(type(w)))
 
             p[w.objectName()] = v
 
@@ -160,46 +159,45 @@ class PropertyPage(QWidget):
 
     # restore property widget values from properties dictionary
     def restoreProperties(self, properties, widgets=None):
-        widgets = widgets or self.propertyWidgets
-
         try:
-            for w in widgets:
+            for w in widgets or self.propertyWidgets:
                 v = properties.get(w.objectName())
                 if v is None:
                     continue
 
-                if isinstance(w, QComboBox):
-                    index = w.findData(v)
-                    if index != -1:
-                        w.setCurrentIndex(index)
-                    elif w.isEditable():
-                        w.setEditText(str(v))
+                match w:
+                    case QComboBox():
+                        index = w.findData(v)
+                        if index != -1:
+                            w.setCurrentIndex(index)
+                        elif w.isEditable():
+                            w.setEditText(str(v))
 
-                elif isinstance(w, (QRadioButton, QCheckBox, QGroupBox)):
-                    w.setChecked(v)
+                    case QRadioButton() | QCheckBox() | QGroupBox():
+                        w.setChecked(v)
 
-                elif isinstance(w, (QSlider, QSpinBox)):
-                    w.setValue(v)
+                    case QSlider() | QSpinBox():
+                        w.setValue(v)
 
-                elif isinstance(w, QLineEdit):
-                    w.setText(v)
-                    w.setCursorPosition(0)
+                    case QLineEdit():
+                        w.setText(v)
+                        w.setCursorPosition(0)
 
-                elif isinstance(w, PropertyWidget):
-                    if len(v):
-                        w.setValues(v)
+                    case PropertyWidget():
+                        if len(v):
+                            w.setValues(v)
 
-                elif isinstance(w, QgsFieldExpressionWidget):
-                    w.setExpression(v)
+                    case QgsFieldExpressionWidget():
+                        w.setExpression(v)
 
-                elif isinstance(w, QgsColorButton):
-                    if isinstance(v, list):
-                        w.setColor(QColor(*v))
-                    else:
-                        w.setColor(QColor(v.replace("0x", "#")))
+                    case QgsColorButton():
+                        if isinstance(v, list):
+                            w.setColor(QColor(*v))
+                        else:
+                            w.setColor(QColor(v.replace("0x", "#")))
 
-                elif isinstance(w, HiddenProperty):
-                    w.value = v
+                    case HiddenProperty():
+                        w.value = v
 
         except KeyError as _:
             logger.error("Property read error: Unable to fully read properties. The settings file may have been saved with a newer plugin version. If the dialog cannot be opened, please clear the export settings.")
@@ -723,47 +721,47 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
                 return name
 
     def addMaterial(self, action=None):
-        mtype = action.data() if action else DEMMtlType.MAPCANVAS
-
         p = {
             "spinBox_Opacity": 100,
             "checkBox_Shading": True
         }
 
-        if mtype in (DEMMtlType.LAYER, DEMMtlType.MAPCANVAS):
-            if mtype == DEMMtlType.LAYER:
-                ids = self.selectLayer(update=False)
-                if ids is None:
+        mtl_type = action.data() if action else DEMMtlType.MAPCANVAS
+        match mtl_type:
+            case DEMMtlType.LAYER | DEMMtlType.MAPCANVAS:
+                if mtl_type == DEMMtlType.LAYER:
+                    ids = self.selectLayer(update=False)
+                    if ids is None:
+                        return
+                    base_name = self.mtlNameFromLayerIds(ids)
+                    p["layerIds"] = ids
+                else:
+                    base_name = "map (canvas)"
+
+                p["comboBox_TextureSize"] = DEF_SETS.TEXTURE_SIZE
+                p["checkBox_TransparentBackground"] = False
+
+            case DEMMtlType.FILE:
+                filename = self.selectImageFile(update=False)
+                if not filename:
                     return
-                base_name = self.mtlNameFromLayerIds(ids)
-                p["layerIds"] = ids
-            else:
-                base_name = "map (canvas)"
+                base_name = os.path.splitext(os.path.basename(filename))[0]
+                p["lineEdit_ImageFile"] = filename
 
-            p["comboBox_TextureSize"] = DEF_SETS.TEXTURE_SIZE
-            p["checkBox_TransparentBackground"] = False
-
-        elif mtype == DEMMtlType.FILE:
-            filename = self.selectImageFile(update=False)
-            if not filename:
-                return
-            base_name = os.path.splitext(os.path.basename(filename))[0]
-            p["lineEdit_ImageFile"] = filename
-
-        else:
-            color = selectColor()
-            if not color:
-                return
-            base_name = "color"
-            p["colorButton_Color"] = [color.red(), color.green(), color.blue()]
+            case _:
+                color = selectColor()
+                if not color:
+                    return
+                base_name = "color"
+                p["colorButton_Color"] = [color.red(), color.green(), color.blue()]
 
         name = self.uniqueMtlName(base_name)
 
-        item = QListWidgetItem(name, self.listWidget_Materials, mtype)
+        item = QListWidgetItem(name, self.listWidget_Materials, mtl_type)
         item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsDragEnabled | Qt.ItemFlag.ItemIsEnabled)
         item.setData(self.DATA_ID, createUid())
         item.setData(self.DATA_PROPERTIES, p)
-        item.setIcon(DEMPropertyPage.iconForMtl({"type": mtype, "properties": p}))
+        item.setIcon(DEMPropertyPage.iconForMtl({"type": mtl_type, "properties": p}))
 
         if action:
             self.listWidget_Materials.setCurrentItem(item)
@@ -800,26 +798,27 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
         p = current.data(self.DATA_PROPERTIES) or {}
         PropertyPage.restoreProperties(self, p, self.mtlWidgets)
 
-        mtype = current.type()
-        if mtype == DEMMtlType.LAYER:
+        mtl_type = current.type()
+        if mtl_type == DEMMtlType.LAYER:
             self.updateLayerImageLabel()
 
-        if previous and previous.type() == mtype:
+        if previous and previous.type() == mtl_type:
             return
 
         # set up widgets for current material type
         layers = image_size = image_file = color = tb = False
-        if mtype == DEMMtlType.LAYER:
-            layers = image_size = tb = True
+        match mtl_type:
+            case DEMMtlType.LAYER:
+                layers = image_size = tb = True
 
-        elif mtype == DEMMtlType.MAPCANVAS:
-            image_size = tb = True
+            case DEMMtlType.MAPCANVAS:
+                image_size = tb = True
 
-        elif mtype == DEMMtlType.FILE:
-            image_file = True
+            case DEMMtlType.FILE:
+                image_file = True
 
-        else:       # const.MTL_COLOR:
-            color = True
+            case _:       # const.MTL_COLOR:
+                color = True
 
         self.setWidgetsVisible([self.label_Layers, self.label_LayerImage, self.toolButton_SelectLayer, self.mtlLayerIds], layers)
         self.setWidgetsVisible([self.label_TextureSize, self.comboBox_TextureSize, self.label_Format, self.radioButton_JPEG, self.radioButton_PNG], image_size)

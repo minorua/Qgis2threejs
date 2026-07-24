@@ -134,19 +134,20 @@ class PreviewStateWidget(QWidget):
 
         msg1 = msg2 = ""
         bgcolor = None
-        if state == PreviewState.Loading:
-            msg1 = "PREPARING PREVIEW"
-            bgcolor = Qt.GlobalColor.white
+        match state:
+            case PreviewState.Loading:
+                msg1 = "PREPARING PREVIEW"
+                bgcolor = Qt.GlobalColor.white
 
-            self.dots = 0
-            self.timer.start()
+                self.dots = 0
+                self.timer.start()
 
-        elif state == PreviewState.Error:
-            msg1 = "PREVIEW STOPPED UNEXPECTEDLY.\nTHE CONNECTION WAS LOST."
-            self.buttonRestart.show()
+            case PreviewState.Error:
+                msg1 = "PREVIEW STOPPED UNEXPECTEDLY.\nTHE CONNECTION WAS LOST."
+                self.buttonRestart.show()
 
-        elif state == PreviewState.Disabled:
-            self.icon.show()
+            case PreviewState.Disabled:
+                self.icon.show()
 
         if bgcolor is None:
             bgcolor = self.palette().color(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Button)

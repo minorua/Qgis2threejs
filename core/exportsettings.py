@@ -450,6 +450,7 @@ class ExportSettings:
             layer = self.getLayer(layerId)
             if layer is None:
                 layer = Layer(layerId, plugin.providerName(), LayerType.DEM, visible=False)
+
             layers.append(layer)
 
         # Flat plane
@@ -457,8 +458,10 @@ class ExportSettings:
         if layer:
             layer.layerId = "fp:" + createUid()
             layers.append(layer)
+
         elif len(self.layers()):
             layers += [lyr for lyr in self.layers() if lyr.layerId.startswith("fp:")]
+
         else:
             layerId = "fp:" + createUid()
             layer = Layer(layerId, "Flat Plane", LayerType.DEM, visible=False)
@@ -807,6 +810,7 @@ def calculateGridSegments(extent, sizeLevel, roughness=0):
     if roughness:
         if width % roughness != 0:
             width = int(width / roughness + 0.9999) * roughness
+
         if height % roughness != 0:
             height = int(height / roughness + 0.9999) * roughness
 
@@ -816,6 +820,8 @@ def calculateGridSegments(extent, sizeLevel, roughness=0):
 def deepcopyExcept(obj, keys_to_remove):
     if isinstance(obj, dict):
         return {k: deepcopyExcept(v, keys_to_remove) if isinstance(v, (dict, list)) else v for k, v in obj.items() if k not in keys_to_remove}
+
     elif isinstance(obj, list):
         return [deepcopyExcept(v, keys_to_remove) if isinstance(v, (dict, list)) else v for v in obj]
+
     return obj

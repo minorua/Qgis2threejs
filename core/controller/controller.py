@@ -273,32 +273,34 @@ class Q3DController(QObject):
         self.aborted = False
 
         try:
-            if task == Task.RELOAD_PAGE:
-                self.webPage.reload()
+            match task:
+                case Task.RELOAD_PAGE:
+                    self.webPage.reload()
 
-            elif task == Task.BUILD_SCENE:
-                self.buildScene()
+                case Task.BUILD_SCENE:
+                    self.buildScene()
 
-            elif task == Task.UPDATE_SCENE_OPTS:
-                self.updateSceneOptions(callback=self.taskManager.taskFinalized)
+                case Task.UPDATE_SCENE_OPTS:
+                    self.updateSceneOptions(callback=self.taskManager.taskFinalized)
 
-            elif isinstance(task, Layer):   # BUILD_LAYER
-                if self.settings.getLayer(task.layerId):
-                    if task.visible:
-                        self.buildLayer(task)
+                case Layer():   # BUILD_LAYER
+                    if self.settings.getLayer(task.layerId):
+                        if task.visible:
+                            self.buildLayer(task)
+                        else:
+                            self.hideLayer(task, callback=self.taskManager.taskFinalized)
                     else:
-                        self.hideLayer(task, callback=self.taskManager.taskFinalized)
-                else:
-                    logger.info(f"Layer {task.layerId} not found in settings. Ignored.")
+                        logger.info(f"Layer {task.layerId} not found in settings. Ignored.")
 
-            elif isinstance(task, dict):    # RUN_SCRIPT or SEND_DATA
-                if task.get("type") == "script":
-                    self.runScript(task.get("script"), callback=self.taskManager.taskFinalized)
-                else:
+                case {"type": "script", "script": script}:      # RUN_SCRIPT
+                    self.runScript(script, callback=self.taskManager.taskFinalized)
+
+                case dict():    # SEND_DATA
                     self.appendDataToSendQueue(data=task)
                     self.taskManager.taskFinalized()
-            else:
-                logger.warning(f"Unknown task: {task}")
+
+                case _:
+                    logger.warning(f"Unknown task: {task}")
 
         except Exception as _:
             import traceback
@@ -410,8 +412,6 @@ class Q3DController(QObject):
                 "Header": properties.get("Header", ""),
                 "Footer": properties.get("Footer", "")
             })
-        else:
-            return
 
     def cameraState(self, flat=False):
         return self.runScript("cameraState({})".format(1 if flat else 0), wait=True)

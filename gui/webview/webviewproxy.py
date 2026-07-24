@@ -71,18 +71,19 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
         self.sendQueue.setSocketServer(server)
 
     def eventReceived(self, method, params, payload):
-        if method == Event.METHOD_INVOKED:
-            func = getattr(self.bridge, params["name"])
-            func(*params["args"])
+        match method:
+            case Event.METHOD_INVOKED:
+                func = getattr(self.bridge, params["name"])
+                func(*params["args"])
 
-        elif method == Event.PAGE_LOAD_STARTED:
-            self.loadStarted.emit()
+            case Event.PAGE_LOAD_STARTED:
+                self.loadStarted.emit()
 
-        elif method == Event.PAGE_LOADED:
-            self.loadFinished.emit(params.get("ok", False))
+            case Event.PAGE_LOADED:
+                self.loadFinished.emit(params.get("ok", False))
 
-        elif method == Event.JS_ERROR_WARNING:
-            self.jsErrorWarning.emit(params.get("is_error", False))
+            case Event.JS_ERROR_WARNING:
+                self.jsErrorWarning.emit(params.get("is_error", False))
 
     def reload(self):
         self.showStatusMessage("Initializing preview in an external process...")
@@ -285,14 +286,15 @@ Exit status: {exitStatus}
         self.socketServer.sendCommand(Command.CLICK, params={"x": pos.x(), "y": pos.y()})
 
     def eventReceived(self, method, params, payload):
-        if method == Event.WND_GEOM_CHANGED:
-            self.previewWndGeometry = params
+        match method:
+            case Event.WND_GEOM_CHANGED:
+                self.previewWndGeometry = params
 
-        elif method == Event.PY_ERROR:
-            logger.error(params["msg"])
+            case Event.PY_ERROR:
+                logger.error(params["msg"])
 
-        elif method == Event.DEV_TOOLS_CLOSED:
-            self.devToolsClosed.emit()
+            case Event.DEV_TOOLS_CLOSED:
+                self.devToolsClosed.emit()
 
     def disconnected(self):
         logger.debug("Disconnected from preview process.")

@@ -709,22 +709,24 @@ class PropertiesDialog(QDialog):
 
     def buttonClicked(self, button):
         role = self.ui.buttonBox.buttonRole(button)
-        if role in [QDialogButtonBox.ButtonRole.AcceptRole, QDialogButtonBox.ButtonRole.ApplyRole]:
-            if isinstance(self.page, ScenePropertyPage):
-                self.propertiesAccepted.emit(self.page.properties())
-            else:
-                nw = self.page.lineEdit_Name
-                self.layer.name = nw.text().strip() or nw.placeholderText()
-                self.layer.properties = self.page.properties()
-                self.propertiesAccepted.emit(self.layer)
+        match role:
+            case QDialogButtonBox.ButtonRole.AcceptRole | QDialogButtonBox.ButtonRole.ApplyRole:
+                if isinstance(self.page, ScenePropertyPage):
+                    self.propertiesAccepted.emit(self.page.properties())
 
-                if role == QDialogButtonBox.ButtonRole.ApplyRole:
-                    self.setLayerDialogTitle(self.layer)
+                else:
+                    nw = self.page.lineEdit_Name
+                    self.layer.name = nw.text().strip() or nw.placeholderText()
+                    self.layer.properties = self.page.properties()
+                    self.propertiesAccepted.emit(self.layer)
 
-        elif role == QDialogButtonBox.ButtonRole.HelpRole:
-            pageName = type(self.page).__name__.replace("PropertyPage", "").lower()
-            tab = self.page.tabWidget.currentIndex() if hasattr(self.page, "tabWidget") else ""
-            openHelp(f"dlg={pageName}&tab={tab}")
+                    if role == QDialogButtonBox.ButtonRole.ApplyRole:
+                        self.setLayerDialogTitle(self.layer)
+
+            case QDialogButtonBox.ButtonRole.HelpRole:
+                pageName = type(self.page).__name__.replace("PropertyPage", "").lower()
+                tab = self.page.tabWidget.currentIndex() if hasattr(self.page, "tabWidget") else ""
+                openHelp(f"dlg={pageName}&tab={tab}")
 
     def showLayerProperties(self, layer, tab=0):
         self.setLayerDialogTitle(layer)
@@ -777,13 +779,15 @@ class NorthArrowDialog(QDialog):
 
     def buttonClicked(self, button):
         role = self.ui.buttonBox.buttonRole(button)
-        if role in [QDialogButtonBox.ButtonRole.AcceptRole, QDialogButtonBox.ButtonRole.ApplyRole]:
-            self.propertiesAccepted.emit({
-                "visible": self.ui.groupBox.isChecked(),
-                "color": hex_color(self.ui.colorButton.color().name(), prefix="0x")
-            })
-        elif role == QDialogButtonBox.ButtonRole.HelpRole:
-            openHelp("dlg=northarrow")
+        match role:
+            case QDialogButtonBox.ButtonRole.AcceptRole | QDialogButtonBox.ButtonRole.ApplyRole:
+                self.propertiesAccepted.emit({
+                    "visible": self.ui.groupBox.isChecked(),
+                    "color": hex_color(self.ui.colorButton.color().name(), prefix="0x")
+                })
+
+            case QDialogButtonBox.ButtonRole.HelpRole:
+                openHelp("dlg=northarrow")
 
 
 class HFLabelDialog(QDialog):
@@ -804,8 +808,12 @@ class HFLabelDialog(QDialog):
 
     def buttonClicked(self, button):
         role = self.ui.buttonBox.buttonRole(button)
-        if role in [QDialogButtonBox.ButtonRole.AcceptRole, QDialogButtonBox.ButtonRole.ApplyRole]:
-            self.propertiesAccepted.emit({"Header": self.ui.textEdit_Header.toPlainText(),
-                                          "Footer": self.ui.textEdit_Footer.toPlainText()})
-        elif role == QDialogButtonBox.ButtonRole.HelpRole:
-            openHelp("dlg=hflabel")
+        match role:
+            case QDialogButtonBox.ButtonRole.AcceptRole | QDialogButtonBox.ButtonRole.ApplyRole:
+                self.propertiesAccepted.emit({
+                    "Header": self.ui.textEdit_Header.toPlainText(),
+                    "Footer": self.ui.textEdit_Footer.toPlainText()
+                })
+
+            case QDialogButtonBox.ButtonRole.HelpRole:
+                openHelp("dlg=hflabel")

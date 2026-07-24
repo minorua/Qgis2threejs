@@ -63,17 +63,18 @@ class WebPage(Q3DWebEnginePage):
         self.socketClient.sendEvent(Event.METHOD_INVOKED, params)
 
     def commandReceived(self, method, params, payload):
-        if method == Command.LOAD_DATA:
-            self.sendData(params["data"], viaQueue=params["viaQueue"])
+        match method:
+            case Command.LOAD_DATA:
+                self.sendData(params["data"], viaQueue=params["viaQueue"])
 
-        elif method == Command.REMOVE_LAYER_DATA:
-            self.sendQueue.removeLayer(params["jsLayerId"])
+            case Command.REMOVE_LAYER_DATA:
+                self.sendQueue.removeLayer(params["jsLayerId"])
 
-        elif method == Command.CLEAR_QUEUE:
-            self.sendQueue.clear()
+            case Command.CLEAR_QUEUE:
+                self.sendQueue.clear()
 
-        elif method == Command.RELOAD:
-            self.reload()
+            case Command.RELOAD:
+                self.reload()
 
     def requestReceived(self, id, method, params, payload):
         if method == Request.RUN_SCRIPT:
@@ -112,14 +113,15 @@ class WebView(Q3DWebEngineView):
         self.focusProxy().installEventFilter(self.activator)
 
     def commandReceived(self, method, params, payload):
-        if method == Command.DEV_TOOLS:
-            self.showDevTools()
+        match method:
+            case Command.DEV_TOOLS:
+                self.showDevTools()
 
-        elif method == Command.GPU_INFO:
-            self.showGPUInfo()
+            case Command.GPU_INFO:
+                self.showGPUInfo()
 
-        elif method == Command.CLICK:
-            self.triggerTestClick(QPointF(params["x"], params["y"]))
+            case Command.CLICK:
+                self.triggerTestClick(QPointF(params["x"], params["y"]))
 
     def requestReceived(self, id, method, params, payload):
         if method == Request.SIZE:

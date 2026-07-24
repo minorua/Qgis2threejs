@@ -333,6 +333,7 @@ class ModelManager(DataManager):
         for path_url in self._list:
             if path_url.startswith("http:") or path_url.startswith("https:"):
                 a.append({"url": path_url})
+
             elif base64:
                 _, ext = os.path.splitext(path_url)
                 a.append({"base64": base64file(path_url),

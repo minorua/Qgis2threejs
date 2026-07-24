@@ -63,26 +63,36 @@ def pyobj2js(obj, escape=False, quoteHex=True):
     Returns:
         str or number: a JS literal representation.
     """
-    if isinstance(obj, dict):
-        items = ["{0}:{1}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.items()]
-        return "{" + ",".join(items) + "}"
-    elif isinstance(obj, list):
-        items = [str(pyobj2js(v, escape, quoteHex)) for v in obj]
-        return "[" + ",".join(items) + "]"
-    elif isinstance(obj, bool):
-        return "true" if obj else "false"
-    elif isinstance(obj, str):
-        if escape:
-            return '"' + obj.replace("\\", "\\\\").replace('"', '\\"') + '"'
-        if not quoteHex and re.match("0x[0-9A-Fa-f]+$", obj):
+    match obj:
+        case dict():
+            items = ["{}:{}".format(k, pyobj2js(v, escape, quoteHex)) for k, v in obj.items()]
+            return "{" + ",".join(items) + "}"
+
+        case list():
+            items = [str(pyobj2js(v, escape, quoteHex)) for v in obj]
+            return "[" + ",".join(items) + "]"
+
+        case bool():
+            return "true" if obj else "false"
+
+        case str():
+            if escape:
+                return '"' + obj.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+            if not quoteHex and re.match("0x[0-9A-Fa-f]+$", obj):
+                return obj
+
+            return '"' + obj + '"'
+
+        case bytes():
+            return pyobj2js(obj.decode("UTF-8"), escape, quoteHex)
+
+        case int() | float():
             return obj
-        return '"' + obj + '"'
-    elif isinstance(obj, bytes):
-        return pyobj2js(obj.decode("UTF-8"), escape, quoteHex)
-    elif isinstance(obj, (int, float)):
-        return obj
-    elif QGIS_AVAILABLE and obj == NULL:   # qgis.core.NULL
+
+    if QGIS_AVAILABLE and obj == NULL:   # qgis.core.NULL
         return "null"
+
     return '"' + str(obj) + '"'
 
 

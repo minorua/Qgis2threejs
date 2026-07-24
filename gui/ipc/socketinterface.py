@@ -112,27 +112,28 @@ class SocketInterface(QObject):
 
                 self.sendEvent(self.DATA_RECEIVED, {"key": key})
 
-            if data_type == self.TYPE_COMMAND:
-                self.commandReceived.emit(method, params, payload)
+            match data_type:
+                case self.TYPE_COMMAND:
+                    self.commandReceived.emit(method, params, payload)
 
-            elif data_type == self.TYPE_EVENT:
-                if method == self.DATA_RECEIVED:
-                    self.destroySharedMemory(params.get("key"))
-                else:
-                    self.eventReceived.emit(method, params, payload)
+                case self.TYPE_EVENT:
+                    if method == self.DATA_RECEIVED:
+                        self.destroySharedMemory(params.get("key"))
+                    else:
+                        self.eventReceived.emit(method, params, payload)
 
-            elif data_type == self.TYPE_REQUEST:
-                self.requestReceived.emit(id, method, params, payload)
+                case self.TYPE_REQUEST:
+                    self.requestReceived.emit(id, method, params, payload)
 
-            elif data_type == self.TYPE_RESPONSE:
-                self.responseReceived.emit(id, method, params, payload)
-                if id in self._callbacks:
-                    callback = self._callbacks.pop(id)
+                case self.TYPE_RESPONSE:
+                    self.responseReceived.emit(id, method, params, payload)
+                    if id in self._callbacks:
+                        callback = self._callbacks.pop(id)
 
-                    try:
-                        callback(data)
-                    except Exception as e:
-                        logger.error(f"Callback error: {e}")
+                        try:
+                            callback(data)
+                        except Exception as e:
+                            logger.error(f"Callback error: {e}")
 
         except json.JSONDecodeError as e:
             print(f"Error parsing json: {e}")

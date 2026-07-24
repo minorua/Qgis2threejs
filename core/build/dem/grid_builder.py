@@ -141,46 +141,47 @@ class DEMGridBuilder:
                 logger.warning(f"Neighbor block {neighbor.blockIndex} has no edge values.")
                 continue
 
-            if (sx, sy) == (0, -1):
-                # top edge
-                for x in range(grid_width):
-                    grid_values[x] = neighbor.edges[0][x]
+            match (sx, sy):
+                case (0, -1):
+                    # top edge
+                    for x in range(grid_width):
+                        grid_values[x] = neighbor.edges[0][x]
 
-            elif (sx, sy) == (0, 1):
-                # bottom edge
-                offset = grid_width * (grid_height - 1)
-                for x in range(grid_width):
-                    grid_values[offset + x] = neighbor.edges[3][x]
+                case (0, 1):
+                    # bottom edge
+                    offset = grid_width * (grid_height - 1)
+                    for x in range(grid_width):
+                        grid_values[offset + x] = neighbor.edges[3][x]
 
-            elif (sx, sy) == (-1, 0):
-                # right edge
-                offset = grid_width - 1
-                for y in range(grid_height):
-                    grid_values[offset + grid_width * y] = neighbor.edges[1][y]
+                case (-1, 0):
+                    # right edge
+                    offset = grid_width - 1
+                    for y in range(grid_height):
+                        grid_values[offset + grid_width * y] = neighbor.edges[1][y]
 
-            elif (sx, sy) == (1, 0):
-                # left edge
-                for y in range(grid_height):
-                    grid_values[grid_width * y] = neighbor.edges[2][y]
+                case (1, 0):
+                    # left edge
+                    for y in range(grid_height):
+                        grid_values[grid_width * y] = neighbor.edges[2][y]
 
-            elif (sx, sy) == (-1, -1):
-                # top-right corner
-                grid_values[grid_width - 1] = neighbor.edges[0][0]
+                case (-1, -1):
+                    # top-right corner
+                    grid_values[grid_width - 1] = neighbor.edges[0][0]
 
-            elif (sx, sy) == (1, -1):
-                # top-left corner
-                grid_values[0] = neighbor.edges[0][grid_width - 1]
+                case (1, -1):
+                    # top-left corner
+                    grid_values[0] = neighbor.edges[0][grid_width - 1]
 
-            elif (sx, sy) == (-1, 1):
-                # bottom-right corner
-                grid_values[grid_width * grid_height - 1] = neighbor.edges[3][0]
+                case (-1, 1):
+                    # bottom-right corner
+                    grid_values[grid_width * grid_height - 1] = neighbor.edges[3][0]
 
-            elif (sx, sy) == (1, 1):
-                # bottom-left corner
-                grid_values[grid_width * (grid_height - 1)] = neighbor.edges[3][grid_width - 1]
+                case (1, 1):
+                    # bottom-left corner
+                    grid_values[grid_width * (grid_height - 1)] = neighbor.edges[3][grid_width - 1]
 
-            else:
-                logger.warning(f"Edge processing: invalid sx and sy ({sx}, {sy})")
+                case _:
+                    logger.warning(f"Edge processing: invalid sx and sy ({sx}, {sy})")
 
     def processEdgesCenter(self, grid_values, roughness):
 

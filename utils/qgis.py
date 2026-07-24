@@ -86,18 +86,20 @@ def shortTextFromSelectedLayerIds(layerIds):
 
 def layerTypeFromMapLayer(mapLayer):
     """mapLayer: QgsMapLayer sub-class object"""
-    layerType = mapLayer.type()
-    if layerType == Qgis.LayerType.Vector:
-        return {
-            Qgis.GeometryType.Point: LayerType.POINT,
-            Qgis.GeometryType.Line: LayerType.LINESTRING,
-            Qgis.GeometryType.Polygon: LayerType.POLYGON}.get(mapLayer.geometryType())
+    match mapLayer.type():
+        case Qgis.LayerType.Raster:
+            if mapLayer.providerType() == "gdal" and mapLayer.bandCount() == 1:
+                return LayerType.DEM
 
-    elif layerType == Qgis.LayerType.Raster and mapLayer.providerType() == "gdal" and mapLayer.bandCount() == 1:
-        return LayerType.DEM
+        case Qgis.LayerType.Vector:
+            return {
+                Qgis.GeometryType.Point: LayerType.POINT,
+                Qgis.GeometryType.Line: LayerType.LINESTRING,
+                Qgis.GeometryType.Polygon: LayerType.POLYGON
+            }.get(mapLayer.geometryType())
 
-    # elif layerType == Qgis.LayerType.PointCloud:
-    #     return LayerType.POINTCLOUD
+        # case Qgis.LayerType.PointCloud:
+        #     return LayerType.POINTCLOUD
 
     return None
 
