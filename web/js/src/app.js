@@ -65,7 +65,7 @@ app.init = (container) => {
     setupEventListeners();
 
     setupQueryMarker();
-    app.highlightMaterial = new THREE.MeshLambertMaterial({emissive: 0x999900, transparent: true, opacity: 0.5, side: THREE.DoubleSide});
+    app.highlightMaterial = new THREE.MeshLambertMaterial({ emissive: 0x999900, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
 
     gui.init();
 };
@@ -90,7 +90,7 @@ function applyUrlParameters(container) {
     if (params.anisotropy) conf.texture.anisotropy = parseFloat(params.anisotropy);
 
     if (params.cx !== undefined) conf.viewpoint.pos = new THREE.Vector3(parseFloat(params.cx), parseFloat(params.cy), parseFloat(params.cz));
-    if (params.tx !== undefined) conf.viewpoint.lookAt  = new THREE.Vector3(parseFloat(params.tx), parseFloat(params.ty), parseFloat(params.tz));
+    if (params.tx !== undefined) conf.viewpoint.lookAt = new THREE.Vector3(parseFloat(params.tx), parseFloat(params.ty), parseFloat(params.tz));
 
     if (params.width && params.height) {
         container.style.width = params.width + "px";
@@ -100,7 +100,7 @@ function applyUrlParameters(container) {
 }
 
 function setupRenderer(container) {
-    app.renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
+    app.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     app.renderer.autoClear = false;
 
     if (conf.renderer.hiDpi) {
@@ -198,7 +198,7 @@ function setupQueryMarker() {
     var opt = conf.qmarker;
     app.queryMarker = new THREE.Mesh(
         new THREE.SphereGeometry(opt.radius, 32, 32),
-        new THREE.MeshLambertMaterial({color: opt.color, opacity: opt.opacity, transparent: (opt.opacity < 1)})
+        new THREE.MeshLambertMaterial({ color: opt.color, opacity: opt.opacity, transparent: (opt.opacity < 1) })
     );
     app.queryMarker.name = "marker";
 
@@ -240,18 +240,18 @@ function setupEventListeners() {
 
 app.initLoadingManager = () => {
     app.loadingManager = new THREE.LoadingManager(
-    () => {   // onLoad
-        app.loadingManager.isLoading = false;
-        app.sceneLoaded = true;
-        app.dispatchEvent({type: "sceneLoaded"});
-    },
-    (url, loaded, total) => {   // onProgress
-        E("progressbar").style.width = (loaded / total * 100) + "%";
-    },
-    () => {   // onError
-        app.loadingManager.isLoading = false;
-        app.dispatchEvent({type: "loadError"});
-    });
+        () => {   // onLoad
+            app.loadingManager.isLoading = false;
+            app.sceneLoaded = true;
+            app.dispatchEvent({ type: "sceneLoaded" });
+        },
+        (url, loaded, total) => {   // onProgress
+            E("progressbar").style.width = (loaded / total * 100) + "%";
+        },
+        () => {   // onError
+            app.loadingManager.isLoading = false;
+            app.dispatchEvent({ type: "loadError" });
+        });
 
     app.loadingManager.isLoading = false;
 
@@ -357,10 +357,11 @@ app.loadModelFile = (url, callback) => {
         if (callback) callback(model);
         app.loadingManager.itemEnd("M" + url);
     },
-    undefined, (e) => {
-        console.warn("Failed to load model: " + url);
-        app.loadingManager.itemError("M" + url);
-    });
+        undefined,
+        (e) => {
+            console.warn("Failed to load model: " + url);
+            app.loadingManager.itemError("M" + url);
+        });
 };
 
 /**
@@ -462,7 +463,7 @@ app.setCanvasSize = (width, height) => {
     app.camera.updateProjectionMatrix();
     app.renderer.setSize(width, height);
 
-    if (changed) app.dispatchEvent({type: "canvasSizeChanged"});
+    if (changed) app.dispatchEvent({ type: "canvasSizeChanged" });
 };
 
 app.buildCamera = (is_ortho) => {
@@ -520,7 +521,7 @@ app.adjustCameraPosition = (force) => {
 app.buildNorthArrow = (container, declination) => {
     container.style.display = "block";
 
-    app.renderer2 = new THREE.WebGLRenderer({alpha: true, antialias: true});
+    app.renderer2 = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     app.renderer2.setClearColor(0, 0);
     app.renderer2.setSize(container.clientWidth, container.clientHeight);
 
@@ -537,9 +538,9 @@ app.buildNorthArrow = (container, declination) => {
     // an arrow object
     const vertices = [
         -5, -10, 0,
-            0,  10, 0,
-            0,  -7, 3,
-            5, -10, 0
+        0, 10, 0,
+        0, -7, 3,
+        5, -10, 0
     ];
 
     const index = [
@@ -730,8 +731,7 @@ app.setWireframeMode = (wireframe) => {
 };
 
 app.intersectObjects = (offsetX, offsetY) => {
-    const vec2 = new THREE.Vector2((offsetX / app.width) * 2 - 1,
-                                    -(offsetY / app.height) * 2 + 1);
+    const vec2 = new THREE.Vector2((offsetX / app.width) * 2 - 1, -(offsetY / app.height) * 2 + 1);
     const ray = new THREE.Raycaster();
     ray.params.Line.threshold = 0.5;
     ray.params.Points.threshold = 0.5;
@@ -840,7 +840,7 @@ const elemOffset = (elm) => {
     do {
         top += elm.offsetTop || 0; left += elm.offsetLeft || 0; elm = elm.offsetParent;
     } while (elm);
-    return {top: top, left: left};
+    return { top: top, left: left };
 };
 
 app.canvasClicked = (e) => {
@@ -991,10 +991,10 @@ app.saveCanvasImage = (width, height, fill_background = true, saveImageFunc) => 
             if (!this.geom) {
                 var opt = conf.measure.marker;
                 this.geom = new THREE.SphereGeometry(opt.radius, 32, 32);
-                this.mtl = new THREE.MeshLambertMaterial({color: opt.color, opacity: opt.opacity, transparent: (opt.opacity < 1)});
+                this.mtl = new THREE.MeshLambertMaterial({ color: opt.color, opacity: opt.opacity, transparent: (opt.opacity < 1) });
 
                 opt = conf.measure.line;
-                this.lineMtl = new THREE.LineBasicMaterial({color: opt.color});
+                this.lineMtl = new THREE.LineBasicMaterial({ color: opt.color });
                 this.markerGroup = new Group();
                 this.markerGroup.name = "measure marker";
                 this.lineGroup = new Group();

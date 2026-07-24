@@ -60,7 +60,7 @@ d.initLayersFolder = (scene) => {
 	const params = d.parameters;
 	const layersFolder = d.layersFolder;
 	scene.forEachLayer((layer, layerId) => {
-		params.lyr[layerId] = {i: layerId, v: layer.visible, o: layer.opacity, m: 0};
+		params.lyr[layerId] = { i: layerId, v: layer.visible, o: layer.opacity, m: 0 };
 		const p = layer.properties;
 
 		const folder = layersFolder.addFolder(p.name);
@@ -94,7 +94,7 @@ d.initLayersFolder = (scene) => {
 };
 
 d.customPlaneMaterial = (color) => {
-	return new THREE.MeshLambertMaterial({color: color, transparent: true, side: THREE.DoubleSide});
+	return new THREE.MeshLambertMaterial({ color: color, transparent: true, side: THREE.DoubleSide });
 };
 
 d.initCustomPlaneFolder = (zMin, zMax) => {
@@ -104,8 +104,8 @@ d.initCustomPlaneFolder = (zMin, zMax) => {
 
 	if (zMin === undefined || zMax === undefined) {
 		const box = new THREE.Box3().setFromObject(scene);
-		if (zMin === undefined) zMin = scene.toMapCoordinates({x: 0, y: 0, z: box.min.z}).z;
-		if (zMax === undefined) zMax = scene.toMapCoordinates({x: 0, y: 0, z: box.max.z}).z;
+		if (zMin === undefined) zMin = scene.toMapCoordinates({ x: 0, y: 0, z: box.min.z }).z;
+		if (zMax === undefined) zMax = scene.toMapCoordinates({ x: 0, y: 0, z: box.max.z }).z;
 	}
 
 	const addPlane = (color) => {
@@ -180,7 +180,8 @@ d.addAnimationFolder = () => {
 			else {
 				anim.start();
 			}
-	}};
+		}
+	};
 	btn = folder.add(d.parameters.anm, 'p').name('Play');
 
 	app.addEventListener('animationStarted', () => {

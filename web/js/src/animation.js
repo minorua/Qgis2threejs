@@ -98,7 +98,7 @@ app.animation = {
 						if (btn) {
 							if (idx < keyframes.length - 1) {
 								btn.className = "nextbtn";
-								btn.innerHTML =  "";
+								btn.innerHTML = "";
 							}
 							else {
 								btn.className = "";
@@ -116,7 +116,7 @@ app.animation = {
 				const onStart = () => {
 					if (track.onStart) track.onStart();
 
-					app.dispatchEvent({type: "tweenStarted", index: track.currentIndex});
+					app.dispatchEvent({ type: "tweenStarted", index: track.currentIndex });
 
 					// pause if narrative box is shown
 					if (narBox && narBox.classList.contains("visible")) {
@@ -164,7 +164,7 @@ app.animation = {
 				for (let i = 0; i < keyframes.length - 1; i++) {
 
 					t2 = new TWEEN.Tween(track.prop_list[i]).delay(keyframes[i].delay).onStart(onStart)
-										.to(track.prop_list[i + 1], keyframes[i].duration).onComplete(onComplete);
+						.to(track.prop_list[i + 1], keyframes[i].duration).onComplete(onComplete);
 
 					if (keyframes[i].easing) {
 						t2.easing(this.easingFunction(keyframes[i].easing)).onUpdate(track.onUpdate);
@@ -185,7 +185,7 @@ app.animation = {
 			});
 
 			app.animation.isActive = this.isActive = true;
-			app.dispatchEvent({type: "animationStarted"});
+			app.dispatchEvent({ type: "animationStarted" });
 			app.animate();
 		},
 
@@ -196,7 +196,7 @@ app.animation = {
 			app.animation.isActive = this.isActive = this.isPaused = false;
 			this._pausedTweens = null;
 
-			app.dispatchEvent({type: "animationStopped"});
+			app.dispatchEvent({ type: "animationStopped" });
 		},
 
 		pause: function () {
@@ -355,7 +355,7 @@ tweens.opacity = {
 	init: function (track, layer) {
 
 		for (const keyframe of track.keyframes) {
-			track.prop_list.push({opacity: keyframe.opacity});
+			track.prop_list.push({ opacity: keyframe.opacity });
 		}
 
 		track.onUpdate = (obj, elapsed) => {

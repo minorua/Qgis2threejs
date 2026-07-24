@@ -186,7 +186,7 @@ export class Materials extends THREE.EventDispatcher {
 		let iterated = false;
 
 		const callback = () => {
-			if (iterated) this.dispatchEvent({type: "renderRequest"});
+			if (iterated) this.dispatchEvent({ type: "renderRequest" });
 		};
 
 		for (const m of data) {

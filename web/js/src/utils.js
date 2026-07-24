@@ -9,7 +9,7 @@ export const E = (id) => document.getElementById(id);
 let _stick_mat;
 export const putStick = (scene, x, y, zFunc, h = 0.2) => {
 	if (_stick_mat === undefined) {
-		_stick_mat = new THREE.LineBasicMaterial({color: 0xff0000});
+		_stick_mat = new THREE.LineBasicMaterial({ color: 0xff0000 });
 	}
 	const z = zFunc(x, y);
 	const geom = new THREE.BufferGeometry().setFromPoints([
@@ -32,7 +32,7 @@ export const convertToDMS = (lat, lon) => {
 	}
 
 	return ((lat < 0) ? "S" : "N") + toDMS(Math.abs(lat)) + ", " +
-		   ((lon < 0) ? "W" : "E") + toDMS(Math.abs(lon));
+		((lon < 0) ? "W" : "E") + toDMS(Math.abs(lon));
 };
 
 export const createWallGeometry = (vert, bzFunc) => {

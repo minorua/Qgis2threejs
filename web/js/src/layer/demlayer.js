@@ -124,12 +124,12 @@ class DEMBlockBase {
 	 * @returns {{x0: number, y0: number, x1: number, y1: number, xres: number, yres: number}}
 	 */
 	_auxArgs() {
-		return {x0: 0, y0: 0, x1: 0, y1: 0, xres: 0, yres: 0};
+		return { x0: 0, y0: 0, x1: 0, y1: 0, xres: 0, yres: 0 };
 	}
 
 	buildSides(layer, parent, material, z0) {
-		const {values: gridValues, width: w, height: h} = this.data.grid;
-		const {x0, y0, x1, y1} = this._auxArgs();
+		const { values: gridValues, width: w, height: h } = this.data.grid;
+		const { x0, y0, x1, y1 } = this._auxArgs();
 
 		const planeWidth = x1 - x0;
 		const planeHeight = y0 - y1;
@@ -204,8 +204,8 @@ class DEMBlockBase {
 	}
 
 	addEdges(layer, parent, material, z0) {
-		const {values: gridValues, width: w, height: h} = this.data.grid;
-		const {x0, y0, x1, y1, xres, yres} = this._auxArgs();
+		const { values: gridValues, width: w, height: h } = this.data.grid;
+		const { x0, y0, x1, y1, xres, yres } = this._auxArgs();
 
 		const k = w * (h - 1);
 
@@ -263,8 +263,8 @@ class DEMBlockBase {
 
 	// add quad wireframe
 	addWireframe(layer, parent, material) {
-		const {values: gridValues, width: w, height: h} = this.data.grid;
-		const {x0, y0, xres, yres} = this._auxArgs();
+		const { values: gridValues, width: w, height: h } = this.data.grid;
+		const { x0, y0, xres, yres } = this._auxArgs();
 
 		const group = new THREE.Group();
 
@@ -345,8 +345,8 @@ class DEMBlock extends DEMBlockBase {
 	}
 
 	_auxArgs() {
-		const pw = this.data.width,
-			  ph = this.data.height;
+		const pw = this.data.width;
+		const ph = this.data.height;
 		return {
 			x0: -pw / 2,
 			y0: ph / 2,
@@ -410,7 +410,7 @@ class DEMTileBlock extends DEMBlockBase {
 		const ph = (this.data.grid.height - 1) * res;
 		return {
 			x0: -this.data.tileSize / 2,
-		    y0: this.data.tileSize / 2,
+			y0: this.data.tileSize / 2,
 			x1: pw - this.data.tileSize / 2,
 			y1: this.data.tileSize / 2 - ph,
 			xres: res,
@@ -513,8 +513,8 @@ class ClippedDEMBlock extends DEMBlockBase {
 		parent.updateMatrixWorld();
 	}
 
-	addEdges() {}
-	addWireframe() {}
+	addEdges() { }
+	addWireframe() { }
 }
 
 
@@ -724,22 +724,26 @@ export class DEMLayer extends MapLayer {
 
 			if (effect == 0) {  // fade in
 				a.ctx.globalAlpha = 1;
-				a.ctx.drawImage(a.img_from, 0, 0, w0, h0,
-											0, 0, w, h);
+				a.ctx.drawImage(a.img_from,
+					0, 0, w0, h0,
+					0, 0, w, h);
 				a.ctx.globalAlpha = progress;
-				a.ctx.drawImage(a.img_to, 0, 0, w1, h1,
-										  0, 0, w, h);
+				a.ctx.drawImage(a.img_to,
+					0, 0, w1, h1,
+					0, 0, w, h);
 			}
 			else if (effect == 2) {  // slide to left (not used)
 				if (progress === null) {
-					a.ctx.drawImage(a.img_from, 0, 0, w0, h0,
-												0, 0, w, h);
+					a.ctx.drawImage(a.img_from,
+						0, 0, w0, h0,
+						0, 0, w, h);
 				}
 				else {
 					ew1 = w1 * progress;
 					ew = w * progress;
-					a.ctx.drawImage(a.img_to, w1 - ew1, 0, ew1, h1,
-											  w - ew, 0, ew, h);
+					a.ctx.drawImage(a.img_to,
+						w1 - ew1, 0, ew1, h1,
+						w - ew, 0, ew, h);
 				}
 			}
 			a.tex.needsUpdate = true;

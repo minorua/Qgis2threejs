@@ -32,7 +32,7 @@ function createInputBox(parent, name, label, value, unit) {
     return input;
 }
 
-function createCheckbox(parent, label, checked=true) {
+function createCheckbox(parent, label, checked = true) {
     const d = CE("div", parent);
     const input = CE("input", d);
     input.type = "checkbox";
@@ -227,7 +227,7 @@ gui.showQueryResult = (point, layer, obj, show_coords) => {
             for (let i = 0, l = layer.properties.propertyNames.length; i < l; i++) {
                 const row = document.createElement("tr");
                 row.innerHTML = "<td>" + layer.properties.propertyNames[i] + "</td>" +
-                                "<td>" + obj.userData.properties[i] + "</td>";
+                    "<td>" + obj.userData.properties[i] + "</td>";
                 e.appendChild(row);
             }
             e.classList.remove("hidden");
@@ -301,7 +301,7 @@ gui.layerPanel = {
             item.className = "layer";
 
             // visible
-            let e = CE("div", item, "<input type='checkbox'" +  ((p.visible) ? " checked" : "") + ">" + p.name);
+            let e = CE("div", item, "<input type='checkbox'" + ((p.visible) ? " checked" : "") + ">" + p.name);
             e.querySelector("input[type=checkbox]").addEventListener("change", function () {
                 layer.visible = this.checked;
             });

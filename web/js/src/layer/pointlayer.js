@@ -19,7 +19,7 @@ export class PointLayer extends VectorLayer {
         "Box": BoxBuilder,
         "Disk": DiskBuilder,
         "Plane": PlaneBuilder,
-        "Point":  PointBuilder,
+        "Point": PointBuilder,
         "Billboard": BillboardBuilder,
         "3D Model": ModelBuilder
     }
@@ -29,10 +29,10 @@ export class PointLayer extends VectorLayer {
         this.type = LayerType.Point;
     }
 
-	/**
-	 * @param {import("../types.js").VectorLayerData | import("../types.js").FeatureBlockData} data
-	 * @param {import("../scene.js").Scene} scene
-	 */
+    /**
+     * @param {import("../types.js").VectorLayerData | import("../types.js").FeatureBlockData} data
+     * @param {import("../scene.js").Scene} scene
+     */
     loadData(data, scene) {
         if (data.type == "layer" && data.properties.objType == "3D Model" && data.body !== undefined) {
             if (this.models === undefined) {
@@ -79,7 +79,7 @@ class Builder extends BuilderBase {
         return meshes;
     }
 
-    transform(mesh, geom, pt) {}
+    transform(mesh, geom, pt) { }
 
 }
 
@@ -221,8 +221,8 @@ class BillboardBuilder extends Builder {
         const { materials } = layer;
 
         const errMtl = {
-            mtl: new THREE.SpriteMaterial({color: 0xffffff}),
-            callbackOnLoad: () => {}
+            mtl: new THREE.SpriteMaterial({ color: 0xffffff }),
+            callbackOnLoad: () => { }
         };
 
         features.forEach((f, fidx) => {

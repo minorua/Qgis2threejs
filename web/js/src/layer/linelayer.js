@@ -34,7 +34,7 @@ export class LineLayer extends VectorLayer {
         }
     }
 
-    buildLabels(features) {}	// Line layer doesn't support label
+    buildLabels(features) { }	// Line layer doesn't support label
 
     // prepare for growing line animation
     prepareAnimation(sequential) {
@@ -160,7 +160,7 @@ class Builder extends BuilderBase {
         return objs;
     }
 
-    createObject(f, vertices) {}
+    createObject(f, vertices) { }
 
 }
 
@@ -339,9 +339,9 @@ class BoxBuilder extends Builder {
             // joint
             // backward side
             const wh4 = [
-                [-w / 2,  h / 2],
-                [ w / 2,  h / 2],
-                [ w / 2, -h / 2],
+                [-w / 2, h / 2],
+                [w / 2, h / 2],
+                [w / 2, -h / 2],
                 [-w / 2, -h / 2]
             ];
 

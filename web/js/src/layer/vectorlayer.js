@@ -13,23 +13,23 @@ export class VectorLayer extends MapLayer {
 
 	constructor() {
 		super();
-        this.builder = null;
+		this.builder = null;
 		this.features = [];
 		this.labels = [];
 	}
 
-    build(features, startIndex) {
-        const { objType } = this.properties;
+	build(features, startIndex) {
+		const { objType } = this.properties;
 
-        if (!this.builder || this.builder.type !== objType) {
-            const BuilderClass = this.BuilderFactory[objType];
-            if (!BuilderClass) return;
+		if (!this.builder || this.builder.type !== objType) {
+			const BuilderClass = this.BuilderFactory[objType];
+			if (!BuilderClass) return;
 
-            this.builder = new BuilderClass(this, this.sceneData.zScale);
-        }
+			this.builder = new BuilderClass(this, this.sceneData.zScale);
+		}
 
-        this.builder.build(features, startIndex);
-    }
+		this.builder.build(features, startIndex);
+	}
 
 	addFeature(featureIdx, f, objs) {
 		super.addObjects(objs);
@@ -255,27 +255,27 @@ export class VectorLayer extends MapLayer {
 
 export class BuilderBase {
 
-    constructor(type, layer) {
-        this.type = type;
-        this.layer = layer
-        this.materials = layer.materials
-        this.zScale = layer.sceneData.zScale;
-    }
+	constructor(type, layer) {
+		this.type = type;
+		this.layer = layer
+		this.materials = layer.materials
+		this.zScale = layer.sceneData.zScale;
+	}
 
-    build(features, startIndex) {
-        const { layer } = this;
+	build(features, startIndex) {
+		const { layer } = this;
 
-        for (let fidx = 0; fidx < features.length; fidx++) {
-            const f = features[fidx];
+		for (let fidx = 0; fidx < features.length; fidx++) {
+			const f = features[fidx];
 			const objs = this.createObjects(f);
 
 			for (const obj of objs) {
 				obj.userData.properties = f.prop;
 			}
 
-            layer.addFeature(startIndex + fidx, f, objs);
-        }
-    }
+			layer.addFeature(startIndex + fidx, f, objs);
+		}
+	}
 
 	createObjects(f) { return []; }
 

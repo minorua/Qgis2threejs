@@ -86,7 +86,7 @@ export class Scene extends THREE.Scene {
 			if (p.light != this.userData.light || p.baseExtent.rotation != rotation0) {
 				this.lightGroup.clear();
 				this.buildLights(conf.lights[p.light] || conf.lights.directional, p.baseExtent.rotation);
-				this.dispatchEvent({type: "lightChanged", light: p.light});
+				this.dispatchEvent({ type: "lightChanged", light: p.light });
 			}
 
 			const be = p.baseExtent;
@@ -119,13 +119,13 @@ export class Scene extends THREE.Scene {
 				focal.z *= p.zScale;
 
 				const near = 0.001 * s,
-					  far = 100 * s;
+					far = 100 * s;
 
 				this.requestCameraUpdate(pos, focal, near, far);
 			}
 
 			if (p.baseExtent.rotation != rotation0) {
-				this.dispatchEvent({type: "mapRotationChanged", rotation: p.baseExtent.rotation});
+				this.dispatchEvent({ type: "mapRotationChanged", rotation: p.baseExtent.rotation });
 			}
 
 			this.userData = p;
@@ -177,8 +177,8 @@ export class Scene extends THREE.Scene {
 			else if (p.type == "directional") {
 				light = new THREE.DirectionalLight(p.color, p.intensity);
 				light.position.copy(UV.j)
-							  .applyAxisAngle(UV.i, p.altitude * deg2rad)
-							  .applyAxisAngle(UV.k, (rotation - p.azimuth) * deg2rad);
+					.applyAxisAngle(UV.i, p.altitude * deg2rad)
+					.applyAxisAngle(UV.k, (rotation - p.azimuth) * deg2rad);
 			}
 			else if (p.type == "point") {
 				light = new THREE.PointLight(p.color, p.intensity, 0, p.decay);
@@ -192,11 +192,11 @@ export class Scene extends THREE.Scene {
 	}
 
 	requestRender() {
-		this.dispatchEvent({type: "renderRequest"});
+		this.dispatchEvent({ type: "renderRequest" });
 	}
 
 	requestCameraUpdate(pos, focal, near, far) {
-		this.dispatchEvent({type: "cameraUpdateRequest", pos: pos, focal: focal, near: near, far: far});
+		this.dispatchEvent({ type: "cameraUpdateRequest", pos: pos, focal: focal, near: near, far: far });
 	}
 
 	visibleObjects(labelVisible) {
@@ -232,7 +232,7 @@ export class Scene extends THREE.Scene {
 		if (isLonLat && typeof proj4 !== "undefined") {
 			// WGS84 long,lat to map coordinates
 			var t = proj4(p.proj).forward([pt.x, pt.y]);
-			pt = {x: t[0], y: t[1], z: pt.z};
+			pt = { x: t[0], y: t[1], z: pt.z };
 		}
 
 		return {

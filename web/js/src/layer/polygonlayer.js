@@ -57,11 +57,11 @@ export class PolygonLayer extends VectorLayer {
 
 class Builder extends BuilderBase {
 
-    createObjects(f) {
-        return [this.createObject(f)];
-    }
+	createObjects(f) {
+		return [this.createObject(f)];
+	}
 
-    createObject(f) {}
+	createObject(f) { }
 
 }
 

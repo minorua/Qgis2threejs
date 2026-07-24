@@ -79,7 +79,7 @@ export class Models extends THREE.EventDispatcher {
 	 */
 	loadData(data) {
 		const callback = (model) => {
-			this.dispatchEvent({type: "modelLoaded", model: model});
+			this.dispatchEvent({ type: "modelLoaded", model: model });
 		};
 
 		for (const modelData of data) {

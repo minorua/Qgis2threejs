@@ -94,7 +94,7 @@ export class MapLayer extends THREE.EventDispatcher {
 	 * @param {BlockData} data
 	 * @param {import("../scene.js").Scene} scene
 	 */
-	loadBlockData(data, scene) {}
+	loadBlockData(data, scene) { }
 
 	get clickable() {
 		return this.properties.clickable;
@@ -127,7 +127,7 @@ export class MapLayer extends THREE.EventDispatcher {
 	}
 
 	requestRender() {
-		this.dispatchEvent({type: "renderRequest"});
+		this.dispatchEvent({ type: "renderRequest" });
 	}
 
 }

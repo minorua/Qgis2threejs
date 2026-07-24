@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "esbuild": "^0.28.1",
+    "eslint": "^10.7.0",
     "ts-json-schema-generator": "^2.9.0",
     "typescript": "^6.0.3"
   }
