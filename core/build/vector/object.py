@@ -145,14 +145,22 @@ class PointType(PointTypeBase):
 class SphereType(PointBasicTypeBase):
 
     name = "Sphere"
-    pids = [PID.C, PID.OP, PID.G0]
+    pids = [PID.C, PID.OP, PID.G0, PID.M0]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(
             geomItems=[
                 {"name": "Radius", "defVal": self.defaultValue()}
+            ],
+            mtlItems=[
+                {"name": "Flat shading", "type": PropertyWidget.CHECKBOX}
             ]
         )
+
+    def material(self, feat):
+        return {
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), flat=feat.prop(PID.M0))
+        }
 
     def geometry(self, feat, geom):
         return {
@@ -164,15 +172,23 @@ class SphereType(PointBasicTypeBase):
 class CylinderType(PointBasicTypeBase):
 
     name = "Cylinder"
-    pids = [PID.C, PID.OP, PID.G0, PID.G1]
+    pids = [PID.C, PID.OP, PID.G0, PID.G1, PID.M0]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(
             geomItems=[
                 {"name": "Radius", "defVal": self.defaultValue()},
                 {"name": "Height", "defVal": self.defaultValueZ()}
+            ],
+            mtlItems=[
+                {"name": "Flat shading", "type": PropertyWidget.CHECKBOX}
             ]
         )
+
+    def material(self, feat):
+        return {
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), flat=feat.prop(PID.M0))
+        }
 
     def geometry(self, feat, geom):
         return {
@@ -348,18 +364,21 @@ class ThickLineType(LineTypeBase):
 class PipeType(LineTypeBase):
 
     name = "Pipe"
-    pids = [PID.C, PID.OP, PID.G0]
+    pids = [PID.C, PID.OP, PID.G0, PID.M0]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(
             geomItems=[
                 {"name": "Radius", "defVal": self.defaultValue()}
+            ],
+            mtlItems=[
+                {"name": "Flat shading", "type": PropertyWidget.CHECKBOX}
             ]
         )
 
     def material(self, feat):
         return {
-            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP))
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), flat=feat.prop(PID.M0))
         }
 
     def geometry(self, feat, geom):
