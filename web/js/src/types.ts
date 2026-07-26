@@ -439,3 +439,6 @@ export interface Modules {
     OutlineEffect,
     ViewHelper
 }
+
+
+export type Q3DEventListener = (...args: any[]) => void;

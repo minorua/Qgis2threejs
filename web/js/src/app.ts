@@ -8,19 +8,19 @@ import { app, conf, deg2rad, gui, modules, Group, LayerType } from "./core.js";
 import { Scene } from "./scene.js";
 import { E } from "./utils.js";
 
-import type { AppData } from "./types.js";
+import type { AppData, Q3DEventListener } from "./types.js";
 
 const _v = new THREE.Vector3();
 
+const listeners: Record<string, Q3DEventListener[]> = {};
 
-const listeners = {};
 app.dispatchEvent = (event) => {
     for (const listener of listeners[event.type] || []) {
         listener(event);
     }
 };
 
-app.addEventListener = (type, listener, prepend) => {
+app.addEventListener = (type: string, listener: Q3DEventListener, prepend = false) => {
     listeners[type] = listeners[type] || [];
     if (prepend) {
         listeners[type].unshift(listener);
@@ -72,7 +72,7 @@ app.init = (container) => {
     gui.init();
 };
 
-function applyUrlParameters(container) {
+function applyUrlParameters(container: HTMLElement) {
     const params = Object.fromEntries([
         ...new URLSearchParams(window.location.search),
         ...new URLSearchParams(window.location.hash.slice(1)),
@@ -101,7 +101,7 @@ function applyUrlParameters(container) {
     return true;
 }
 
-function setupRenderer(container) {
+function setupRenderer(container: HTMLElement) {
     app.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     app.renderer.autoClear = false;
 

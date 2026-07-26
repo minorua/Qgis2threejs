@@ -8,6 +8,8 @@ import { BuilderBase, VectorLayer } from "./vectorlayer.js";
 import { Materials } from "../material.js";
 import { createWallGeometry } from "../utils.js";
 
+import type { FeatureData } from "../types.js";
+
 
 export class LineLayer extends VectorLayer {
 
@@ -148,7 +150,7 @@ export class LineLayer extends VectorLayer {
 
 class Builder extends BuilderBase {
 
-    createObjects(f) {
+    createObjects(f: FeatureData): THREE.Mesh[] | THREE.Line[] | Group[] {
         const objs = [];
         for (const line of f.geom.lines) {
             const obj = this.createObject(f, line);
@@ -159,7 +161,7 @@ class Builder extends BuilderBase {
         return objs;
     }
 
-    createObject(f, vertices) { }
+    createObject(f: FeatureData, vertices): THREE.Mesh | THREE.Line | Group | void { }
 
 }
 
@@ -168,7 +170,7 @@ class LineBuilder extends Builder {
 
     type = "Line";
 
-    createObject(f, vertices) {
+    createObject(f: FeatureData, vertices): THREE.Line {
         const obj = new THREE.Line(
             new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3)),
             this.materials.mtl(f.mtl.idx)
@@ -184,7 +186,7 @@ class ThickLineBuilder extends Builder {
 
     type = "Thick Line";
 
-    createObject(f, vertices) {
+    createObject(f: FeatureData, vertices) {
         const geom = new modules.meshline.MeshLineGeometry();
         geom.setPoints(vertices);
 
@@ -205,7 +207,7 @@ class CylinderBuilderBase extends Builder {
     pt1 = new THREE.Vector3();
     sub = new THREE.Vector3();
 
-    createObject(f, vertices) {
+    createObject(f: FeatureData, vertices) {
         const { cylinGeom, jointGeom, pt0, pt1, sub, materials } = this;
         const axis = UV.j;
 
@@ -379,7 +381,7 @@ class WallBuilder extends Builder {
 
     type = "Wall";
 
-    createObject(f, vertices) {
+    createObject(f: FeatureData, vertices) {
         return new THREE.Mesh(
             createWallGeometry(vertices, () => f.geom.bh),
             this.materials.mtl(f.mtl.idx)

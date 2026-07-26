@@ -183,11 +183,11 @@ export class Scene extends THREE.Scene {
 		this.dispatchEvent({ type: "renderRequest" });
 	}
 
-	requestCameraUpdate(pos, focal, near, far) {
+	requestCameraUpdate(pos: THREE.Vector3, focal: THREE.Vector3, near: number, far: number) {
 		this.dispatchEvent({ type: "cameraUpdateRequest", pos: pos, focal: focal, near: near, far: far });
 	}
 
-	visibleObjects(labelVisible) {
+	visibleObjects(includeLabels = false) {
 		let objs = [];
 
 		for (const id in this.mapLayers) {
@@ -196,7 +196,7 @@ export class Scene extends THREE.Scene {
 
 			objs = objs.concat(layer.visibleObjects());
 
-			if (labelVisible && layer.labels) {
+			if (includeLabels && layer.labels) {
 				objs = objs.concat(layer.labels);
 			}
 		}
@@ -215,7 +215,7 @@ export class Scene extends THREE.Scene {
 	}
 
 	// map coordinates to 3D world coordinates
-	toWorldCoordinates(pt, isLonLat) {
+	toWorldCoordinates(pt, isLonLat = false) {
 		const p = this.userData;
 		if (isLonLat && typeof proj4 !== "undefined") {
 			// WGS84 long,lat to map coordinates
@@ -231,10 +231,10 @@ export class Scene extends THREE.Scene {
 	}
 
 	// return bounding box in 3d world coordinates
-	boundingBox(only_visible) {
+	boundingBox(onlyVisible = false) {
 		const box = new THREE.Box3();
 		for (const id in this.mapLayers) {
-			if (only_visible && !this.mapLayers[id].visible) continue;
+			if (onlyVisible && !this.mapLayers[id].visible) continue;
 
 			const b = this.mapLayers[id].boundingBox();
 			if (b) box.union(b);
@@ -244,7 +244,7 @@ export class Scene extends THREE.Scene {
 
 }
 
-function createLayer(data) {
+function createLayer(data: LayerData) {
 	const LayerClass = {
 		dem: DEMLayer,
 		point: PointLayer,

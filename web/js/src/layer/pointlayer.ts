@@ -75,7 +75,7 @@ class Builder extends BuilderBase {
         return meshes;
     }
 
-    transform(mesh, geom, pt) { }
+    transform(mesh: THREE.Mesh, geom: GeomData, pt: Vec3) { }
 
 }
 
@@ -90,7 +90,7 @@ class SphereBuilder extends Builder {
         this.geometry = new THREE.SphereGeometry(1, 32, 32);
     }
 
-    transform(mesh, geom, pt) {
+    transform(mesh: THREE.Mesh, geom: GeomData, pt: Vec3) {
         mesh.scale.setScalar(geom.r);
         mesh.position.fromArray(pt);
     }
@@ -108,7 +108,7 @@ class BoxBuilder extends Builder {
         this.geometry = new THREE.BoxGeometry(1, 1, 1);
     }
 
-    transform(mesh, geom, pt) {
+    transform(mesh: THREE.Mesh, geom: GeomData, pt: Vec3) {
         mesh.scale.set(geom.w, geom.h, geom.d);
         mesh.rotation.x = HALF_PI;
         mesh.position.set(pt[0], pt[1], pt[2] + geom.h / 2);
@@ -127,7 +127,7 @@ class DiskBuilder extends Builder {
         this.geometry = new THREE.CircleGeometry(1, 32);
     }
 
-    transform(mesh, geom, pt) {
+    transform(mesh: THREE.Mesh, geom: GeomData, pt: Vec3) {
         mesh.scale.set(geom.r, geom.r * this.zScale, 1);
         mesh.rotateOnWorldAxis(UV.i, -geom.d * deg2rad);
         mesh.rotateOnWorldAxis(UV.k, -geom.dd * deg2rad);
@@ -147,7 +147,7 @@ class PlaneBuilder extends Builder {
         this.geometry = new THREE.PlaneGeometry(1, 1, 1, 1);
     }
 
-    transform(mesh, geom, pt) {
+    transform(mesh: THREE.Mesh, geom: GeomData, pt: Vec3) {
         mesh.scale.set(geom.w, geom.l * this.zScale, 1);
         mesh.rotateOnWorldAxis(UV.i, -geom.d * deg2rad);
         mesh.rotateOnWorldAxis(UV.k, -geom.dd * deg2rad);
@@ -159,7 +159,7 @@ class PlaneBuilder extends Builder {
 
 class CBuilderBase extends Builder {
 
-    transform(mesh, geom, pt) {
+    transform(mesh: THREE.Mesh, geom: GeomData, pt: Vec3) {
         mesh.scale.set(geom.r, geom.h, geom.r);
         mesh.rotation.x = HALF_PI;
         mesh.position.set(pt[0], pt[1], pt[2] + geom.h / 2);
