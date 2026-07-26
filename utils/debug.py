@@ -90,7 +90,7 @@ def validateData(data):
 
     global schema
     if not schema:
-        with open(pluginDir("web/js/preview.schema.json"), "r") as f:
+        with open(pluginDir("src/schema/preview.json"), "r") as f:
             schema = json.load(f)
 
     try:
