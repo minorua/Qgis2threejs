@@ -11,6 +11,8 @@
 package-lock.json
 pyrightconfig.json
 web/js/Qgis2threejs.js
+web/js/gui_dat.js
+web/js/preview.js
 web/js/*.schema.json
 
 .venv/

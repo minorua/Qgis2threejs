@@ -1,7 +1,7 @@
 // (C) 2017 Minoru Akagi
 // SPDX-License-Identifier: MIT
 
-import { app, conf, gui, modules, E } from "../js/Qgis2threejs.js";
+import { app, conf, gui, modules, E } from "./Qgis2threejs.js";
 const THREE = modules.THREE;
 export { app, conf, gui, THREE }
 
