@@ -19,6 +19,7 @@
     "three": "0.184.0"
   },
   "devDependencies": {
+    "@types/three": "0.184.0",
     "esbuild": "^0.28.1",
     "eslint": "^10.7.0",
     "ts-json-schema-generator": "^2.9.0",

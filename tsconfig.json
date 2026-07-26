@@ -9,8 +9,8 @@
     "outDir": "src/types",
 
     "paths": {
-      "three": ["./web/js/lib/three/three.module.js"],
-      "three/addons/*": ["./web/js/lib/three/*"]
+      "three": ["./node_modules/@types/three"],
+      "three/addons/*": ["./node_modules/@types/three/examples/jsm/*"]
     }
   },
   "include": [
