@@ -59,11 +59,7 @@ export class PointLayer extends VectorLayer {
 
 class Builder extends BuilderBase {
 
-    constructor(type, layer) {
-        super(type, layer);
-
-        this.geometry = null;
-    }
+    geometry = null;
 
     createObjects(f) {
         const { geometry, layer } = this;
@@ -86,8 +82,10 @@ class Builder extends BuilderBase {
 
 class SphereBuilder extends Builder {
 
+    type = "Sphere";
+
     constructor(layer) {
-        super("Sphere", layer);
+        super(layer);
 
         this.geometry = new THREE.SphereGeometry(1, 32, 32);
     }
@@ -102,8 +100,10 @@ class SphereBuilder extends Builder {
 
 class BoxBuilder extends Builder {
 
+    type = "Box";
+
     constructor(layer) {
-        super("Box", layer);
+        super(layer);
 
         this.geometry = new THREE.BoxGeometry(1, 1, 1);
     }
@@ -119,8 +119,10 @@ class BoxBuilder extends Builder {
 
 class DiskBuilder extends Builder {
 
+    type = "Disk";
+
     constructor(layer) {
-        super("Disk", layer);
+        super(layer);
 
         this.geometry = new THREE.CircleGeometry(1, 32);
     }
@@ -137,8 +139,10 @@ class DiskBuilder extends Builder {
 
 class PlaneBuilder extends Builder {
 
+    type = "Plane";
+
     constructor(layer) {
-        super("Plane", layer);
+        super(layer);
 
         this.geometry = new THREE.PlaneGeometry(1, 1, 1, 1);
     }
@@ -166,8 +170,10 @@ class CBuilderBase extends Builder {
 
 class CylinderBuilder extends CBuilderBase {
 
+    type = "Cylinder";
+
     constructor(layer) {
-        super("Cylinder", layer);
+        super(layer);
 
         this.geometry = new THREE.CylinderGeometry(1, 1, 1, 32);
     }
@@ -177,8 +183,10 @@ class CylinderBuilder extends CBuilderBase {
 
 class ConeBuilder extends CBuilderBase {
 
+    type = "Cone";
+
     constructor(layer) {
-        super("Cone", layer);
+        super(layer);
 
         this.geometry = new THREE.CylinderGeometry(0, 1, 1, 32);
     }

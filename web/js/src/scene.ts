@@ -14,12 +14,17 @@ import type { MapLayer } from "./layer/layer.js";
 
 export class Scene extends THREE.Scene {
 
+	mapLayers: Record<number, MapLayer> = {};		// key is layerId
+
+	declare lightGroup: Group;
+	declare labelGroup: Group;
+	declare labelConnectorGroup: Group;
+	declare userData: SceneProperties;
+
 	constructor() {
 		super();
 
-		this.autoUpdate = false;
-
-		this.mapLayers = {};    // map layers. key is layerId.
+		this.autoUpdate = false;			// TODO: remove
 
 		this.lightGroup = new Group();
 		this.lightGroup.name = "light";

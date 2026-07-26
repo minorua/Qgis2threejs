@@ -11,6 +11,10 @@ import { createWallGeometry } from "../utils.js";
 
 export class LineLayer extends VectorLayer {
 
+    type = LayerType.Line;
+
+    origMtls?: Materials;
+
     BuilderFactory = {
         "Line": LineBuilder,
         "Thick Line": ThickLineBuilder,
@@ -18,11 +22,6 @@ export class LineLayer extends VectorLayer {
         "Cone": ConeBuilder,
         "Box": BoxBuilder,
         "Wall": WallBuilder
-    }
-
-    constructor() {
-        super();
-        this.type = LayerType.Line;
     }
 
     clearObjects() {
@@ -167,9 +166,7 @@ class Builder extends BuilderBase {
 
 class LineBuilder extends Builder {
 
-    constructor(layer) {
-        super("Line", layer);
-    }
+    type = "Line";
 
     createObject(f, vertices) {
         const obj = new THREE.Line(
@@ -185,9 +182,7 @@ class LineBuilder extends Builder {
 
 class ThickLineBuilder extends Builder {
 
-    constructor(layer) {
-        super("Thick Line", layer);
-    }
+    type = "Thick Line";
 
     createObject(f, vertices) {
         const geom = new modules.meshline.MeshLineGeometry();
@@ -203,16 +198,12 @@ class ThickLineBuilder extends Builder {
 
 class CylinderBuilderBase extends Builder {
 
-    constructor(type, layer) {
-        super(type, layer);
+    cylinGeom: THREE.CylinderGeometry | null = null;
+    jointGeom: THREE.SphereGeometry | null = null;
 
-        this.cylinGeom = null;
-        this.jointGeom = null;
-
-        this.pt0 = new THREE.Vector3();
-        this.pt1 = new THREE.Vector3();
-        this.sub = new THREE.Vector3();
-    }
+    pt0 = new THREE.Vector3();
+    pt1 = new THREE.Vector3();
+    sub = new THREE.Vector3();
 
     createObject(f, vertices) {
         const { cylinGeom, jointGeom, pt0, pt1, sub, materials } = this;
@@ -254,8 +245,10 @@ class CylinderBuilderBase extends Builder {
 
 class PipeBuilder extends CylinderBuilderBase {
 
+    type = "Pipe";
+
     constructor(layer) {
-        super("Pipe", layer);
+        super(layer);
 
         this.cylinGeom = new THREE.CylinderGeometry(1, 1, 1, 32);
         this.jointGeom = new THREE.SphereGeometry(1, 32, 32);
@@ -266,8 +259,10 @@ class PipeBuilder extends CylinderBuilderBase {
 
 class ConeBuilder extends CylinderBuilderBase {
 
+    type = "Cone";
+
     constructor(layer) {
-        super("Cone", layer);
+        super(layer);
 
         this.cylinGeom = new THREE.CylinderGeometry(0, 1, 1, 32);
     }
@@ -277,31 +272,29 @@ class ConeBuilder extends CylinderBuilderBase {
 
 class BoxBuilder extends Builder {
 
-    constructor(layer) {
-        super("Box", layer);
+    type = "Box";
 
-        // In this method, box corners are exposed near joint when both azimuth and slope of
-        // the segments of both sides are different. Also, some unnecessary faces are created.
-        this.jnt_idx = [
-            0, 5, 4, 4, 5, 1,   // left turn - top, side, bottom
-            3, 0, 7, 7, 0, 4,
-            6, 3, 2, 2, 3, 7,
-            4, 1, 0, 0, 1, 5,   // right turn - top, side, bottom
-            1, 2, 5, 5, 2, 6,
-            2, 7, 6, 6, 7, 3
-        ];
+    pt0 = new THREE.Vector3();
+    pt1 = new THREE.Vector3();
+    sub = new THREE.Vector3();
+    pt = new THREE.Vector3();
+    ptM = new THREE.Vector3();
+    scale1 = new THREE.Vector3(1, 1, 1);
+    matrix = new THREE.Matrix4();
+    quat = new THREE.Quaternion();
 
-        this.pt0 = new THREE.Vector3();
-        this.pt1 = new THREE.Vector3();
-        this.sub = new THREE.Vector3();
-        this.pt = new THREE.Vector3();
-        this.ptM = new THREE.Vector3();
-        this.scale1 = new THREE.Vector3(1, 1, 1);
-        this.matrix = new THREE.Matrix4();
-        this.quat = new THREE.Quaternion();
-    }
+    // In this method, box corners are exposed near joint when both azimuth and slope of
+    // the segments of both sides are different. Also, some unnecessary faces are created.
+    jnt_idx = [
+        0, 5, 4, 4, 5, 1,   // left turn - top, side, bottom
+        3, 0, 7, 7, 0, 4,
+        6, 3, 2, 2, 3, 7,
+        4, 1, 0, 0, 1, 5,   // right turn - top, side, bottom
+        1, 2, 5, 5, 2, 6,
+        2, 7, 6, 6, 7, 3
+    ];
 
-    createObject(f, vertices) {
+    createObject(f: FeatureData, vertices) {
         const { jnt_idx, pt0, pt1, sub, pt, ptM, scale1, matrix, quat } = this;
         const { w, h } = f.geom;
 
@@ -384,9 +377,7 @@ class BoxBuilder extends Builder {
 
 class WallBuilder extends Builder {
 
-    constructor(layer) {
-        super("Wall", layer);
-    }
+    type = "Wall";
 
     createObject(f, vertices) {
         return new THREE.Mesh(

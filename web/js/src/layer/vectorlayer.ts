@@ -12,14 +12,14 @@ import type { Materials } from "../material.js";
 
 export class VectorLayer extends MapLayer {
 
-	BuilderFactory = {}
+	builder: BuilderBase | null = null;
+	features: FeatureData[] = [];
+	labels: THREE.Sprite[] = [];
+	labelGroup: Group;
+	labelConnectorGroup: Group;
 
-	constructor() {
-		super();
-		this.builder = null;
-		this.features = [];
-		this.labels = [];
-	}
+	declare properties: VectorLayerProperties;
+	declare BuilderFactory: Record<string, BuilderConstructor>;
 
 	build(features, startIndex) {
 		const { objType } = this.properties;
@@ -250,8 +250,12 @@ export class VectorLayer extends MapLayer {
 
 export class BuilderBase {
 
-	constructor(type, layer) {
-		this.type = type;
+	declare type: string;
+	declare layer: VectorLayer;
+	declare materials: Materials;
+	declare zScale: number;
+
+	constructor(layer: VectorLayer) {
 		this.layer = layer
 		this.materials = layer.materials
 		this.zScale = layer.sceneData.zScale;
@@ -275,3 +279,6 @@ export class BuilderBase {
 	createObjects(f) { return []; }
 
 }
+
+
+export type BuilderConstructor = new (layer: VectorLayer) => BuilderBase;

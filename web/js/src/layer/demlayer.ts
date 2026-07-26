@@ -22,10 +22,7 @@ import type { Scene } from "../scene.js";
 */
 class GridGeometry extends THREE.BufferGeometry {
 
-	constructor() {
-		super();
-		this.type = 'GridGeometry';
-	}
+	type = "GridGeometry";
 
 	/**
 	 * @param grid
@@ -90,11 +87,11 @@ class GridGeometry extends THREE.BufferGeometry {
 
 class DEMBlockBase {
 
-	constructor() {
-		this.obj = null;
-		this.materials = [];
-		this.currentMtlIndex = 0;
-	}
+	materials: Material[] = [];
+	currentMtlIndex: number = 0;
+
+	obj!: THREE.Mesh;
+	data!: DEMBlockData;
 
 	loadData(data: DEMBlockData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void) {
 		this.data = data;
@@ -497,12 +494,10 @@ class ClippedDEMBlock extends DEMBlockBase {
 
 export class DEMLayer extends MapLayer {
 
-	constructor() {
-		super();
-		this.type = LayerType.DEM;
-		this.blocks = [];
-		this.auxiliaryMtl = {};
-	}
+	type = LayerType.DEM;
+	blocks: DEMBlockBase[] = [];
+	sideVisible: boolean = false;
+	auxiliaryMtl: Partial<Record<"sides" | "edges" | "wireframe", Material>> = {};
 
 	loadLayerData(data: DEMLayerData, scene: Scene): void {
 		this.clearObjects();

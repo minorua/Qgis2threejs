@@ -12,18 +12,23 @@ import type { Scene } from "../scene.js";
 
 export class MapLayer extends THREE.EventDispatcher {
 
+	id: number | null = null
+	properties: LayerProperties | Record<string, never> = {};
+	objects: THREE.Object3D[] = [];
+
+	declare type: LayerType;
+	declare materials: Materials;
+	declare objectGroup: Group;
+	declare sceneData: SceneProperties;
+
 	constructor() {
 		super();
-
-		this.id = null;
-		this.properties = {};
 
 		this.materials = new Materials();
 		this.materials.addEventListener("renderRequest", () => this.requestRender());
 
 		this.objectGroup = new Group();
 		this.objectGroup.name = "layer";
-		this.objects = [];
 	}
 
 	addObject(object) {

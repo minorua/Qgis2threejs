@@ -10,20 +10,15 @@ import { arrayToVec2Array } from "../utils.js";
 
 export class PolygonLayer extends VectorLayer {
 
+	type = LayerType.Polygon;
+
+	borderVisible = true;	// for overlay
+	sideVisible = true;		// for overlay
+
 	BuilderFactory = {
 		"Polygon": PolygonBuilder,
 		"Extruded": ExtrudedBuilder,
 		"Overlay": OverlayBuilder
-	}
-
-	constructor() {
-		super();
-
-		this.type = LayerType.Polygon;
-
-		// for overlay
-		this.borderVisible = true;
-		this.sideVisible = true;
 	}
 
 	buildLabels(features) {
@@ -68,9 +63,7 @@ class Builder extends BuilderBase {
 
 class PolygonBuilder extends Builder {
 
-	constructor(layer) {
-		super("Polygon", layer)
-	}
+	type = "Polygon";
 
 	createObject(f) {
 		const t = f.geom.triangles;
@@ -86,9 +79,7 @@ class PolygonBuilder extends Builder {
 
 class ExtrudedBuilder extends Builder {
 
-	constructor(layer) {
-		super("Extruded", layer)
-	}
+	type = "Extruded";
 
 	createObject(f) {
 		const { polygons, centroids } = f.geom;
@@ -160,9 +151,7 @@ class ExtrudedBuilder extends Builder {
 
 class OverlayBuilder extends Builder {
 
-	constructor(layer) {
-		super("Overlay", layer)
-	}
+	type = "Overlay";
 
 	createObject(f) {
 		const { sceneData } = this.layer;
