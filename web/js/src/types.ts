@@ -4,18 +4,25 @@ These type definitions are incomplete and may contain inaccuracies
 TODO:
  - Definition of coordinates for points, linestrings and polygons
 */
-export interface Point2D {
+import type * as THREE from "three";
+
+import type { LayerType, MaterialType } from "./core.js";
+import type { Scene } from "./scene.js";
+export type { LayerType, MaterialType };
+
+//// Data structures loaded into the application
+export interface Point2 {
     x: number;
     y: number;
 }
 
-export interface Point3D {
+export interface Point3 {
     x: number;
     y: number;
     z: number;
 }
 
-export type Vector3 = [number, number, number];
+export type Vec3 = [number, number, number];
 
 export interface BaseExtent {
     cx: number;
@@ -27,19 +34,19 @@ export interface BaseExtent {
 
 /* Properties */
 export interface SceneProperties {
-    baseExtent: BaseExtent;
-    origin: Point3D;
-    zScale: number;
+	baseExtent: BaseExtent;	 // map base extent in map coordinates. center is (cx, cy).
+	origin: Point3;		     // origin of 3D world in map coordinates
+	zScale: number;			 // vertical scale factor
     light: string;
     fog?: {
         color: number;
         density: number;
     };
-    proj?: string;      // used for lat/lon display
+    proj?: string;           // used for lat/lon display
 }
 
 export interface LayerProperties {
-    type: string;
+    type: LayerType;
     name: string;
     clickable: boolean;
     visible: boolean;
@@ -102,7 +109,7 @@ export interface MaterialImageData {
 }
 
 export interface MaterialData {
-    type: number;
+    type: MaterialType;
     mtlIndex: number;
     c?: number;         // color
     o?: number;         // opacity
@@ -149,7 +156,7 @@ export interface DEMLayerData extends LayerData {
 export interface DEMGridBlockData extends BlockData {
     width: number;
     height: number;
-    translate: Vector3;
+    translate: Vec3;
     zScale: number;
     grid?: DEMGridData;
     geom?: TIN_Border;
@@ -158,7 +165,7 @@ export interface DEMGridBlockData extends BlockData {
 export interface DEMTileGridBlockData extends BlockData {
     segments: number;
     tileSize: number;
-    translate: Vector3;
+    translate: Vec3;
     zScale: number;
     grid: DEMGridData;
 }
@@ -266,8 +273,8 @@ export interface Keyframe {
 }
 
 interface CameraStateA {
-    pos: Point3D;
-    lookAt: Point3D;
+    pos: Point3;
+    lookAt: Point3;
 }
 
 interface CameraStateF {
@@ -305,7 +312,6 @@ export interface SignalData extends BaseData {
     is_scene?: boolean;
 }
 
-/* Load data */
 export type AppData =
     SceneData
     | LayerData
@@ -318,3 +324,118 @@ export type PreviewData =
     | CameraStateData
     | LabelsData
     | SignalData;
+
+
+//// Interfaces for the app, gui, and modules objects
+export interface App {
+    /* core objects */
+    loadingManager;
+    camera;
+    container;
+    controls;
+    renderer;
+    scene: Scene;
+    viewHelper;
+    effect;
+
+    camera2;
+    container2;
+    renderer2;
+    scene2: Scene;
+
+    /* state */
+    width: number;
+    height: number;
+    sceneLoaded: boolean;
+    labelVisible;
+    _wireframeMode: boolean;
+    selectedLayer;
+    selectedObject;
+    mouseDownPoint: THREE.Vector2;
+    mouseUpPoint: THREE.Vector2;
+    queryTargetPosition;
+
+    /* sub-modules */
+    animation;
+    cameraAction;
+    eventListener;
+    measure;
+
+    /* functions */
+    dispatchEvent(event);
+    addEventListener(type, listener, prepend?: boolean);
+    removeEventListener(type, listener);
+
+    init(container: HTMLElement);
+    initLoadingManager();
+
+    loadData(data: AppData);
+    loadFile(url: string, type, callback?);
+    loadJSONFile(url: string, callback?);
+    loadSceneFile(url: string, sceneFileLoadedCallback?, sceneLoadedCallback?);
+    loadTextureFile(url: string, callback?);
+    loadModelFile(url: string, callback?);
+    loadModelData(data, ext: string, resourcePath: string, callback?);
+
+    buildCamera(is_ortho?: boolean);
+    buildNorthArrow(container: HTMLElement, declination?);
+    buildViewHelper(container: HTMLElement);
+
+    adjustCameraNearFar();
+    adjustCameraPosition(force?);
+
+    animate();
+    start();
+    pause();
+    resume();
+
+    render(immediate?: boolean);
+    setIntervalRender(delay, repeat);
+    updateControlsAndRender();
+
+    currentViewUrl();
+    setCanvasSize(width, height);
+    setLabelVisible(visible);
+    setRotateAnimationMode(enabled);
+    setWireframeMode(wireframe);
+
+    cleanView();
+    highlightFeature(object);
+    saveCanvasImage(width, height, fill_backgroundtrue, saveImageFunc?);
+
+    canvasClicked(e);
+    intersectObjects(offsetX, offsetY);
+
+    /* private */
+    anim_timer;
+    highlightObject;
+    highlightMaterial;
+    modelBuilders;
+    urlParams;
+    queryMarker: THREE.Mesh;
+    _canvasImageUrl;
+}
+
+export interface Gui {
+    modules;
+
+    /* sub-modules */
+    dat;
+    popup;
+    layerPanel;
+
+    /* functions */
+    init();
+    clean();
+    showInfo();
+    showQueryResult(point, layer, obj, show_coords);
+    showPrintDialog();
+}
+
+export interface Modules {
+    THREE,
+    ColladaLoader,
+    GLTFLoader,
+    OutlineEffect,
+    ViewHelper
+}

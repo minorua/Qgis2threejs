@@ -4,23 +4,28 @@
 
 import { THREE } from "./three.js";
 
-export const modules = { THREE };
+import type { App, Gui, Modules } from "./types.js";
 
 export { conf } from "./conf.js";
 
-export const app = {};
+export const app = {} as App;
 
 export const gui = {
 
 	modules: [],
 	dat: null
 
-};
+} as Gui;
+
+export const modules = { THREE } as Modules;
 
 export const tweens = {};
 
 export const deg2rad = Math.PI / 180;
 
+/**
+ * @enum {string}
+ */
 export const LayerType = {
 
 	DEM: "dem",
@@ -31,6 +36,11 @@ export const LayerType = {
 
 };
 
+export type LayerType = typeof LayerType[keyof typeof LayerType];
+
+/**
+ * @enum {number}
+ */
 export const MaterialType = {
 
 	MeshLambert: 0,
@@ -48,6 +58,11 @@ export const MaterialType = {
 
 };
 
+export type MaterialType = typeof MaterialType[keyof typeof MaterialType];
+
+/**
+ * @enum {number}
+ */
 export const KeyframeType = {
 
 	CameraMotion: 64,
@@ -56,6 +71,8 @@ export const KeyframeType = {
 	GrowingLine: 67
 
 };
+
+export type KeyframeType = typeof KeyframeType[keyof typeof KeyframeType];
 
 export const UV = {
 
