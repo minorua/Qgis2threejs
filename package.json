@@ -2,9 +2,9 @@
   "name": "qgis2threejs",
   "private": true,
   "scripts": {
-    "build": "esbuild web/js/src/index.js --bundle --format=esm --outfile=web/js/Qgis2threejs.js --external:three --external:three/* --sourcemap",
-    "build:min": "esbuild web/js/src/index.js --bundle --format=esm --outfile=web/js/Qgis2threejs.js --external:three --external:three/* --minify",
-    "watch": "esbuild web/js/src/index.js --bundle --format=esm --outfile=web/js/Qgis2threejs.js --external:three --external:three/* --watch",
+    "build": "esbuild web/js/src/index.ts --bundle --format=esm --outfile=web/js/Qgis2threejs.js --external:three --external:three/* --sourcemap",
+    "build:min": "esbuild web/js/src/index.ts --bundle --format=esm --outfile=web/js/Qgis2threejs.js --external:three --external:three/* --minify",
+    "watch": "esbuild web/js/src/index.ts --bundle --format=esm --outfile=web/js/Qgis2threejs.js --external:three --external:three/* --watch",
     "release": "./scripts/release.sh",
     "setup-debug": "./scripts/setup-debug.sh",
     "setup-test": "ts-json-schema-generator --path web/js/src/types.ts --type PreviewData --out web/js/preview.schema.json"

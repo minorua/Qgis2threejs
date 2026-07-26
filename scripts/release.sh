@@ -25,7 +25,7 @@ rm -f web/js/Qgis2threejs.js.map
 echo
 echo "== Version check =="
 echo "Please confirm:"
-echo "  - web/js/src/index.js version is updated"
+echo "  - web/js/src/index.ts version is updated"
 echo "  - PLUGIN_VERSION and PLUGIN_VERSION_INT in conf.py are updated"
 echo "  - metadata.txt version is updated"
 
