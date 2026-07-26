@@ -5,6 +5,11 @@ export PATH=$PATH:/c/OSGeo4W/bin
 
 PLUGINNAME=Qgis2threejs
 
+JS_FILES="\
+web/js/Qgis2threejs.js
+web/js/gui_dat.js
+web/js/preview.js"
+
 echo "============================================================"
 echo " Release process started: ${PLUGINNAME}"
 echo "============================================================"
@@ -19,13 +24,12 @@ echo "Removing previous release archive..."
 rm -f "${PLUGINNAME}.zip"
 
 echo "Removing previously generated JavaScript bundle..."
-rm -f web/js/Qgis2threejs.js
-rm -f web/js/Qgis2threejs.js.map
+rm -f $JS_FILES
 
 echo
 echo "== Version check =="
 echo "Please confirm:"
-echo "  - web/js/src/index.ts version is updated"
+echo "  - src/Qgis2threejs.ts version is updated"
 echo "  - PLUGIN_VERSION and PLUGIN_VERSION_INT in conf.py are updated"
 echo "  - metadata.txt version is updated"
 
@@ -39,20 +43,28 @@ git branch -D release.sh > /dev/null 2>&1
 git checkout -b release.sh
 
 echo
-echo "== Building Qgis2threejs.js =="
+echo "== Building JavaScript files =="
 
 npm run build:min
 
 if [ $? -ne 0 ]; then
-  echo "ERROR: Qgis2threejs.js build failed."
+  echo "ERROR: 'npm run build:min' failed."
   exit 1
 fi
 
-git add -f web/js/Qgis2threejs.js
-git commit -m "build Qgis2threejs.js"
+for file in $JS_FILES
+do
+    if [ ! -f "$file" ]; then
+        echo "Error: Required file not found: $file" >&2
+        exit 1
+    fi
+done
+
+git add -f $JS_FILES
+git commit -m "build JavaScript files"
 
 if [ $? -ne 0 ]; then
-  echo "ERROR: Failed to commit Qgis2threejs.js."
+  echo "ERROR: Failed to commit the build output."
   exit 1
 fi
 
