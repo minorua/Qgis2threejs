@@ -7,7 +7,7 @@ import { convertToDMS, E } from "./utils.js";
 const VIS = "visible";
 
 // helper functions
-function CE(tagName, parent, innerHTML) {
+function CE(tagName, parent?, innerHTML?) {
     const elem = document.createElement(tagName);
     if (parent) parent.appendChild(elem);
     if (innerHTML) elem.innerHTML = innerHTML;

@@ -716,10 +716,12 @@ export class DEMLayer extends MapLayer {
 }
 
 
+type BlockConstructor = new () => DEMBlockBase;
+
 function createBlock(layer) {
 	const { tiled, clipped } = layer.properties;
 
-	let BlockClass = DEMBlock;
+	let BlockClass: BlockConstructor = DEMBlock;
 	if (tiled) {
 		BlockClass = DEMTileBlock;
 	}
