@@ -77,8 +77,8 @@ git rm -q gui/ui/*.ui
 git rm -q -r .github
 git rm -q -r docs
 git rm -q -r scripts
+git rm -q -r src
 git rm -q -r tests
-git rm -q -r web/js/src
 git commit -q -m "remove development files"
 
 echo

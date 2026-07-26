@@ -5,8 +5,8 @@
     "declaration": true,
     "strict": false,
 
-    "rootDir": "web/js",
-    "outDir": "web/js/types",
+    "rootDir": "src/",
+    "outDir": "src/types",
 
     "paths": {
       "three": ["./web/js/lib/three/three.module.js"],
@@ -14,11 +14,10 @@
     }
   },
   "include": [
-    "web/js/**/*.js",
-    "web/js/**/*.ts"
+    "src/**/*.js",
+    "src/**/*.ts"
   ],
   "exclude": [
-    "web/js/lib",
-    "web/js/types"
+    "src/types"
   ]
 }
