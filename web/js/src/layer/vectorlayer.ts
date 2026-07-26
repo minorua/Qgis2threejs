@@ -6,6 +6,9 @@ import { THREE } from "../three.js";
 import { app, conf, Group } from "../core.js";
 import { MapLayer } from "./layer.js";
 
+import type { FeatureBlockData, FeatureData, VectorLayerData, VectorLayerProperties } from "../types.js";
+import type { Scene } from "../scene.js";
+import type { Materials } from "../material.js";
 
 export class VectorLayer extends MapLayer {
 
@@ -182,11 +185,7 @@ export class VectorLayer extends MapLayer {
 		}
 	}
 
-	/**
-	 * @param {import("../types.js").VectorLayerData} data
-	 * @param {import("../scene.js").Scene} scene
-	 */
-	loadLayerData(data, scene) {
+	loadLayerData(data: VectorLayerData, scene: Scene) {
 		this.clearObjects();
 		this.clearLabels();
 
@@ -227,11 +226,7 @@ export class VectorLayer extends MapLayer {
 		});
 	}
 
-	/**
-	 * @param {import("../types.js").FeatureBlockData} data
-	 * @param {import("../scene.js").Scene} scene
-	 */
-	loadBlockData(data, scene) {
+	loadBlockData(data: FeatureBlockData, scene: Scene) {
 		super.loadBlockData(data, scene);
 
 		this.build(data.features, data.startIndex);

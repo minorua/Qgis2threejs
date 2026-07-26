@@ -9,14 +9,9 @@ import { PointLayer } from "./layer/pointlayer.js";
 import { LineLayer } from "./layer/linelayer.js";
 import { PolygonLayer } from "./layer/polygonlayer.js";
 
-/*
-Scene
-.userData
-	- baseExtent(cx, cy, width, height, rotation): map base extent in map coordinates. center is (cx, cy).
-	- origin: origin of 3D world in map coordinates
-	- zScale: vertical scale factor
-	- proj: (optional) proj string. used to display clicked position in long/lat.
-*/
+import type { AppData, BlockData, LayerData, SceneData, SceneProperties } from "./types.js";
+import type { MapLayer } from "./layer/layer.js";
+
 export class Scene extends THREE.Scene {
 
 	constructor() {
@@ -51,10 +46,7 @@ export class Scene extends THREE.Scene {
 		}
 	}
 
-	/**
-	 * @param {import("./types.js").AppData} data
-	 */
-	loadData(data) {
+	loadData(data: AppData) {
 		switch (data.type) {
 			case "scene":
 				this.loadSceneData(data);
@@ -70,10 +62,7 @@ export class Scene extends THREE.Scene {
 		}
 	}
 
-	/**
-	 * @param {import("./types.js").SceneData} data
-	 */
-	loadSceneData(data) {
+	loadSceneData(data: SceneData) {
 		const p = data.properties;
 		if (p !== undefined) {
 			// fog
@@ -137,10 +126,7 @@ export class Scene extends THREE.Scene {
 		}
 	}
 
-	/**
-	 * @param {import("./types.js").LayerData} data
-	 */
-	loadLayerData(data) {
+	loadLayerData(data: LayerData) {
 		let layer = this.mapLayers[data.id];
 		if (layer === undefined) {
 			layer = createLayer(data);
@@ -156,10 +142,7 @@ export class Scene extends THREE.Scene {
 		this.requestRender();
 	}
 
-	/**
-	 * @param {import("./types.js").BlockData} data
-	 */
-	loadBlockData(data) {
+	loadBlockData(data: BlockData) {
 		const layer = this.mapLayers[data.layer];
 		if (layer === undefined) return;
 

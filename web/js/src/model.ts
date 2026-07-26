@@ -6,6 +6,8 @@ import { THREE } from "./three.js";
 import { app } from "./core.js";
 import { base64ToUint8Array } from "./utils.js";
 
+import type { ModelData } from "./types.js";
+
 
 export class Model {
 
@@ -14,10 +16,10 @@ export class Model {
 	}
 
 	/**
-	 * @param {import("./types.js").ModelData} data
-	 * @param {(scene: THREE.Group) => void} callback Called after model data has been completely loaded.
+	 * @param data
+	 * @param callback Called after model data has been completely loaded.
 	 */
-	loadData(data, callback) {
+	loadData(data: ModelData, callback: (scene: THREE.Group) => void) {
 		if (data.url !== undefined) {
 			this.load(data.url, callback);
 		}
@@ -74,10 +76,7 @@ export class Models extends THREE.EventDispatcher {
 		this.cache = {};
 	}
 
-	/**
-	 * @param {import("./types.js").ModelData[]} data
-	 */
-	loadData(data) {
+	loadData(data: ModelData[]) {
 		const callback = (model) => {
 			this.dispatchEvent({ type: "modelLoaded", model: model });
 		};

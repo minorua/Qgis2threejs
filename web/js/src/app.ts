@@ -8,6 +8,8 @@ import { app, conf, deg2rad, gui, modules, Group, LayerType } from "./core.js";
 import { Scene } from "./scene.js";
 import { E } from "./utils.js";
 
+import type { AppData } from "./types.js";
+
 const _v = new THREE.Vector3();
 
 
@@ -280,10 +282,9 @@ app.loadFile = (url, type, callback) => {
 };
 
 /**
- * @param {import("./types.js").AppData} data
- * @returns {boolean} true if no error occurs.
+ * @returns true if no error occurs.
  */
-app.loadData = (data) => {
+app.loadData = (data: AppData): boolean => {
     try {
         app.scene.loadData(data);
         if (data.type == "scene" && data.animation) {
@@ -364,13 +365,7 @@ app.loadModelFile = (url, callback) => {
         });
 };
 
-/**
- * @param {Uint8Array} data
- * @param {string} ext
- * @param {string} resourcePath
- * @param {(scene: THREE.Group) => void} callback
- */
-app.loadModelData = (data, ext, resourcePath, callback) => {
+app.loadModelData = (data: Uint8Array, ext: string, resourcePath: string, callback: (scene: THREE.Group) => void) => {
 
     if (ext == "dae") {
         const model = new modules.ColladaLoader(app.loadingManager).parse(data, resourcePath);

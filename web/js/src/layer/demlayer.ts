@@ -8,6 +8,9 @@ import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
 import * as Utils from "../utils.js";
 
+import type { DEMBlockData, DEMGridBlockData, DEMGridData, DEMLayerData, DEMTileGridBlockData } from "../types.js";
+import type { Scene } from "../scene.js";
+
 /*
  The GridGeometry class is almost the same as PlaneGeometry, but it does not
  generate triangles that include vertices with no-data values.
@@ -25,12 +28,12 @@ class GridGeometry extends THREE.BufferGeometry {
 	}
 
 	/**
-	 * @param {import("../types.js").DEMGridData}  grid
-	 * @param {number} width      - Plane width (or tile size).
-	 * @param {number} height     - Plane height (ignored when `segments` is given).
-	 * @param {number} [segments] - When supplied, the grid is treated as a square tile.
+	 * @param grid
+	 * @param width      - Plane width (or tile size).
+	 * @param height     - Plane height (ignored when `segments` is given).
+	 * @param segments   - When supplied, the grid is treated as a square tile.
 	 */
-	loadData(grid, width, height, segments) {
+	loadData(grid: DEMGridData, width: number, height: number, segments: number) {
 		const grid_values = grid.values;
 		const columns = grid.width;		// number of columns of actual grid data
 		const rows = grid.height;		// number of rows of actual grid data
@@ -93,12 +96,7 @@ class DEMBlockBase {
 		this.currentMtlIndex = 0;
 	}
 
-	/**
-	 * @param {import("../types.js").DEMBlockData} data
-	 * @param {DEMLayer} layer
-	 * @param {(mesh: THREE.Mesh) => void} callback
-	 */
-	loadData(data, layer, callback) {
+	loadData(data: DEMBlockData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void) {
 		this.data = data;
 
 		// load material
@@ -120,10 +118,7 @@ class DEMBlockBase {
 		}
 	}
 
-	/**
-	 * @returns {{x0: number, y0: number, x1: number, y1: number, xres: number, yres: number}}
-	 */
-	_auxArgs() {
+	_auxArgs(): { x0: number, y0: number, x1: number, y1: number, xres: number, yres: number } {
 		return { x0: 0, y0: 0, x1: 0, y1: 0, xres: 0, yres: 0 };
 	}
 
@@ -302,13 +297,7 @@ class DEMBlockBase {
 
 class DEMBlock extends DEMBlockBase {
 
-	/**
-	 * @param {import("../types.js").DEMGridBlockData} data
-	 * @param {DEMLayer} layer
-	 * @param {(mesh: THREE.Mesh) => void} callback
-	 * @returns {THREE.Mesh | undefined}
-	 */
-	loadData(data, layer, callback) {
+	loadData(data: DEMGridBlockData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
 		super.loadData(data, layer, callback);
 
 		if (data.grid === undefined) return;
@@ -361,13 +350,7 @@ class DEMBlock extends DEMBlockBase {
 
 class DEMTileBlock extends DEMBlockBase {
 
-	/**
-	 * @param {import("../types.js").DEMTileGridBlockData} data
-	 * @param {DEMLayer} layer
-	 * @param {(mesh: THREE.Mesh) => void} callback
-	 * @returns {THREE.Mesh | undefined}
-	 */
-	loadData(data, layer, callback) {
+	loadData(data: DEMTileGridBlockData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
 		const grid = data.grid;
 
 		super.loadData(data, layer, callback);
@@ -422,13 +405,7 @@ class DEMTileBlock extends DEMBlockBase {
 
 class ClippedDEMBlock extends DEMBlockBase {
 
-	/**
-	 * @param {import("../types.js").DEMGridBlockData} data
-	 * @param {DEMLayer} layer
-	 * @param {(mesh: THREE.Mesh) => void} callback
-	 * @returns {THREE.Mesh | undefined}
-	 */
-	loadData(data, layer, callback) {
+	loadData(data: DEMGridBlockData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
 		super.loadData(data, layer, callback);
 
 		if (data.geom === undefined) return;
@@ -527,11 +504,7 @@ export class DEMLayer extends MapLayer {
 		this.auxiliaryMtl = {};
 	}
 
-	/**
-	 * @param {import("../types.js").DEMLayerData} data
-	 * @param {import("../scene.js").Scene} scene
-	 */
-	loadLayerData(data, scene) {
+	loadLayerData(data: DEMLayerData, scene: Scene): void {
 		this.clearObjects();
 		super.loadLayerData(data, scene);
 
@@ -577,11 +550,7 @@ export class DEMLayer extends MapLayer {
 		});
 	}
 
-	/**
-	 * @param {import("../types.js").DEMBlockData} data
-	 * @param {import("../scene.js").Scene} scene
-	 */
-	loadBlockData(data, scene) {
+	loadBlockData(data: DEMBlockData, scene: Scene): void {
 		super.loadBlockData(data, scene);
 
 		let block = this.blocks[data.block];

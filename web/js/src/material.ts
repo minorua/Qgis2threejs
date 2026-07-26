@@ -4,6 +4,7 @@
 import { THREE } from "./three.js";
 
 import { app, conf, modules, MaterialType } from "./core.js";
+import { MaterialData } from "./types.js";
 
 
 export class Material {
@@ -20,10 +21,10 @@ export class Material {
 	}
 
 	/**
-	 * @param {import("./types.js").MaterialData} data
-	 * @param {() => void} callback Called after material data has been completely loaded.
+	 * @param data
+	 * @param callback Called after material data has been completely loaded.
 	 */
-	loadData(data, callback) {
+	loadData(data: MaterialData, callback: () => void) {
 		this.origProp = data;
 		this.groupId = data.mtlIndex;
 
@@ -170,10 +171,7 @@ export class Materials extends THREE.EventDispatcher {
 		return this.array[index].mtl;
 	}
 
-	/**
-	 * @param {import("./types.js").MaterialData[]} data
-	 */
-	loadData(data) {
+	loadData(data: MaterialData[]) {
 		let iterated = false;
 
 		const callback = () => {

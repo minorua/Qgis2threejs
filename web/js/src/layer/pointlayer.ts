@@ -7,6 +7,10 @@ import { deg2rad, Group, LayerType, UV } from "../core.js";
 import { BuilderBase, VectorLayer } from "./vectorlayer.js";
 import { Models } from "../model.js";
 
+import type { GeomData, Vec3, VectorLayerData, FeatureBlockData } from "../types.js";
+import type { Scene } from "../scene.js";
+
+
 const HALF_PI = Math.PI / 2;
 
 
@@ -29,11 +33,7 @@ export class PointLayer extends VectorLayer {
         this.type = LayerType.Point;
     }
 
-    /**
-     * @param {import("../types.js").VectorLayerData | import("../types.js").FeatureBlockData} data
-     * @param {import("../scene.js").Scene} scene
-     */
-    loadData(data, scene) {
+    loadData(data: VectorLayerData | FeatureBlockData, scene: Scene): void {
         if (data.type == "layer" && data.properties.objType == "3D Model" && data.body !== undefined) {
             if (this.models === undefined) {
                 this.models = new Models();
