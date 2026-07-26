@@ -3,6 +3,7 @@
     "allowJs": true,
     "checkJs": true,
     "declaration": true,
+    "noEmit": true,
     "strict": false,
 
     "rootDir": "src/",
