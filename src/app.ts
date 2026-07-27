@@ -512,7 +512,10 @@ app.adjustCameraPosition = (force) => {
     app.cameraAction.zoom(_v.x, _v.y, (bbox.max.z + _v.z) / 2, app.scene.userData.baseExtent.width);
 };
 
-// declination: clockwise from +y, in degrees
+/**
+ * @param container
+ * @param declination Clockwise from +y, in degrees
+ */
 app.buildNorthArrow = (container, declination) => {
     container.style.display = "block";
 

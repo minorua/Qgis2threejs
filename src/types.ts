@@ -392,7 +392,7 @@ export interface App {
     loadModelData(data, ext: string, resourcePath: string, callback?);
 
     buildCamera(is_ortho?: boolean);
-    buildNorthArrow(container: HTMLElement, declination?);
+    buildNorthArrow(container: HTMLElement, declination?: number);
     buildViewHelper(container: HTMLElement);
 
     adjustCameraNearFar();

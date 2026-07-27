@@ -8,37 +8,41 @@ export { app, conf, gui, THREE }
 import { ViewHelper } from "three/addons/helpers/ViewHelper.js";
 modules.ViewHelper = ViewHelper;
 
-conf.preview = {
+import type { CameraState, PreviewData, SceneProperties } from "./types.js";
 
-	// showTriangleCount: debug_mode,
+conf.preview = {
 
 	showFPS: false
 
 };
 
+/* Used for FPS display */
+let tickCount = 0;
+let lastFPS = 0;
+let lastFPSTime = 0;
+
+
 export const preview = {
 
 	renderEnabled: true,
 
-	noRenderDuringLoad: true,	// whether to suppress rendering while data is loading
+	/**
+	 * Whether to suppress rendering while data is loading.
+	 */
+	noRenderDuringLoad: true,
 
-	isDataLoading: false,		// indicates whether scene/layer/block data sent from Python (such as scene/layer properties,
-								// DEM grids, feature geometries, and images) is being loaded; if block data includes image data,
-								// it remains true until the images have been loaded as textures.
-
-	timer: {
-		tickCount: 0
-	}
+	/**
+	 * Indicates whether scene/layer/block data sent from Python (such as scene/layer properties,
+	 * DEM grids, feature geometries, and images) is being loaded; if block data includes image data,
+	 * it remains true until the images have been loaded as textures.
+	 */
+	isDataLoading: false
 };
 
 /**
  * Initialize the viewer
- *
- * @param {boolean} off_screen
- * @param {number} debug_mode
- * @param {number} qgis_version
  */
-export function init(off_screen, debug_mode, qgis_version) {
+export function init(off_screen: boolean, debug_mode: number, qgis_version: number) {
 
 	conf.debugMode = debug_mode;
 	conf.qgisVersion = qgis_version;
@@ -67,7 +71,7 @@ function _init(off_screen) {
 	if (off_screen) {
 		E("progress").style.display = "none";
 		const renderOffscreen = app.render;
-		app.render = () => {};		// No need to render the scene before it has fully loaded.
+		app.render = () => { };		// No need to render the scene before it has fully loaded.
 		app.addEventListener("sceneLoaded", () => {
 			app.adjustCameraNearFar();
 
@@ -114,16 +118,11 @@ function _init(off_screen) {
 }
 
 //// load functions
-const appLoadDataTypes = ["scene", "layer", "block"];
-
 /**
  * Loads JSON-compatible data or handles signals, commands and requests
- *
- * @param {import("../js/src/types.js").PreviewData} data
- * @param {boolean} viaQueue
- * @returns {boolean} true if no error occurs.
+ * @returns true if no error occurs.
  */
-function loadData(data, viaQueue) {
+function loadData(data: PreviewData, viaQueue: boolean): boolean {
 	let result = true;
 
 	if (conf.debugMode) {
@@ -135,36 +134,48 @@ function loadData(data, viaQueue) {
 		app.loadingManager.itemStart("data");
 	}
 
-	if (appLoadDataTypes.includes(data.type)) {
-		if (data.type == "scene" && data.properties !== undefined) {
-			_requestCameraUpdate(data.properties);
-		}
-		result = app.loadData(data);
+	switch (data.type) {
+		case "scene":
+			if (data.properties !== undefined) {
+				_requestCameraUpdate(data.properties);
+			}
+		// fall through
+		case "layer":
+		case "block":
+			result = app.loadData(data);
 
-		if (data.progress !== undefined) {
-			console.debug("Progress: " + data.progress);
-			updateProgressBar(data.progress);
-		}
-	}
-	else if (data.type == "signal") {
-		if (data.name = "queueCompleted") {
-			tasksAndLoadingFinalized(data.success, data.is_scene);
-			setTimeout(() => app.render(), 300);	// Temporary workaround: schedule a delayed redraw to ensure changes
-													// to the scene are rendered even on low-performance systems.
-		}
-	}
-	else if (data.type == "labels") {
-		E("header").innerHTML = data.Header || "";
-		E("footer").innerHTML = data.Footer || "";
-	}
-	else if (data.type == "cameraState") {
-		setCameraState(data.state);
-	}
-	else if (data.type == "animation") {
-		startAnimation(data.tracks, data.repeat);
-	}
-	else if (data.type == "narration") {
-		showNarrativeBox(data.content);
+			if ("progress" in data) {
+				console.debug("Progress: " + data.progress);
+				updateProgressBar(data.progress);
+			}
+			break;
+
+		case "signal":
+			if (data.name = "queueCompleted") {
+				tasksAndLoadingFinalized(data.success, data.is_scene);
+
+				// Temporary workaround: schedule a delayed redraw to ensure changes
+				// to the scene are rendered even on low-performance systems.
+				setTimeout(() => app.render(), 300);
+			}
+			break;
+
+		case "labels":
+			E("header").innerHTML = data.Header || "";
+			E("footer").innerHTML = data.Footer || "";
+			break;
+
+		case "cameraState":
+			setCameraState(data.state);
+			break;
+
+		case "animation":
+			startAnimation(data.tracks, data.repeat);
+			break;
+
+		case "narration":
+			showNarrativeBox(data.content);
+			break;
 	}
 
 	if (viaQueue) {
@@ -174,7 +185,7 @@ function loadData(data, viaQueue) {
 	return result;
 }
 
-function _requestCameraUpdate(sp) {
+function _requestCameraUpdate(sp: SceneProperties) {
 	// update camera position - keep relative position to base extent
 	const lastP = app.scene.userData;
 	const lastBE = lastP.baseExtent;
@@ -196,7 +207,7 @@ function _requestCameraUpdate(sp) {
 	app.scene.requestCameraUpdate(pos, focal, near, far);
 }
 
-export function loadScriptFile(path, callback, isModule=false, isNamespace=false) {
+export function loadScriptFile(path: string, callback?: () => void, isModule = false, isNamespace = false) {
 	if (isModule) {
 		const mod = path.split("/").pop().split(".")[0];
 		import(path).then(module => {
@@ -210,7 +221,7 @@ export function loadScriptFile(path, callback, isModule=false, isNamespace=false
 		return;
 	}
 
-	const url = new URL(path, document.baseURI);
+	const url = new URL(path, document.baseURI).toString();
 	for (const elm of document.head.getElementsByTagName("script")) {
 		if (elm.src == url) {
 			if (callback) callback();
@@ -225,7 +236,7 @@ export function loadScriptFile(path, callback, isModule=false, isNamespace=false
 	return true;
 }
 
-export function loadModel(url) {
+export function loadModel(url: string) {
 
 	const loadToScene = (res) => {
 		const boxsize = new THREE.Box3().setFromObject(res.scene).getSize();
@@ -239,7 +250,7 @@ export function loadModel(url) {
 
 		app.render();
 
-		const sceneScale = app.scene.userData.scale;
+		const sceneScale = app.scene.userData.scale;		// TODO: FIXME
 		const objScale = scale / sceneScale;
 
 		console.log("Model " + url + " loaded.");
@@ -268,7 +279,7 @@ export function loadModel(url) {
 	}
 }
 
-export function hideLayer(layerId, remove_obj) {
+export function hideLayer(layerId: number, remove_obj: boolean = false) {
 	const layer = app.scene.mapLayers[layerId];
 	if (layer === undefined) return;
 
@@ -277,14 +288,14 @@ export function hideLayer(layerId, remove_obj) {
 }
 
 let progressFadeoutSet = false;
-function tasksAndLoadingFinalized(success, is_scene) {
+function tasksAndLoadingFinalized(success: boolean, is_scene: boolean) {
 	// hide progress bar
 	E("progressbar").classList.add("fadeout");
 	progressFadeoutSet = true;
 
 	if (success && is_scene) {
 		setTimeout(function () {
-			app.dispatchEvent({type: "sceneLoaded"});
+			app.dispatchEvent({ type: "sceneLoaded" });
 		}, 0);
 	}
 	else {
@@ -292,8 +303,7 @@ function tasksAndLoadingFinalized(success, is_scene) {
 	}
 }
 
-function updateProgressBar(loaded, total) {
-	total = total || 100;
+function updateProgressBar(loaded: number, total: number = 100) {
 	E("progressbar").style.width = (loaded / total * 100) + "%";
 	if (progressFadeoutSet) {
 		E("progressbar").classList.remove("fadeout");
@@ -301,35 +311,37 @@ function updateProgressBar(loaded, total) {
 	}
 }
 
+let lastTriangleCount = -1;
+
 function showTriangleCount() {
 	window.setInterval(function () {
 		const triangles = app.renderer.info.render.triangles;
-		if (triangles != preview.lastTriangleCount) {
+		if (triangles != lastTriangleCount) {
 			E("triangles").innerHTML = "Triangles: " + app.renderer.info.render.triangles.toLocaleString();
-			preview.lastTriangleCount = triangles;
+			lastTriangleCount = triangles;
 		}
 	}, 1000);
 }
 
 function showFPS() {
-	preview.timer.last = Date.now();
+	lastFPSTime = Date.now();
 
 	window.setInterval(function () {
 		const now = Date.now();
-		const elapsed = now - preview.timer.last;
-		const fps = Math.round(preview.timer.tickCount / elapsed * 1000);
+		const elapsed = now - lastFPSTime;
+		const fps = Math.round(tickCount / elapsed * 1000);
 
-		if (fps != preview.lastFPS) {
+		if (fps != lastFPS) {
 			E("fps").innerHTML = "FPS: " + fps;
-			preview.lastFPS = fps;
+			lastFPS = fps;
 		}
 
-		preview.timer.last = now;
-		preview.timer.tickCount = 0;
+		lastFPSTime = now;
+		tickCount = 0;
 	}, 1000);
 }
 
-export function saveModelAsGLTF(filename) {
+export function saveModelAsGLTF(filename: string) {
 	showStatusMessage('Saving the model to "' + filename + '"...');
 
 	const scene = new THREE.Scene();
@@ -373,40 +385,40 @@ export function saveModelAsGLTF(filename) {
 	});
 }
 
-function uint8ToBase64(u8) {
-    let binary = "";
-    for (let i = 0; i < u8.length; i++) {
-        binary += String.fromCharCode(u8[i]);
-    }
-    return btoa(binary);
+function uint8ToBase64(u8: Uint8Array) {
+	let binary = "";
+	for (let i = 0; i < u8.length; i++) {
+		binary += String.fromCharCode(u8[i]);
+	}
+	return btoa(binary);
 }
 
-function sendData(data, is_base64, filename, callback) {
-    const CHUNK_SIZE = 100000;
-    let offset = 0;
+function sendData(data: Uint8Array | string, is_base64: boolean, filename: string, callback?: () => void) {
+	const CHUNK_SIZE = 100000;
+	let offset = 0;
 
 	function sendNext() {
-        if (offset >= data.length) {
+		if (offset >= data.length) {
 			if (callback) callback();
-            return;
-        }
+			return;
+		}
 
-        const chunk = data.slice(offset, offset + CHUNK_SIZE);
-        const isFirst = (offset === 0);
-        const isLast = (offset + CHUNK_SIZE >= data.length);
+		const chunk: Uint8Array | string = data.slice(offset, offset + CHUNK_SIZE);
+		const isFirst = (offset === 0);
+		const isLast = (offset + CHUNK_SIZE >= data.length);
 
-		if (is_base64) {
+		if (chunk instanceof Uint8Array) {
 			pyObj.saveBase64(uint8ToBase64(chunk), filename, isFirst, isLast);
 		}
 		else {
 			pyObj.saveText(chunk, filename, isFirst, isLast);
 		}
 
-        offset += CHUNK_SIZE;
+		offset += CHUNK_SIZE;
 
-        setTimeout(sendNext, 0);
-    }
-    sendNext();
+		setTimeout(sendNext, 0);
+	}
+	sendNext();
 }
 
 export function requestRendering() {
@@ -416,8 +428,8 @@ export function requestRendering() {
 	});
 }
 
-let barTimerId = null;
-export function showMessageBar(message, timeout_ms, warning) {
+let barTimerId: number | null = null;
+export function showMessageBar(message: string, timeout_ms: number = 0, warning = false) {
 	if (barTimerId !== null) {
 		clearTimeout(barTimerId);
 		barTimerId = null;
@@ -443,8 +455,8 @@ function closeMessageBar() {
 	barTimerId = null;
 }
 
-function showStatusMessage(message, timeout_ms) {
-	pyObj.showStatusMessage(message, timeout_ms || 0);
+function showStatusMessage(message: string, timeout_ms: number = 0) {
+	pyObj.showStatusMessage(message, timeout_ms);
 	console.info(message);
 }
 
@@ -452,7 +464,7 @@ function clearStatusMessage() {
 	showStatusMessage("");
 }
 
-export function setPreviewEnabled(enabled) {
+export function setPreviewEnabled(enabled: boolean) {
 	const e = E("cover");
 
 	if (enabled) {
@@ -465,9 +477,9 @@ export function setPreviewEnabled(enabled) {
 	e.style.display = (enabled) ? "none" : "block";
 }
 
-export function setOutlineEffectEnabled(enabled) {
+export function setOutlineEffectEnabled(enabled: boolean) {
 	if (enabled) {
-		import("three/addons/effects/OutlineEffect.js").then(( { OutlineEffect } ) => {
+		import("three/addons/effects/OutlineEffect.js").then(({ OutlineEffect }) => {
 			app.effect = new OutlineEffect(app.renderer);
 		});
 	}
@@ -476,13 +488,13 @@ export function setOutlineEffectEnabled(enabled) {
 	}
 }
 
-export function setBackgroundColor(color, alpha) {
+export function setBackgroundColor(color: number, alpha: number) {
 	app.renderer.setClearColor(color, alpha);
 	app.render();
 }
 
 //// camera
-export function switchCamera(is_ortho) {
+export function switchCamera(is_ortho: boolean) {
 	app.buildCamera(is_ortho);
 	app.controls.object = app.camera;
 	app.controls.reset();
@@ -492,7 +504,7 @@ export function switchCamera(is_ortho) {
 	// change parent of light
 	const p = app.scene.userData;
 	if (p.light) {
-		app.scene.dispatchEvent({type: "lightChanged", light: p.light});
+		app.scene.dispatchEvent({ type: "lightChanged", light: p.light });
 	}
 
 	// rebuild view helper
@@ -504,10 +516,12 @@ export function switchCamera(is_ortho) {
 	app.updateControlsAndRender();
 }
 
-// current camera position and its target
-export function cameraState(flat) {
+/**
+ * Get current camera position and its target.
+ */
+export function cameraState(flat: boolean | number) {
 	const p = app.scene.toMapCoordinates(app.camera.position),
-		  t = app.scene.toMapCoordinates(app.controls.target);
+		t = app.scene.toMapCoordinates(app.controls.target);
 	if (flat) {
 		return {
 			x: p.x, y: p.y, z: p.z, fx: t.x, fy: t.y, fz: t.z
@@ -515,19 +529,19 @@ export function cameraState(flat) {
 	}
 
 	return {
-		pos: {x: p.x, y: p.y, z: p.z},
-		lookAt: {x: t.x, y: t.y, z: t.z}
+		pos: { x: p.x, y: p.y, z: p.z },
+		lookAt: { x: t.x, y: t.y, z: t.z }
 	};
 }
 
-function setCameraState(s) {
-	if (s.pos !== undefined) {
+function setCameraState(s: CameraState) {
+	if ("pos" in s) {
 		app.camera.position.copy(app.scene.toWorldCoordinates(s.pos));
 		app.controls.target.copy(app.scene.toWorldCoordinates(s.lookAt));
 	}
 	else {
 		app.camera.position.copy(app.scene.toWorldCoordinates(s));
-		app.controls.target.copy(app.scene.toWorldCoordinates({x: s.fx, y: s.fy, z: s.fz}));
+		app.controls.target.copy(app.scene.toWorldCoordinates({ x: s.fx, y: s.fy, z: s.fz }));
 	}
 	app.camera.lookAt(app.controls.target);
 	app.render();
@@ -544,7 +558,7 @@ export function adjustCameraPos() {
 export function changeLight(type) {
 	app.scene.lightGroup.clear();
 	app.scene.buildLights(conf.lights[type], app.scene.userData.baseExtent.rotation);
-	app.scene.dispatchEvent({type: "lightChanged", light: type});
+	app.scene.dispatchEvent({ type: "lightChanged", light: type });
 	app.render();
 }
 
@@ -568,12 +582,12 @@ export function setNavigationEnabled(enabled) {
 export function setNorthArrowVisible(visible) {
 	E("northarrow").style.display = (visible) ? "block" : "none";
 	if (visible && app.scene2 === undefined) {
-		app.buildNorthArrow(E("northarrow"), 0, app.scene.userData.baseExtent.rotation);
+		app.buildNorthArrow(E("northarrow"), 0, app.scene.userData.baseExtent.rotation);		// TODO: FIXME
 		app.render();
 	}
 }
 
-export function setNorthArrowColor(color) {
+export function setNorthArrowColor(color: number) {
 	if (app.scene2 === undefined) {
 		conf.northArrow.color = color;
 	}
@@ -620,29 +634,29 @@ export function setLayerOpacity(layerId, opacity) {
 }
 
 export function saveCanvasImage(width, height) {
-	app._saveCanvasImage(width, height, true, (canvas) => {
+	_saveCanvasImage(width, height, true, (canvas) => {
 		pyObj.saveImage(canvas.toDataURL("image/png"));
 	});
 }
 
 export function copyCanvasToClipboard(width, height) {
-	app._saveCanvasImage(width, height, true, (canvas) => {
+	_saveCanvasImage(width, height, true, (canvas) => {
 		pyObj.copyToClipboard(canvas.toDataURL("image/png"));
 	});
 }
 
 
 //// wraps
-app._initLoadingManager = app.initLoadingManager;
-app._render = app.render;
-app._saveCanvasImage = app.saveCanvasImage;
+const _initLoadingManager = app.initLoadingManager.bind(app);
+const _render = app.render.bind(app);
+const _saveCanvasImage = app.saveCanvasImage.bind(app);
 
 app.initLoadingManager = () => {
-	app._initLoadingManager();
+	_initLoadingManager();
 
 	app.loadingManager.onLoad = () => {
 		app.loadingManager.isLoading = false;
-		app.dispatchEvent({type: "loadComplete"});	// dispath loadComplete instead of sceneLoaded
+		app.dispatchEvent({ type: "loadComplete" });	// dispath loadComplete instead of sceneLoaded
 	};
 
 	app.loadingManager.onProgress = undefined;
@@ -652,9 +666,9 @@ app.render = (immediate) => {
 	if (!preview.renderEnabled) return;
 	if (preview.noRenderDuringLoad && preview.isDataLoading) return;
 
-	app._render(immediate);
+	_render(immediate);
 
-	if (immediate) preview.timer.tickCount++;
+	if (immediate) tickCount++;
 };
 
 app.saveCanvasImage = (width, height, fill_background) => {
@@ -662,5 +676,5 @@ app.saveCanvasImage = (width, height, fill_background) => {
 		pyObj.saveImage(canvas.toDataURL("image/png"));
 		gui.popup.hide();
 	};
-	app._saveCanvasImage(width, height, fill_background, saveCanvasImage);
+	_saveCanvasImage(width, height, fill_background, saveCanvasImage);
 };
