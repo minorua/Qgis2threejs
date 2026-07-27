@@ -114,6 +114,7 @@ export interface MaterialImageData {
 export interface MaterialData {
     type: MaterialType;
     mtlIndex: number;
+    useNow?: boolean;
     c?: number;         // color
     o?: number;         // opacity
     ds?: boolean | number;  // double-sided
@@ -475,6 +476,7 @@ export interface Modules {
     GLTFLoader;
     OutlineEffect;
     ViewHelper;
+    meshline;
 }
 
 export interface Tween {

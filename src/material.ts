@@ -9,12 +9,16 @@ import { MaterialData } from "./types.js";
 
 export class Material {
 
-	constructor() {
-		this.loaded = false;
-	}
+	loaded = false;
 
-	// material: a THREE.Material-based object
-	set(material) {
+	mtl!: THREE.Material;
+	origProp!: MaterialData | Record<string, never>;
+	groupId!: number;
+
+	private _updateAspect?: () => void;
+	private _callbacks: (() => void)[] = [];
+
+	set(material: THREE.Material) {
 		this.mtl = material;
 		this.origProp = {};
 		return this;
@@ -24,12 +28,12 @@ export class Material {
 	 * @param data
 	 * @param callback Called after material data has been completely loaded.
 	 */
-	loadData(data: MaterialData, callback: () => void) {
+	loadData(data: MaterialData, callback?: () => void) {
 		this.origProp = data;
 		this.groupId = data.mtlIndex;
 
 		const m = data;
-		const opt = {};
+		const opt: any = {};
 		let defer = false;
 
 		if (m.ds) opt.side = THREE.DoubleSide;
@@ -71,63 +75,65 @@ export class Material {
 		if (MaterialClass) {
 			this.mtl = new MaterialClass(opt);
 		}
-		else if (m.type == MaterialType.Point) {
-			opt.size = m.s;
-			this.mtl = new THREE.PointsMaterial(opt);
-		}
-		else if (m.type == MaterialType.Line) {
+		else {
+			switch (m.type) {
+				case MaterialType.Point:
+					opt.size = m.s;
+					this.mtl = new THREE.PointsMaterial(opt);
+					break;
 
-			if (m.dashed) {
-				opt.dashSize = conf.line.dash.dashSize;
-				opt.gapSize = conf.line.dash.gapSize;
-				this.mtl = new THREE.LineDashedMaterial(opt);
+				case MaterialType.Line:
+					if (m.dashed) {
+						opt.dashSize = conf.line.dash.dashSize;
+						opt.gapSize = conf.line.dash.gapSize;
+						this.mtl = new THREE.LineDashedMaterial(opt);
+					}
+					else {
+						this.mtl = new THREE.LineBasicMaterial(opt);
+					}
+					break;
+
+				case MaterialType.MeshLine:
+					opt.lineWidth = m.thickness;
+					if (m.dashed) {
+						opt.dashArray = 0.03;
+						opt.dashRatio = 0.45;
+						opt.dashOffset = 0.015;
+						opt.transparent = true;
+					}
+					// opt.sizeAttenuation = 1;
+
+					this.mtl = new modules.meshline.MeshLineMaterial(opt);
+					this._updateAspect = () => this.mtl.resolution.set(app.width, app.height);
+
+					this._updateAspect();
+					app.addEventListener("canvasSizeChanged", this._updateAspect);
+					break;
+
+				case MaterialType.Sprite:
+					opt.color = 0xffffff;
+					this.mtl = new THREE.SpriteMaterial(opt);
+					break;
 			}
-			else {
-				this.mtl = new THREE.LineBasicMaterial(opt);
-			}
-		}
-		else if (m.type == MaterialType.MeshLine) {
-
-			opt.lineWidth = m.thickness;
-			if (m.dashed) {
-				opt.dashArray = 0.03;
-				opt.dashRatio = 0.45;
-				opt.dashOffset = 0.015;
-				opt.transparent = true;
-			}
-			// opt.sizeAttenuation = 1;
-
-			this.mtl = new modules.meshline.MeshLineMaterial(opt);
-			this._updateAspect = () => this.mtl.resolution.set(app.width, app.height);
-
-			this._updateAspect();
-			app.addEventListener("canvasSizeChanged", this._updateAspect);
-		}
-		else if (m.type == MaterialType.Sprite) {
-			opt.color = 0xffffff;
-			this.mtl = new THREE.SpriteMaterial(opt);
 		}
 
 		if (!defer) this._loadCompleted(callback);
 	}
 
-	_loadCompleted(anotherCallback) {
+	_loadCompleted(anotherCallback: () => void) {
 		this.loaded = true;
 
-		if (this._callbacks !== undefined) {
-			for (const callback of this._callbacks) {
-				callback();
-			}
-			this._callbacks = [];
+		for (const callback of this._callbacks) {
+			callback();
 		}
+		this._callbacks.length = 0;
 
 		if (anotherCallback) anotherCallback();
 	}
 
-	callbackOnLoad(callback) {
+	callbackOnLoad(callback: () => void) {
 		if (this.loaded) return callback();
 
-		if (this._callbacks === undefined) this._callbacks = [];
 		this._callbacks.push(callback);
 	}
 
@@ -148,13 +154,9 @@ export class Material {
 
 export class Materials extends THREE.EventDispatcher {
 
-	constructor() {
-		super();
-		this.array = [];
-	}
+	array: Material[] = [];
 
-	// material: instance of Material object or THREE.Material-based object
-	add(material) {
+	add(material: Material | THREE.Material) {
 		if (material instanceof Material) {
 			this.array.push(material);
 		}
@@ -163,11 +165,11 @@ export class Materials extends THREE.EventDispatcher {
 		}
 	}
 
-	get(index) {
+	get(index: number) {
 		return this.array[index];
 	}
 
-	mtl(index) {
+	mtl(index: number) {
 		return this.array[index].mtl;
 	}
 
@@ -190,14 +192,14 @@ export class Materials extends THREE.EventDispatcher {
 		for (const m of this.array) {
 			m.dispose();
 		}
-		this.array = [];
+		this.array.length = 0;
 	}
 
-	addFromObject3D(object) {
+	addFromObject3D(object: THREE.Object3D) {
 		const materials = new Set();
 
 		object.traverse((obj) => {
-			if (obj.material === undefined) return;
+			if ("material" in obj === false) return;
 
 			for (const material of (Array.isArray(obj.material) ? obj.material : [obj.material])) {
 				materials.add(material);
@@ -209,7 +211,6 @@ export class Materials extends THREE.EventDispatcher {
 		}
 	}
 
-	// opacity
 	opacity() {
 		if (this.array.length == 0) return 1;
 
@@ -220,7 +221,7 @@ export class Materials extends THREE.EventDispatcher {
 		return sum / this.array.length;
 	}
 
-	setOpacity(opacity) {
+	setOpacity(opacity: number) {
 		for (const m of this.array) {
 			m.mtl.opacity = opacity;
 
@@ -232,25 +233,26 @@ export class Materials extends THREE.EventDispatcher {
 		}
 	}
 
-	// wireframe: boolean
-	setWireframeMode(wireframe) {
+	setWireframeMode(wireframe: boolean) {
 		for (const m of this.array) {
-			if (m.origProp.w || m.mtl instanceof THREE.LineBasicMaterial) continue;
+			if (m.origProp.wireframe || m.mtl instanceof THREE.LineBasicMaterial) continue;
 			m.mtl.wireframe = wireframe;
 		}
 	}
 
-	removeItem(material, dispose) {
+	removeItem(material: THREE.Material, dispose = false) {
 		for (let i = this.array.length - 1; i >= 0; i--) {
 			if (this.array[i].mtl === material) {
 				this.array.splice(i, 1);
 				break;
 			}
 		}
-		if (dispose) material.dispose();
+		if (dispose) {
+			material.dispose();
+		}
 	}
 
-	removeItemsByGroupId(groupId) {
+	removeItemsByGroupId(groupId: number) {
 		for (let i = this.array.length - 1; i >= 0; i--) {
 			if (this.array[i].groupId === groupId) {
 				this.array.splice(i, 1);
