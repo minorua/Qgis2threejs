@@ -186,8 +186,10 @@ export interface DEMGridData {
     nodata: number;
     base64?: string;
     url?: string;
+}
 
-    values?: number[];
+export interface DEMGrid extends DEMGridData {
+    values?: Float32Array;
 }
 
 export interface TIN {

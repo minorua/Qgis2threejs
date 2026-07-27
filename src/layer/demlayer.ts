@@ -8,7 +8,7 @@ import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
 import * as Utils from "../utils.js";
 
-import type { DEMBlockData, DEMGridBlockData, DEMGridData, DEMLayerData, DEMTileGridBlockData } from "../types.js";
+import type { DEMBlockData, DEMGridBlockData, DEMGrid, DEMLayerData, DEMTileGridBlockData, DEMLayerProperties } from "../types.js";
 import type { Scene } from "../scene.js";
 
 /*
@@ -30,7 +30,7 @@ class GridGeometry extends THREE.BufferGeometry {
 	 * @param height     - Plane height (ignored when `segments` is given).
 	 * @param segments   - When supplied, the grid is treated as a square tile.
 	 */
-	loadData(grid: DEMGridData, width: number, height: number, segments: number) {
+	loadData(grid: DEMGrid, width: number, height: number, segments?: number) {
 		const grid_values = grid.values;
 		const columns = grid.width;		// number of columns of actual grid data
 		const rows = grid.height;		// number of rows of actual grid data
@@ -93,11 +93,13 @@ class DEMBlockBase {
 	obj!: THREE.Mesh;
 	data!: DEMBlockData;
 
-	loadData(data: DEMBlockData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void) {
+	loadData(data: DEMBlockData, layer: DEMLayer, callback?: (mesh: THREE.Mesh) => void) {
 		this.data = data;
 
+		if ("materials" in data === false) return;
+
 		// load material
-		for (const m of data.materials || []) {
+		for (const m of data.materials) {
 			const mtl = new Material();
 			mtl.loadData(m, () => layer.requestRender());
 			this.materials[m.mtlIndex] = mtl;
@@ -119,7 +121,7 @@ class DEMBlockBase {
 		return { x0: 0, y0: 0, x1: 0, y1: 0, xres: 0, yres: 0 };
 	}
 
-	buildSides(layer, parent, material, z0) {
+	buildSides(layer: DEMLayer, parent: THREE.Mesh, material: THREE.Material, z0: number) {
 		const { values: gridValues, width: w, height: h } = this.data.grid;
 		const { x0, y0, x1, y1 } = this._auxArgs();
 
@@ -195,7 +197,7 @@ class DEMBlockBase {
 		parent.updateMatrixWorld();
 	}
 
-	addEdges(layer, parent, material, z0) {
+	addEdges(layer: DEMLayer, parent: THREE.Mesh, material: THREE.Material, z0: number) {
 		const { values: gridValues, width: w, height: h } = this.data.grid;
 		const { x0, y0, x1, y1, xres, yres } = this._auxArgs();
 
@@ -254,7 +256,7 @@ class DEMBlockBase {
 	}
 
 	// add quad wireframe
-	addWireframe(layer, parent, material) {
+	addWireframe(layer: DEMLayer, parent: THREE.Mesh, material: THREE.Material) {
 		const { values: gridValues, width: w, height: h } = this.data.grid;
 		const { x0, y0, xres, yres } = this._auxArgs();
 
@@ -294,6 +296,8 @@ class DEMBlockBase {
 
 class DEMBlock extends DEMBlockBase {
 
+	declare data: DEMGridBlockData;
+
 	loadData(data: DEMGridBlockData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
 		super.loadData(data, layer, callback);
 
@@ -310,7 +314,7 @@ class DEMBlock extends DEMBlockBase {
 			if (callback) callback(mesh);
 		};
 
-		const grid = data.grid;
+		const grid = data.grid as DEMGrid;
 		if (grid.url !== undefined) {
 			app.loadFile(grid.url, "arraybuffer", (buf) => {
 				grid.values = new Float32Array(buf);
@@ -347,8 +351,10 @@ class DEMBlock extends DEMBlockBase {
 
 class DEMTileBlock extends DEMBlockBase {
 
+	declare data: DEMTileGridBlockData;
+
 	loadData(data: DEMTileGridBlockData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
-		const grid = data.grid;
+		const grid = data.grid as DEMGrid;
 
 		super.loadData(data, layer, callback);
 
@@ -456,7 +462,7 @@ class ClippedDEMBlock extends DEMBlockBase {
 		return mesh;
 	}
 
-	buildSides(layer, parent, material, z0) {
+	buildSides(layer: DEMLayer, parent: THREE.Mesh, material: THREE.Material, z0: number) {
 		const bzFunc = (_x, _y) => z0;
 
 		// make back-side material for bottom
@@ -499,6 +505,10 @@ export class DEMLayer extends MapLayer {
 	sideVisible: boolean = false;
 	auxiliaryMtl: Partial<Record<"sides" | "edges" | "wireframe", Material>> = {};
 
+	anim?: any[];
+
+	declare properties: DEMLayerProperties;
+
 	loadLayerData(data: DEMLayerData, scene: Scene): void {
 		this.clearObjects();
 		super.loadLayerData(data, scene);
@@ -534,7 +544,7 @@ export class DEMLayer extends MapLayer {
 		}
 	}
 
-	_loadAuxiliaryMaterials(p) {
+	_loadAuxiliaryMaterials(p: DEMLayerProperties) {
 		["sides", "edges", "wireframe"].forEach((a) => {
 			if (!p[a]) return;
 
@@ -587,7 +597,7 @@ export class DEMLayer extends MapLayer {
 		return this.materials.opacity();
 	}
 
-	set opacity(value) {
+	set opacity(value: number) {
 		for (const b of this.blocks) {
 			const m = b.materials[this.currentMtlIndex];
 			if (m && m.mtl) {
@@ -598,12 +608,12 @@ export class DEMLayer extends MapLayer {
 		this.requestRender();
 	}
 
-	get currentMtlIndex() {
+	get currentMtlIndex(): number | undefined {
 		const b = this.blocks[0];
 		return (b) ? b.currentMtlIndex : undefined;
 	}
 
-	set currentMtlIndex(mtlIndex) {
+	set currentMtlIndex(mtlIndex: number) {
 		this.materials.removeItemsByGroupId(this.currentMtlIndex);
 
 		for (const b of this.blocks) {
@@ -617,7 +627,7 @@ export class DEMLayer extends MapLayer {
 		this.requestRender();
 	}
 
-	setSideVisible(visible) {
+	setSideVisible(visible: boolean) {
 		this.sideVisible = visible;
 		this.objectGroup.traverse((obj) => {
 			if (obj.name == "side" || obj.name == "bottom") obj.visible = visible;
@@ -625,7 +635,7 @@ export class DEMLayer extends MapLayer {
 	}
 
 	// texture animation
-	prepareTexAnimation(from, to) {
+	prepareTexAnimation(from: number, to: number) {
 		this.anim = [];
 		for (const block of this.blocks) {
 			const imgFrom = block.materials[from].mtl.map.image;
@@ -673,7 +683,7 @@ export class DEMLayer extends MapLayer {
 		}
 	}
 
-	setTextureAt(progress, effect) {
+	setTextureAt(progress: number | null, effect: number) {
 
 		if (this.anim === undefined) return;
 
@@ -718,7 +728,7 @@ export class DEMLayer extends MapLayer {
 
 type BlockConstructor = new () => DEMBlockBase;
 
-function createBlock(layer) {
+function createBlock(layer: DEMLayer) {
 	const { tiled, clipped } = layer.properties;
 
 	let BlockClass: BlockConstructor = DEMBlock;
