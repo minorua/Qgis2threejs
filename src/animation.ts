@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: MIT
 
 import { THREE } from "./three.js";
-import { app, conf, tweens, KeyframeType } from "./core.js";
+import { app, conf, tweens, TweenType } from "./core.js";
 import { E } from "./utils.js";
+
+import type { Keyframe, Tween, TweenDEM, TweenLine } from "./types.js";
 
 
 app.animation = {
@@ -43,10 +45,10 @@ app.animation = {
 			this.tracks = [];
 		},
 
-		load: function (track) {
-			if (!Array.isArray(track)) track = [track];
+		load: function (tracks) {
+			if (!Array.isArray(tracks)) tracks = [tracks];
 
-			this.tracks = this.tracks.concat(track);
+			this.tracks = this.tracks.concat(tracks);
 		},
 
 		start: function () {
@@ -256,9 +258,9 @@ app.animation = {
 };
 
 
-tweens.cameraMotion = {
+const cameraMotion: Tween = {
 
-	type: KeyframeType.CameraMotion,
+	type: TweenType.CameraMotion,
 
 	curveFactor: 0,
 
@@ -348,9 +350,9 @@ tweens.cameraMotion = {
 
 };
 
-tweens.opacity = {
+const opacity: Tween = {
 
-	type: KeyframeType.Opacity,
+	type: TweenType.Opacity,
 
 	init: function (track, layer) {
 
@@ -368,9 +370,9 @@ tweens.opacity = {
 
 };
 
-tweens.texture = {
+const texture: TweenDEM = {
 
-	type: KeyframeType.Texture,
+	type: TweenType.Texture,
 
 	init: function (track, layer) {
 		const { keyframes } = track;
@@ -398,9 +400,9 @@ tweens.texture = {
 	}
 };
 
-tweens.lineGrowing = {
+const lineGrowing: TweenLine = {
 
-	type: KeyframeType.GrowingLine,
+	type: TweenType.GrowingLine,
 
 	init: function (track, layer) {
 		if (track._keyframes === undefined) {
@@ -414,7 +416,7 @@ tweens.lineGrowing = {
 			track.prop_list = [];
 
 			for (let i = 0; i < layer.features.length; i++) {
-				const item = layer.features[i].anim;
+				const item = layer.features[i].anim as Keyframe;
 
 				item.easing = effectItem.easing;
 				track.keyframes.push(item);
@@ -442,3 +444,8 @@ tweens.lineGrowing = {
 	}
 
 };
+
+tweens.cameraMotion = cameraMotion;
+tweens.opacity = opacity;
+tweens.texture = texture;
+tweens.lineGrowing = lineGrowing;

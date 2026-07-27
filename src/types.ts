@@ -6,9 +6,12 @@ TODO:
 */
 import type * as THREE from "three";
 
-import type { LayerType, MaterialType } from "./core.js";
+import type { LayerType, MaterialType, TweenType } from "./core.js";
 import type { Scene } from "./scene.js";
-export type { LayerType, MaterialType };
+import type { MapLayer } from "./layer/layer.js";
+import type { DEMLayer } from "./layer/demlayer.js";
+import type { LineLayer } from "./layer/linelayer.js";
+export type { LayerType, MaterialType, TweenType };
 
 //// Data structures loaded into the application
 export interface Point2 {
@@ -250,21 +253,27 @@ export interface AnimationData extends BaseData {
     repeat: boolean;
 }
 
-export interface Track {
+export interface TrackData {
     type: string;
     name: string;
     enabled: boolean;
     keyframes: Keyframe[]
 }
 
+export interface Track extends TrackData {
+    prop_list?;
+    currentIndex?: number;
+    _keyframes?;
+    onStart?: () => void;
+    onUpdate?: (obj, elapsed?, isFirst?) => void;
+}
+
 export interface Keyframe {
-    type: string;
-    name: string;
+    delay?: number;
+    duration?: number;
     easing?: string;
-    delay: number;
-    duration: number;
     narration?: string;
-    camera?: CameraState;
+    camera?: CameraStateFK;
     opacity?: number;
     mtlId?: number;
     mtlIndex?: number;
@@ -287,6 +296,10 @@ interface CameraStateF {
 }
 
 export type CameraState = CameraStateA | CameraStateF;
+
+interface CameraStateFK extends CameraStateF {
+    phi?: number;
+}
 
 export interface NarrationData extends BaseData {
     type: "narration";
@@ -356,7 +369,7 @@ export interface App {
     queryTargetPosition;
 
     /* sub-modules */
-    animation;
+    animation: AnimationModule;
     cameraAction;
     eventListener;
     measure;
@@ -416,6 +429,30 @@ export interface App {
     _canvasImageUrl;
 }
 
+interface AnimationModule {
+    isActive: boolean;
+    start(): void;
+    stop(): void;
+    keyframes: {
+        isActive: boolean;
+        isPaused: boolean;
+        curveFactor: number;
+        easingFunction: (easing) => unknown;
+        tracks: Track[];
+        clear(): void;
+        load(track: Track | Track[]): void;
+        start(): void;
+        stop(): void;
+        pause(): void;
+        resume(): void;
+    };
+    orbit: {
+        isActive: boolean;
+        start(): void;
+        stop(): void;
+    };
+}
+
 export interface Gui {
     modules;
 
@@ -433,12 +470,28 @@ export interface Gui {
 }
 
 export interface Modules {
-    THREE,
-    ColladaLoader,
-    GLTFLoader,
-    OutlineEffect,
-    ViewHelper
+    THREE;
+    ColladaLoader;
+    GLTFLoader;
+    OutlineEffect;
+    ViewHelper;
 }
+
+export interface Tween {
+    type: TweenType;
+    curveFactor?: number;
+    init(track: Track, layer?: MapLayer): void;
+}
+
+export interface TweenDEM extends Tween {
+    init(track: Track, layer?: DEMLayer): void;
+}
+
+export interface TweenLine extends Tween {
+    init(track: Track, layer?: LineLayer): void;
+}
+
+export type Tweens = Record<string, Tween>;
 
 //// Interface for the pyObj
 interface Signal<TArgs extends unknown[] = []> {

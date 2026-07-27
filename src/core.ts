@@ -4,7 +4,7 @@
 
 import { THREE } from "./three.js";
 
-import type { App, Gui, Modules } from "./types.js";
+import type { App, Gui, Modules, Tweens } from "./types.js";
 
 export { conf } from "./conf.js";
 
@@ -19,7 +19,7 @@ export const gui = {
 
 export const modules = { THREE } as Modules;
 
-export const tweens = {};
+export const tweens: Tweens = {};
 
 export const deg2rad = Math.PI / 180;
 
@@ -63,7 +63,7 @@ export type MaterialType = typeof MaterialType[keyof typeof MaterialType];
 /**
  * @enum {number}
  */
-export const KeyframeType = {
+export const TweenType = {
 
 	CameraMotion: 64,
 	Opacity: 65,
@@ -72,7 +72,7 @@ export const KeyframeType = {
 
 };
 
-export type KeyframeType = typeof KeyframeType[keyof typeof KeyframeType];
+export type TweenType = typeof TweenType[keyof typeof TweenType];
 
 export const UV = {
 

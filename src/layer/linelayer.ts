@@ -37,8 +37,8 @@ export class LineLayer extends VectorLayer {
 
     buildLabels(features) { }	// Line layer doesn't support label
 
-    // prepare for growing line animation
-    prepareAnimation(sequential) {
+    /** prepare for growing line animation */
+    prepareAnimation(sequential: boolean) {
 
         if (this.origMtls !== undefined) return;
 
@@ -123,8 +123,8 @@ export class LineLayer extends VectorLayer {
         }
     }
 
-    // length: number [0 - 1]
-    setLineLength(length, featureIdx) {
+    /** length: [0 - 1] */
+    setLineLength(length: number, featureIdx?: number) {
         if (this.origMtls === undefined) return;
 
         const setLength = (m) => {
