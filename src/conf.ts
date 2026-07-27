@@ -4,29 +4,37 @@
 import { THREE } from "./three.js";
 
 export const conf = {
-    // renderer
     renderer: {
-        hiDpi: true       // HD-DPI support
+        /** HD-DPI support */
+        hiDpi: true
     },
 
     texture: {
-        anisotropy: -4    // zero means max available value. negative value means max / -v.
+        /** Zero means max available value. negative value means max / -v. */
+        anisotropy: -4
     },
 
-    // scene
-    autoAdjustCameraPos: true,  // automatic camera height adjustment
-    bgColor: null,              // null is sky
+    //// Scene
 
-    // camera
+    /** Enables automatic camera height adjustment */
+    autoAdjustCameraPos: true,
+
+    /** Background color. null is sky. @type: {null | number} */
+    bgColor: null,
+
+    //// Camera
     orthoCamera: false,
-    viewpoint: {      // z-up
-        default: {      // assumed that origin is (0, 0, 0) and base extent width in 3D world coordinates is 1
+
+    /** Z-up. */
+    viewpoint: {
+        /** Default value is assumed that origin is (0, 0, 0) and base extent width in 3D world coordinates is 1. */
+        default: {
             pos: new THREE.Vector3(0, -1, 1),
             lookAt: new THREE.Vector3()
         }
     },
 
-    // light
+    //// Light
     lights: {
         directional: [
             {
@@ -58,8 +66,9 @@ export const conf = {
         ]
     },
 
-    // layer
-    allVisible: false,   // set every layer visible property to true on load if set to true
+    //// Layer
+    /** Set every layer visible property to true on load if set to true. */
+    allVisible: false,
 
     line: {
         dash: {
@@ -74,7 +83,7 @@ export const conf = {
         clickable: true
     },
 
-    // widgets
+    // Widgets
     navigation: {
         enabled: true,
         top: null,
@@ -87,7 +96,7 @@ export const conf = {
         enabled: false
     },
 
-    // animation
+    // Animation
     animation: {
         enabled: false,
         startOnLoad: false,
@@ -95,12 +104,14 @@ export const conf = {
         repeat: false
     },
 
-    // others
+    // Others
     qmarker: {
         radius: 0.004,
         color: 0xffff00,
         opacity: 0.8,
-        k: 0.2    // size factor for ortho camera
+
+        /** size factor for ortho camera */
+        k: 0.2
     },
 
     measure: {
@@ -121,10 +132,18 @@ export const conf = {
     },
 
     gui: {
-        customPlane: false		// dat-gui
+        /** dat-gui */
+        customPlane: false
     },
 
-    debugMode: false,
+    /** @type: {number} */
+    debugMode: 0,
 
+    /** @type: {number | null} */
+    qgisVersion: null,
+
+    /** @type: {{Record<string, any>} | null } */
     preview: null
 };
+
+export type Config = typeof conf;
