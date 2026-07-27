@@ -440,5 +440,32 @@ export interface Modules {
     ViewHelper
 }
 
+//// Interface for the pyObj
+interface Signal<TArgs extends unknown[] = []> {
+    connect(callback: (...args: TArgs) => void): void;
+}
+
+export interface PyObj {
+    sendData: Signal<[data: PreviewData, viaQueue: boolean]>;
+
+    emitInitialized(): void;
+    emitDataLoaded(): void;
+    emitDataLoadError(): void;
+    emitSceneLoaded(): void;
+    emitScriptReady(scriptFileId: number): void;
+    emitTweenStarted(index: number): void;
+    emitAnimationStopped(): void;
+
+    showStatusMessage(message: string, timeout_ms?: number): void;
+    saveBase64(b64str: string, filename: string, is_first: boolean, is_last: boolean): void;
+    saveText(text: string, filename: string, is_first: boolean, is_last: boolean): void;
+    saveImage(dataUrl: string): void;
+    copyToClipboard(dataUrl: string): void;
+
+    // dev
+    emitRequestedRenderingFinished(): void;
+    sendTestResult(testName: string, result: boolean, msg: string): void;
+};
+
 
 export type Q3DEventListener = (...args: any[]) => void;

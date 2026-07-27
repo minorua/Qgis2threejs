@@ -69,13 +69,13 @@ class WebBridge(QObject):
         super().__init__(parent)
 
     @pyqtSlot()
-    def emitDataLoaded(self):
-        self.dataLoaded.emit()
-
-    @pyqtSlot()
     @deco
     def emitInitialized(self):
         self.initialized.emit()
+
+    @pyqtSlot()
+    def emitDataLoaded(self):
+        self.dataLoaded.emit()
 
     @pyqtSlot()
     @deco
