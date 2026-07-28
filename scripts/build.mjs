@@ -15,7 +15,22 @@ const ctx = await esbuild.context({
     outdir: "./web/js",
     external: ["three", "three/*", "./Qgis2threejs.js"],
     minify,
-    sourcemap
+    sourcemap,
+
+    plugins: [{
+        name: "build-logger",
+        setup(build) {
+            build.onEnd(result => {
+                const now = new Date().toLocaleTimeString();
+
+                if (result.errors.length) {
+                    console.error(`[${now}] Build failed`);
+                } else {
+                    console.log(`[${now}] Build succeeded`);
+                }
+            });
+        }
+    }]
 });
 
 if (watch) {
