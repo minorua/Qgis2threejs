@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [3.1.3] - 2026-07-29
+
+*Released from the `release-3.1` branch.*
+
+- Fixed glTF export
+- Fixed export with 3DViewer template
+
 ## [3.1.2] - 2026-07-15
 - Fixed bandit security warnings (#426)
 - Fixed remaining Qt6 enum compatibility issues (#427)
@@ -25,6 +32,11 @@
 - The preview now runs in a separate process
 - Dropped support for QWebView (WebKit) and PyQt5
 - The minimum supported version of QGIS is now 4.0
+
+## [2.10.1] - 2026-05-18
+
+*Released from the `release-2.10` branch.*
+
 - Fixed a preview freeze caused by data loading errors
 - Fixed an error that occurred when interrupting the layer build process
 
@@ -164,6 +176,9 @@
 - Bumped QGIS minimum version to 3.4
 
 ## [2.3.1] - 2019-02-20
+
+*Released from the `release-2.3` branch.*
+
 - Do not import Qt module from PyQt5.Qt (#162, #134)
 - Fixed initial camera target position (#163)
 
