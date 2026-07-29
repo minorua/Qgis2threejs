@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [3.1.3] - 2026-07-29
+- Fixed glTF export
+- Fixed export with 3DViewer template
+
 ## [3.1.2] - 2026-07-15
 - Fixed bandit security warnings (#426)
 - Fixed remaining Qt6 enum compatibility issues (#427)

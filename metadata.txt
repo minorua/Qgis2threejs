@@ -6,12 +6,17 @@ qgisMinimumVersion=4.0
 qgisMaximumVersion=4.99
 description=3D map visualization and web export powered by three.js JavaScript library
 about=This plugin visualizes DEM and vector data in 3D within web browsers. You can easily create various 3D objects, generate files for web publishing, and export 3D models in glTF format for 3DCG or 3D printing.
-version=3.1.2
+version=3.1.3
 author=Minoru Akagi
 email=akaginch@gmail.com
 
 # Optional items:
 changelog=
+    Version 3.1.3
+    - Fixed glTF export
+    - Fixed export with 3DViewer template
+
+    Version 3.1.2
     - Fixed bandit security warnings (#426)
     - Fixed remaining Qt6 enum compatibility issues (#427)
 
