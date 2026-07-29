@@ -582,6 +582,6 @@ class ModelExporter(BridgeExporterBase):
         err = self.buildSceneAndWaitForLoaded(abortSignal=abortSignal)
 
         # save model
-        self.controller.runScript("saveModelAsGLTF('{}')".format(filename.replace("\\", "\\\\")))
+        self.controller.runScript("saveAsGLTF('{}')".format(filename.replace("\\", "\\\\")))
 
         return err

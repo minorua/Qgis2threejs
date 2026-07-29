@@ -81,6 +81,7 @@
      <addaction name="actionSaveAsImage"/>
      <addaction name="separator"/>
      <addaction name="actionSaveAsGLTF"/>
+     <addaction name="actionSaveAsJSON"/>
     </widget>
     <widget class="QMenu" name="menuExport_Settings">
      <property name="title">
@@ -197,14 +198,6 @@
    </attribute>
    <widget class="AnimationPanel" name="animationPanel"/>
   </widget>
-  <action name="actionSaveAsSTL">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>STL (.stl)</string>
-   </property>
-  </action>
   <action name="actionSceneSettings">
    <property name="text">
     <string>Scene Settings...</string>
@@ -269,20 +262,6 @@
     <string>Shift+R</string>
    </property>
   </action>
-  <action name="actionLayer_Panel">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Layer Panel</string>
-   </property>
-  </action>
   <action name="actionClose">
    <property name="text">
     <string>Close</string>
@@ -323,14 +302,6 @@
    </property>
    <property name="toolTip">
     <string>Display this plugin version.</string>
-   </property>
-  </action>
-  <action name="actionSaveAsOBJ">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Wavefront (.obj)</string>
    </property>
   </action>
   <action name="actionSaveAsGLTF">
@@ -395,6 +366,11 @@
   <action name="actionGraphicsInfo">
    <property name="text">
     <string>Graphics Info</string>
+   </property>
+  </action>
+  <action name="actionSaveAsJSON">
+   <property name="text">
+    <string>three.js JSON (.json)...</string>
    </property>
   </action>
  </widget>

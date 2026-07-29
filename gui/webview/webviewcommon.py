@@ -222,12 +222,6 @@ class Q3DWebViewCommon:
     def showGPUInfo(self):
         self._page.setUrl(QUrl("chrome://gpu"))
 
-    def showJSInfo(self):
-        def showInfo(info):
-            QMessageBox.information(self, "three.js Renderer Info", str(info))
-
-        self.runScript("app.renderer.info", callback=showInfo)
-
     def setPreviewEnabled(self, enabled):
         pass
 

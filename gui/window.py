@@ -228,6 +228,7 @@ class Q3DWindow(QMainWindow):
         if self.webViewType == WebViewType.WEBENGINE:
             ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
             ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
+            ui.actionSaveAsJSON.triggered.connect(self.saveAsJSON)
             ui.actionReload.triggered.connect(self.reloadPage)
             ui.actionResetCameraPosition.triggered.connect(self.controller.resetCameraState)
             ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
@@ -248,7 +249,7 @@ class Q3DWindow(QMainWindow):
             ui.actionJSInfo = QAction(self)
             ui.actionJSInfo.setText("three.js Info...")
             ui.menuTestDebug.addAction(ui.actionJSInfo)
-            ui.actionJSInfo.triggered.connect(ui.webView.showJSInfo)
+            ui.actionJSInfo.triggered.connect(self.showJSInfo)
 
     def _setupStatusBar(self, ui, previewEnabled=True, viewName=""):
         w = ui.progressBar = QProgressBar(ui.statusbar)
@@ -439,21 +440,28 @@ class Q3DWindow(QMainWindow):
             image.save(filename)
             self.ui.statusbar.showMessage("Image has been saved to file.", 5000)
 
-    def saveAsGLTF(self):
+    def saveScene(self, name, filter_str, script_func):
+        title = f"Save Current Scene as {name}"
         if not self.ui.checkBoxPreview.isChecked():
-            QMessageBox.warning(self, "Save Current Scene as glTF", "You need to enable the preview to use this function.")
+            QMessageBox.warning(self, title, "You need to enable the preview to use this function.")
             return
 
-        filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save Current Scene as glTF"),
+        filename, _ = QFileDialog.getSaveFileName(self, title,
                                                   self.lastDir or QDir.homePath(),
-                                                  "glTF files (*.gltf);;Binary glTF files (*.glb)")
+                                                  filter_str)
         if not filename:
             return
 
         fn = filename.replace("\\", "\\\\")
-        self.runScript(f"saveModelAsGLTF('{fn}')")
+        self.runScript(f"{script_func}('{fn}')")
 
         self.lastDir = os.path.dirname(filename)
+
+    def saveAsGLTF(self):
+        self.saveScene("glTF", "glTF files (*.gltf);;Binary glTF files (*.glb)", "saveAsGLTF")
+
+    def saveAsJSON(self):
+        self.saveScene("three.js JSON", "JSON files (*.json)", "saveAsJSON")
 
     # @pyqtSlot(bytes, str, bool, bool)     # connected to bridge.modelDataReady signal
     def saveModelData(self, data, filename, is_first, is_last):

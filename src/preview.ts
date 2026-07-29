@@ -341,7 +341,7 @@ function showFPS() {
 	}, 1000);
 }
 
-export function saveModelAsGLTF(filename: string) {
+export function saveAsGLTF(filename: string) {
 	showStatusMessage('Saving the model to "' + filename + '"...');
 
 	const scene = new THREE.Scene();
@@ -385,12 +385,12 @@ export function saveModelAsGLTF(filename: string) {
 	});
 }
 
-function uint8ToBase64(u8: Uint8Array) {
-	let binary = "";
-	for (let i = 0; i < u8.length; i++) {
-		binary += String.fromCharCode(u8[i]);
-	}
-	return btoa(binary);
+export function saveAsJSON(filename: string) {
+	const obj = app.scene.toJSON();
+	const json = JSON.stringify(obj, null, 2).replace(/\[\s*([\d\s,.-]+)\s*\]/g, (match, inner) => {
+		return '[' + inner.replace(/\s+/g, ' ').trim() + ']';
+	});
+	sendData(json, false, filename);
 }
 
 function sendData(data: Uint8Array | string, is_base64: boolean, filename: string, callback?: () => void) {
@@ -419,6 +419,18 @@ function sendData(data: Uint8Array | string, is_base64: boolean, filename: strin
 		setTimeout(sendNext, 0);
 	}
 	sendNext();
+}
+
+function uint8ToBase64(u8: Uint8Array) {
+	if (typeof u8.toBase64 === "function") {
+		return u8.toBase64();
+	}
+
+	let binary = "";
+	for (let i = 0; i < u8.length; i++) {
+		binary += String.fromCharCode(u8[i]);
+	}
+	return btoa(binary);
 }
 
 export function requestRendering() {
