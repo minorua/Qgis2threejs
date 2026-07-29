@@ -340,11 +340,18 @@ class ThreeJSExporter(QObject):
         return script
 
     def dependencies(self):
+        with open(pluginDir("web/js/lib/index.json"), "r", encoding="utf-8") as f:
+            libs = json.load(f)
+
         deps = ["three"]
 
         config = self.settings.templateConfig()
-        for d in config.get("dirs", "").strip().split(","):
-            deps.append(d.split(">")[0].split("/")[-1])
+        dirs = config.get("dirs", "").strip()
+        if dirs:
+            for d in dirs.split(","):
+                name = d.split(">")[0].split("/")[-1]
+                if name:
+                    deps.append(name)
 
         if self.settings.isCoordLatLon():
             deps.append("proj4js")
@@ -352,10 +359,15 @@ class ThreeJSExporter(QObject):
         if self.settings.isAnimationEnabled():
             deps.append("tweenjs")
 
-        with open(pluginDir("web/js/lib/index.json"), "r", encoding="utf-8") as f:
-            libs = json.load(f)
+        result = []
+        for lib in dict.fromkeys(deps):
+            if lib in libs:
+                result.append(libs[lib])
 
-        return [libs[lib] for lib in dict.fromkeys(deps)]
+            else:
+                logger.warning(f"Library '{lib}' is not defined in web/js/lib/index.json")
+
+        return result
 
     def buildScene(self, settings):
         builder = ThreeJSBuilder(self, self.progress, self.log, isInUiThread=False)
