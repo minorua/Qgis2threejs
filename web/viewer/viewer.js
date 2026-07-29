@@ -335,7 +335,7 @@ export function saveModelAsGLTF(filename) {
 
 	import("three/exporters/GLTFExporter.js").then(({ GLTFExporter }) => {
 		const gltfExporter = new GLTFExporter();
-		gltfExporter.parse(scene, (result) => {
+		gltfExporter.parseAsync(scene, options).then((result) => {
 			const showStatus = () => {
 				showStatusMessage("Successfully saved the model.", 5000);
 			}
@@ -349,14 +349,14 @@ export function saveModelAsGLTF(filename) {
 
 			// restore preview
 			for (const id in app.scene.mapLayers) {
-				layer = app.scene.mapLayers[id];
-				group = layer.objectGroup;
+				const layer = app.scene.mapLayers[id];
+				const group = layer.objectGroup;
 				group.rotation.set(0, 0, 0);
 				app.scene.add(group);
 			}
 			app.scene.updateMatrixWorld();
 			app.render();
-		}, options);
+		});
 	});
 }
 
