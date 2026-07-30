@@ -16,15 +16,15 @@ class MaterialType:
     MESH_LAMBERT = 0
     MESH_PHONG = 1
     MESH_TOON = 2
-    MESH_BASIC = 3
-    MESH_STANDARD = 4
+    MESH_BASIC = 8
+    MESH_STANDARD = 7
 
-    LINE = 10
-    LINE_MESH = 11
-    SPRITE_IMAGE = 12
-    POINT = 13
+    LINE = 3
+    LINE_MESH = 4
+    SPRITE_IMAGE = 5
+    POINT = 6
 
-    DEFAULT_MESH = 20
+    DEFAULT_MESH = 99
 
 
 class TextureType:
