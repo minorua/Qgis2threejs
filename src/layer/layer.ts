@@ -28,7 +28,6 @@ export class MapLayer extends THREE.EventDispatcher {
 		this.materials.addEventListener("renderRequest", () => this.requestRender());
 
 		this.objectGroup = new Group();
-		this.objectGroup.name = "layer";
 	}
 
 	addObject(object) {
@@ -80,6 +79,7 @@ export class MapLayer extends THREE.EventDispatcher {
 		const p = data.properties;
 		if (p !== undefined) {
 			this.properties = p;
+			this.objectGroup.name = p.name;
 			this.objectGroup.visible = (p.visible || conf.allVisible) ? true : false;
 		}
 
