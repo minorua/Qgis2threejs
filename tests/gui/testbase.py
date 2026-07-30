@@ -40,11 +40,32 @@ class GUITestBase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.WND.runScript("gui.popup.hide()")
+        cls.runScript("gui.popup.hide()")
         super().tearDownClass()
+
+    @classmethod
+    def runScript(self, script):
+        self.WND.runScript(script)
+
+    @classmethod
+    def playAnimation(self):
+        self.WND.ui.animationPanel.playAnimation()
+
+    @classmethod
+    def sleep(cls, msec=500):
+        loop = QEventLoop()
+        QTimer.singleShot(msec, loop.quit)
+        loop.exec()
+
+    @classmethod
+    def doEvents(cls):
+        cls.sleep(1)
 
     def setUp(self):
         self.updateTestLabels()
+
+    def tearDown(self):
+        self.sleep()
 
     def updateTestLabels(self):
         testname = self.id().split(".")[-1]
@@ -58,17 +79,17 @@ class GUITestBase(unittest.TestCase):
         })
 
     def assertBox3(self, testName, box1, box2=UNDEF, precision=UNDEF):
-        self.WND.runScript(f'assertBox3("{testName}", {box1}, {box2}, {precision})')
+        self.runScript(f'assertBox3("{testName}", {box1}, {box2}, {precision})')
 
     def assertZRange(self, testName, obj="app.scene", min=UNDEF, max=UNDEF, precision=UNDEF):
-        self.WND.runScript(f'assertZRange("{testName}", {obj}, {min}, {max}, {precision})')
+        self.runScript(f'assertZRange("{testName}", {obj}, {min}, {max}, {precision})')
 
     def assertText(self, testName, text, startingElemId=None, partialMatch=False):
         startingElemId = f'"{startingElemId}"' if startingElemId else UNDEF
-        self.WND.runScript(f'assertText("{testName}", "{text}", {startingElemId}, {js_bool(partialMatch)})')
+        self.runScript(f'assertText("{testName}", "{text}", {startingElemId}, {js_bool(partialMatch)})')
 
     def assertVisibility(self, testName, elemId, expected=True):
-        self.WND.runScript(f'assertVisibility("{testName}", "{elemId}", {js_bool(expected)})')
+        self.runScript(f'assertVisibility("{testName}", "{elemId}", {js_bool(expected)})')
 
     def loadSettings(self, testDir, filename, useTestLabels=True):
         loop = QEventLoop()
@@ -89,7 +110,7 @@ class GUITestBase(unittest.TestCase):
         self.WND.webPage.loadScriptFile(ScriptFile.TEST, wait=True)
 
     def mouseClick(self, x, y):
-        self.WND.runScript(f"showMarker({x}, {y}, 400)")
+        self.runScript(f"showMarker({x}, {y}, 400)")
         self.sleep(500)
 
         w = self.WND.ui.webView
@@ -109,22 +130,6 @@ class GUITestBase(unittest.TestCase):
         QgsApplication.postEvent(w, release)
 
         self.sleep(100)
-
-    @classmethod
-    def sleep(cls, msec=500):
-        loop = QEventLoop()
-        QTimer.singleShot(msec, loop.quit)
-        loop.exec()
-
-    @classmethod
-    def doEvents(cls):
-        cls.sleep(1)
-
-    def tearDown(self):
-        self.sleep()
-
-    def playAnimation(self):
-        self.WND.ui.animationPanel.playAnimation()
 
 
 class LayerTestBase(GUITestBase):

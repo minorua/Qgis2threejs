@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from Qgis2threejs.tests.gui.testbase import GUITestBase, LayerTestBase, Box3
-
+from Qgis2threejs.tests.utils import outputPath
 
 TEST_DIR = "testproject2"
 
@@ -58,6 +58,25 @@ class TestLineLayer(LayerTestBase):
     def test04_lineGrowingAnimation(self):
         self.playAnimation()
         self.sleep(2500)
+
+
+class TestWebExport(GUITestBase):
+
+    def test01_export(self):
+        from ...gui.exportdialog import ExportToWebDialog
+        dlg = ExportToWebDialog(self.WND, self.WND.settings, self.WND.controller)
+        dlg.show()
+        self.sleep(1000)
+        dlg.export()
+
+        self.sleep(5000)
+        dlg.close()
+
+class TestGLTFExport(GUITestBase):
+
+    def test01_export(self):
+        filename = outputPath("test_gui2.gltf").replace("\\", "\\\\")
+        self.runScript(f"saveAsGLTF('{filename}')")
 
 
 """
