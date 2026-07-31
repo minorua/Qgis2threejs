@@ -8,7 +8,7 @@ import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
 import * as Utils from "../utils.js";
 
-import type { DEMBlockData, DEMGridBlockData, DEMGrid, DEMLayerData, DEMTileGridBlockData, DEMLayerProperties } from "../types.js";
+import type { DEMBlockData, DEMGridBlockData, DEMGrid, DEMLayerData, DEMMeshData, DEMTileGridBlockData, DEMLayerProperties, TIN_Border } from "../types.js";
 import type { Scene } from "../scene.js";
 
 /*
@@ -294,6 +294,7 @@ class DEMBlockBase {
 }
 
 
+// OBSOLETE
 class DEMBlock extends DEMBlockBase {
 
 	declare data: DEMGridBlockData;
@@ -405,6 +406,47 @@ class DEMTileBlock extends DEMBlockBase {
 	}
 }
 
+class DEMMeshBlock extends DEMBlockBase {
+
+	declare data: DEMGridBlockData;
+
+	loadData(data: DEMGridBlockData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
+		super.loadData(data, layer, callback);
+
+		const mesh_data: DEMMeshData = data.mesh;
+		if (mesh_data === undefined) return;
+
+		const geom = this.buildBufferGeometry(mesh_data.vertices, mesh_data.indices, mesh_data.uvs);
+		const material = (this.materials[this.currentMtlIndex] || {}).mtl;
+
+		const mesh = new THREE.Mesh(geom, material);
+		mesh.position.fromArray(data.translate);
+		mesh.scale.z = data.zScale;
+		layer.addObject(mesh);
+
+		this.obj = mesh;
+		return mesh;
+	}
+
+	buildBufferGeometry(vertices: ArrayBuffer | string, indices: ArrayBuffer | string, uvs: ArrayBuffer | string): THREE.BufferGeometry {
+		const vert: ArrayBuffer = (typeof vertices === "string") ? Utils.base64ToUint8Array(vertices).buffer : vertices;
+		const ind: ArrayBuffer = (typeof indices === "string") ? Utils.base64ToUint8Array(indices).buffer : indices;
+		const _uv: ArrayBuffer = (typeof uvs === "string") ? Utils.base64ToUint8Array(uvs).buffer : uvs;
+
+		const geom = new THREE.BufferGeometry();
+		geom.setAttribute("position", new THREE.Float32BufferAttribute(vert, 3));
+		geom.setAttribute("uv", new THREE.Float32BufferAttribute(_uv, 2));
+		geom.setIndex(new THREE.Uint32BufferAttribute(ind, 1));
+
+		geom.computeBoundingSphere();
+		geom.computeBoundingBox();
+		geom.computeVertexNormals();
+
+		return geom;
+	}
+
+	// TODO: buildSides(), addEdges(), addWireframe()
+}
 
 class ClippedDEMBlock extends DEMBlockBase {
 
@@ -419,7 +461,7 @@ class ClippedDEMBlock extends DEMBlockBase {
 		mesh.scale.z = data.zScale;
 		layer.addObject(mesh);
 
-		const buildGeometry = (obj) => {
+		const buildGeometry = (obj: TIN_Border) => {
 
 			const v = obj.triangles.v;
 			const normals = [];
@@ -523,6 +565,8 @@ export class DEMLayer extends MapLayer {
 			this.objectGroup.rotation.z = 0;
 
 			if (rotation) {
+				// TODO:
+
 				// rotate around center of base extent
 				this.objectGroup.position.copy(p.pivot).negate();
 				this.objectGroup.position.applyAxisAngle(UV.k, rotation * deg2rad);
@@ -531,9 +575,8 @@ export class DEMLayer extends MapLayer {
 			}
 		}
 		else {
-			this.objectGroup.position.copy(p.pivot);
-			this.objectGroup.position.z *= p.zScale;
-			this.objectGroup.rotation.z = rotation * deg2rad;
+			this.objectGroup.position.set(0, 0, 0);
+			this.objectGroup.rotation.z = 0;
 		}
 		this.objectGroup.updateMatrixWorld();
 
@@ -731,9 +774,9 @@ type BlockConstructor = new () => DEMBlockBase;
 function createBlock(layer: DEMLayer) {
 	const { tiled, clipped } = layer.properties;
 
-	let BlockClass: BlockConstructor = DEMBlock;
+	let BlockClass: BlockConstructor = DEMMeshBlock;		// OBSOLETE: DEMBlock;
 	if (tiled) {
-		BlockClass = DEMTileBlock;
+		BlockClass = DEMMeshBlock;		// OBSOLETE: DEMBlock;
 	}
 	else if (clipped) {
 		BlockClass = ClippedDEMBlock;

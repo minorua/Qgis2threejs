@@ -162,6 +162,7 @@ export interface DEMGridBlockData extends BlockData {
     height: number;
     translate: Vec3;
     zScale: number;
+    mesh?: DEMMeshData;
     grid?: DEMGridData;
     geom?: TIN_Border;
 }
@@ -171,7 +172,8 @@ export interface DEMTileGridBlockData extends BlockData {
     tileSize: number;
     translate: Vec3;
     zScale: number;
-    grid: DEMGridData;
+    mesh?: DEMMeshData;
+    grid?: DEMGridData;
 }
 
 export interface DEMMaterialBlockData extends BlockData {
@@ -180,9 +182,18 @@ export interface DEMMaterialBlockData extends BlockData {
 
 export type DEMBlockData = DEMGridBlockData | DEMTileGridBlockData | DEMMaterialBlockData;
 
+export interface DEMMeshData {
+    vertices: string;
+    indices: string;
+    uvs: string
+}
+
 export interface DEMGridData {
-    width: number;      // columns
-    height: number;     // rows
+    /** columns */
+    width: number;
+    /** rows */
+    height: number;
+
     nodata: number;
     base64?: string;
     url?: string;

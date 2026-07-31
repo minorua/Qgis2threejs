@@ -29,7 +29,9 @@ class DEMMaterialBuilder:
         self.useNow = useNow
 
     def build(self):
-        # properties
+        """
+        @returns {DEMMaterialBlockData}
+        """
         mtlId = self.mtlId or self.layer.properties.get("mtlId")
         m = self.layer.material(mtlId)
         if m:

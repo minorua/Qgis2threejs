@@ -2,10 +2,14 @@
 # (C) 2014 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from qgis.core import QgsPoint
+
+from .mapextent import MapExtent
+
 
 class MapTo3D:
 
-    def __init__(self, mapExtent, origin, zScale=1):
+    def __init__(self, mapExtent: MapExtent, origin: QgsPoint, zScale=1):
         # map
         self.mapExtent = mapExtent
 
@@ -14,20 +18,24 @@ class MapTo3D:
         self._width, self._height = (rect.width(), rect.height())
 
         # 3d
-        self.origin = origin            # coordinates of 3D world origin in project CRS
+        self.origin = origin            # 3D world origin in map coordinates
         self.zScale = zScale
 
         self._originX, self._originY, self._originZ = (origin.x(), origin.y(), origin.z())
 
     def transform(self, x, y, z=0):
-        return [x - self._originX,
-                y - self._originY,
-                (z - self._originZ) * self.zScale]
+        return [
+            x - self._originX,
+            y - self._originY,
+            (z - self._originZ) * self.zScale
+        ]
 
     def transformXY(self, x, y, z=0):
-        return [x - self._originX,
-                y - self._originY,
-                z]
+        return [
+            x - self._originX,
+            y - self._originY,
+            z
+        ]
 
     def __repr__(self):
         origin = "({}, {}, {})".format(self.origin.x(), self.origin.y(), self.origin.z())

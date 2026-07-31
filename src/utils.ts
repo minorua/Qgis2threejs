@@ -76,6 +76,9 @@ export const flatArrayToVec2Array = (vertices, itemSize) => {
 };
 
 export const base64ToUint8Array = (base64) => {
+	if (typeof Uint8Array.fromBase64 === "function") {
+	    return Uint8Array.fromBase64(base64);
+  	}
 	var bin = atob(base64);
 	var len = bin.length;
 	var bytes = new Uint8Array(len);

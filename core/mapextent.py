@@ -198,7 +198,7 @@ class MapExtent:
 
         return geotransform
 
-    def center(self):
+    def center(self) -> QgsPointXY:
         return self._center
 
     def width(self):

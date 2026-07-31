@@ -39,13 +39,13 @@ class DEMLayerBuilder(LayerBuilderBase):
         self.grdBuilder = gridBldClass(layer, settings, self.provider, self.mtlBuilder.materialManager, self.pathRoot, self.urlRoot)
 
     def build(self, build_blocks=False):
-        """Generate the export data structure for this DEM layer.
+        """
+        Generate the export data structure for this DEM layer.
 
         Args:
             build_blocks (bool): If True, construct and return DEM blocks under `data['body']['blocks']`.
 
-        Returns:
-            dict: Layer export data.
+        @returns {DEMLayerData}
         """
         if self.provider is None:
             return None
@@ -69,7 +69,9 @@ class DEMLayerBuilder(LayerBuilderBase):
         return d
 
     def layerProperties(self):
-        """Return layer properties specific to this DEM layer."""
+        """
+        @returns {DEMLayerProperties}
+        """
         p = LayerBuilderBase.layerProperties(self)
         p["type"] = "dem"
         p["clipped"] = self.properties.get("radioButton_ClipPolygon", False)
@@ -165,28 +167,25 @@ class DEMLayerBuilder(LayerBuilderBase):
 
                 cx = ulx + xres / 2 + (col + 0.5) * tile_size
                 cy = uly - yres / 2 - (row + 0.5) * tile_size
-                tile_extent = MapExtent(QgsPoint(cx, cy), tile_size, tile_size)
+                tileExtent = MapExtent(QgsPoint(cx, cy), tile_size, tile_size)
 
-                tiles.append((-row, blockIndex, tile_extent, (cx, cy)))
+                tiles.append((-row, blockIndex, tileExtent))
 
         beCenterX, beCenterY = be.center().x(), be.center().y()
-        for i, (_r, blockIndex, tile_extent, tile_center) in enumerate(sorted(tiles)):
+        for i, (_r, blockIndex, tileExtent) in enumerate(sorted(tiles)):
                 # set up material builder for first/current material
                 if self.layer.opt.allMaterials and len(materials):
                     id = materials[0].get("id")
-                    self.mtlBuilder.setup(blockIndex, tile_extent, id, useNow=bool(id == currentMtlId))
+                    self.mtlBuilder.setup(blockIndex, tileExtent, id, useNow=bool(id == currentMtlId))
                 else:
-                    self.mtlBuilder.setup(blockIndex, tile_extent, useNow=True)
+                    self.mtlBuilder.setup(blockIndex, tileExtent, useNow=True)
                 yield self.mtlBuilder
 
                 # set up grid builder
                 if not self.layer.opt.onlyMaterial:
                     # DEMTileGridBuilder
-                    self.grdBuilder.setup(blockIndex,
-                                          segments=segments,
-                                          tileExtent=tile_extent,
-                                          offsetX=tile_center[0] - beCenterX,
-                                          offsetY=tile_center[1] - beCenterY,
+                    self.grdBuilder.setup(blockIndex, segments, tileExtent,
+                                          localOrigin=self.settings.mapTo3d().origin,
                                           dataExtentLowerRight=data_extent_lr)
                     yield self.grdBuilder
 
@@ -194,7 +193,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                 if self.layer.opt.allMaterials:
                     for idx in range(1, mtlCount):
                         id = materials[idx].get("id")
-                        self.mtlBuilder.setup(blockIndex, tile_extent, id, useNow=bool(id == currentMtlId))
+                        self.mtlBuilder.setup(blockIndex, tileExtent, id, useNow=bool(id == currentMtlId))
                         yield self.mtlBuilder
 
                 self.progress(i + 1, tile_cols * tile_rows)
@@ -210,8 +209,6 @@ class DEMLayerBuilder(LayerBuilderBase):
             # calculate extent with the same aspect ratio as current material texture image
             tex_size = DEMPropertyReader.textureSize(self.mtlBuilder.currentMtlProperties(), be, self.settings)
             be = MapExtent(be.center(), be.width(), be.width() * tex_size.height() / tex_size.width(), be.rotation())
-
-        planeWidth, planeHeight = (be.width(), be.height())
 
         center = be.center()
         rotation = be.rotation()
@@ -270,9 +267,8 @@ class DEMLayerBuilder(LayerBuilderBase):
                         neighbors = [(sx, sy, centerBlk, 1)]
 
                 # DEMGridBuilder
-                grdBuilder.setup(blockIndex, grid_seg, extent, planeWidth, planeHeight,
-                                 offsetX=planeWidth * sx,
-                                 offsetY=planeHeight * sy,
+                grdBuilder.setup(blockIndex, grid_seg, extent,
+                                 localOrigin=self.settings.mapTo3d().origin,
                                  roughness=1 if is_center else roughness,
                                  edgeRoughness=roughness if is_center else 1,
                                  clip_geometry=clip_geometry if is_center else None,

@@ -3,12 +3,13 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from ...utils.basic import noop
+from ..exportsettings import ExportSettings, Layer
 
 
 class LayerBuilderBase:
     """Base class for layer builders that generate layer export data."""
 
-    def __init__(self, layer, settings, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
+    def __init__(self, layer: Layer, settings: ExportSettings, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
         """
         Args:
             layer: Layer object.

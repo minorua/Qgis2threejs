@@ -4,8 +4,11 @@
 
 import base64
 import json
+import numpy as np
 import struct
-from qgis.core import QgsGeometry, QgsPointXY
+
+from qgis.PyQt.QtCore import QSize
+from qgis.core import QgsGeometry, QgsPoint, QgsPointXY
 
 from ...geometry import VectorGeometry, LineGeometry, TINGeometry
 from ...mapextent import MapExtent
@@ -27,14 +30,11 @@ class DEMGridBuilder:
         self.pathRoot = pathRoot
         self.urlRoot = urlRoot
 
-    def setup(self, blockIndex, grid_seg, extent, planeWidth, planeHeight, offsetX=0, offsetY=0, roughness=1, edgeRoughness=1, clip_geometry=None, neighbors=None):
+    def setup(self, blockIndex, grid_seg: QSize, extent: MapExtent, localOrigin: QgsPoint, roughness=1, edgeRoughness=1, clip_geometry=None, neighbors=None):
         self.blockIndex = blockIndex
         self.grid_seg = grid_seg
         self.extent = extent
-        self.planeWidth = planeWidth
-        self.planeHeight = planeHeight
-        self.offsetX = offsetX
-        self.offsetY = offsetY
+        self.localOrigin = localOrigin
         self.roughness = roughness
         self.edgeRoughness = edgeRoughness
         self.clip_geometry = clip_geometry
@@ -43,13 +43,14 @@ class DEMGridBuilder:
         self.edges = None
 
     def build(self):
+        """
+        @returns {DEMGridBlockData}
+        """
         b = {
             "type": "block",
             "layer": self.layer.jsLayerId,
             "block": self.blockIndex,
-            "width": self.planeWidth,
-            "height": self.planeHeight,
-            "translate": [self.offsetX, self.offsetY, 0],
+            "translate": [0, 0, 0],
             "zScale": self.settings.mapTo3d().zScale
         }
 
@@ -70,38 +71,85 @@ class DEMGridBuilder:
             columns, rows = (self.grid_seg.width() + 1, self.grid_seg.height() + 1)
 
             if self.edgeRoughness == 1 and len(self.neighbors) == 0:
-                ba = self.provider.read(columns, rows, self.extent)
+                arr = self.provider.readAsArray(columns, rows, self.extent)
             else:
                 grid_values = list(self.provider.readValues(columns, rows, self.extent))
-                self.processEdges(grid_values, self.edgeRoughness)
-                ba = struct.pack(f"{columns * rows}f", *grid_values)
+                self.processEdges(grid_values, self.edgeRoughness, is_center=True)
+                arr = np.array(grid_values, dtype=np.float32).reshape(rows, columns)
 
-            b["grid"] = self._gridData(columns, rows, ba, self.provider.nodata)
+            b["mesh"] = self._buildMeshData(arr, self.extent, self.localOrigin, nodata=self.provider.nodata)
 
         return b
 
-    def _gridData(self, columns, rows, bytearray, nodata=None):
-        g = {
-            "width": columns,
-            "height": rows
-        }
+    def _buildMeshData(self, z_arr, extent: MapExtent, localOrigin: QgsPoint, full_extent: MapExtent=None, nodata=None):
+        """
+        center: Coordinates of the origin
+
+        @returns {DEMMeshData}
+        """
+        if full_extent is None:
+            full_extent = extent
+
+        rows, cols = z_arr.shape
+
+        c, r = np.meshgrid(np.arange(cols), np.arange(rows))
+
+        gt = extent.geotransform(cols, rows)
+
+        # Coordinates of the upper-left corner of the extent relative to the center
+        x0 = gt[0] + 0.5 * (gt[1] + gt[2]) - localOrigin.x()
+        y0 = gt[3] + 0.5 * (gt[4] + gt[5]) - localOrigin.y()
+
+        # Coordinates
+        x = x0 + c * gt[1] + r * gt[2]
+        y = y0 + c * gt[4] + r * gt[5]
+        z = z_arr - localOrigin.z() if localOrigin.z() else z_arr
+
+        # UVs
+        u = c / ((cols - 1) * extent.width() / full_extent.width())
+        v = 1 - r / ((rows - 1) * extent.height() / full_extent.height())
 
         if nodata is not None:
-            g["nodata"] = base64.b64encode(struct.pack("f", nodata)).decode("ascii")
-
-        if self.settings.requiresJsonSerializable:
-            g["base64"] = base64.b64encode(bytearray).decode("ascii")
+            valid_mask = z_arr != nodata
         else:
-            # write grid values to an binary file
-            tail = f"{self.blockIndex}.bin"
-            g["url"] = self.urlRoot + tail
+            valid_mask = np.ones_like(z_arr, dtype=bool)
 
-            with open(self.pathRoot + tail, "wb") as f:
-                f.write(bytearray)
+        # Combine all coordinates and remove NoData points
+        vertices = np.column_stack((x.ravel(), y.ravel(), z.ravel()))[valid_mask.ravel()]   # (N_valid, 3)
+        uvs = np.column_stack((u.ravel(), v.ravel()))[valid_mask.ravel()]                   # (N_valid, 2)
 
-        return g
+        # Assign vertex IDs to valid points and use -1 for NoData points
+        grid_indices = np.full((rows, cols), -1, dtype=np.int32)    # np.int16 if rows * cols < 256 * 256
+        grid_indices[valid_mask] = np.arange(np.sum(valid_mask))
+
+        # Obtain the vertex IDs of the four corners of each cell using slicing
+        p00 = grid_indices[:-1, :-1]
+        p01 = grid_indices[:-1, 1:]
+        p10 = grid_indices[1:, :-1]
+        p11 = grid_indices[1:, 1:]
+
+        # Split each cell into two triangles
+        t1 = np.stack([p00, p10, p01], axis=-1).reshape(-1, 3)
+        t2 = np.stack([p10, p11, p01], axis=-1).reshape(-1, 3)
+        triangles = np.vstack([t1, t2])
+
+        # Filter out triangles that contain at least one -1
+        valid_triangles_mask = np.all(triangles >= 0, axis=1)
+        faces = triangles[valid_triangles_mask]
+
+        def arr_to_b64(arr, dtype=np.float32):
+            return base64.b64encode(arr.astype(dtype, copy=False).tobytes()).decode("ascii")
+
+        return {
+            "vertices": arr_to_b64(vertices),
+            "uvs": arr_to_b64(uvs),
+            "indices": arr_to_b64(faces, np.int32)
+        }
 
     def clipped(self, clip_geometry):
+        """
+        @returns {TIN_Border}
+        """
         transform_func = self.settings.mapTo3d().transformXY
 
         # create a grid geometry and split polygons with the grid
@@ -125,9 +173,8 @@ class DEMGridBuilder:
         d["polygons"] = polygons
         return d
 
-    def processEdges(self, grid_values, roughness):
-
-        if self.offsetX == 0 and self.offsetY == 0:
+    def processEdges(self, grid_values, roughness, is_center):
+        if is_center:
             self.processEdgesCenter(grid_values, roughness)
             return
 
@@ -263,25 +310,27 @@ class DEMGridBuilder:
 
 class DEMTileGridBuilder(DEMGridBuilder):
 
-    def setup(self, blockIndex, segments, tileExtent, offsetX, offsetY, dataExtentLowerRight, clip_geometry=None):
+    def setup(self, blockIndex: int, segments: int, tileExtent: MapExtent, localOrigin: QgsPoint, dataExtentLowerRight, clip_geometry=None):
         self.blockIndex = blockIndex
         self.segments = segments
         self.tileExtent = tileExtent
+        self.localOrigin = localOrigin
         self.tileSize = tileExtent.width()
-        self.offsetX = offsetX
-        self.offsetY = offsetY
         self.dataExtentLowerRight = dataExtentLowerRight
         self.clip_geometry = clip_geometry
 
     def build(self):
+        """
+        @returns {DEMTileGridBlockData}
+        """
         b = {
             "type": "block",
             "layer": self.layer.jsLayerId,
             "block": self.blockIndex,
             "segments": self.segments,
             "tileSize": self.tileSize,
-            "translate": [self.offsetX, self.offsetY, 0],
-            "zScale": self.settings.mapTo3d().zScale,
+            "translate": [0, 0, 0],
+            "zScale": self.settings.mapTo3d().zScale
         }
 
         if self.clip_geometry:
@@ -292,6 +341,7 @@ class DEMTileGridBuilder(DEMGridBuilder):
             segment_size = self.tileSize / self.segments
             half_segment_size = segment_size / 2
 
+            # Determine the valid extent
             ulx, uly = self.tileExtent.point(0, 1)              # A' (px is pt)
             tile_lrx, tile_lry = self.tileExtent.point(1, 0)    # B' (px is pt)
 
@@ -308,8 +358,8 @@ class DEMTileGridBuilder(DEMGridBuilder):
 
             columns = int(valid_width / segment_size + 1)
             rows = int(valid_height / segment_size + 1)
-            ba = self.provider.read(columns, rows, valid_extent)
 
-            b["grid"] = self._gridData(columns, rows, ba, self.provider.nodata)
+            arr = self.provider.readAsArray(columns, rows, valid_extent)
+            b["mesh"] = self._buildMeshData(arr, valid_extent, self.localOrigin, full_extent=self.tileExtent, nodata=self.provider.nodata)
 
         return b

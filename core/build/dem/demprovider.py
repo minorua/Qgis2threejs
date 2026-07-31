@@ -74,7 +74,7 @@ class GDALDEMProvider:
     def gridRectangle(self):
         return GridRectangle.fromGeotransform(self.ds.GetGeoTransform(), self.width, self.height)
 
-    def _read(self, width, height, gt, asList=False):
+    def _read(self, width, height, gt, asList=False, asNumpyArray=False):
         self._opts["width"] = width
         self._opts["height"] = height
         self._opts["outputBounds"] = [gt[0], gt[3] + gt[5] * height, gt[0] + gt[1] * width, gt[3]]
@@ -89,13 +89,20 @@ class GDALDEMProvider:
             return ba
 
         arr = band.ReadAsArray()
+        if asNumpyArray:
+            return arr
+
         if asList:
             return arr.flatten().tolist()
+
         return arr.tobytes()
 
     def read(self, width, height, extent):
         """read data into a byte array"""
         return self._read(width, height, extent.geotransform(width, height))
+
+    def readAsArray(self, width, height, extent):
+        return self._read(width, height, extent.geotransform(width, height), asNumpyArray=True)
 
     def readValues(self, width, height, extent):
         """read data into a list"""
@@ -141,6 +148,9 @@ class FlatDEMProvider:
 
     def read(self, width, height, extent):
         return struct.pack(f"{width * height}f", *([self.value] * width * height))
+
+    def readAsArray(self, width, height, extent):
+        return numpy.full((height, width), self.value, dtype=numpy.float32)
 
     def readValues(self, width, height, extent):
         return [self.value] * width * height

@@ -271,7 +271,7 @@ class ExportSettings:
 
         return self._baseExtent
 
-    def mapTo3d(self):
+    def mapTo3d(self) -> MapTo3D:
         if self._mapTo3d:
             return self._mapTo3d
 
