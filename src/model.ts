@@ -11,9 +11,9 @@ import type { ModelData } from "./types.js";
 
 export class Model {
 
-	constructor() {
-		this.loaded = false;
-	}
+	loaded = false;
+	model!: THREE.Group;
+	private _callbacks: ((scene: THREE.Group) => void)[] = [];
 
 	/**
 	 * @param data
@@ -30,37 +30,34 @@ export class Model {
 	}
 
 	// callback is called when model has been completely loaded
-	load(url, callback) {
+	load(url: string, callback: (scene: THREE.Group) => void) {
 		app.loadModelFile(url, (model) => {
 			this.model = model;
 			this._loadCompleted(callback);
 		});
 	}
 
-	loadBytes(data, ext, resourcePath, callback) {
+	loadBytes(data: Uint8Array, ext: string, resourcePath: string, callback: (scene: THREE.Group) => void) {
 		app.loadModelData(data, ext, resourcePath, (model) => {
 			this.model = model;
 			this._loadCompleted(callback);
 		});
 	}
 
-	_loadCompleted(anotherCallback) {
+	_loadCompleted(anotherCallback?: (scene: THREE.Group) => void) {
 		this.loaded = true;
 
-		if (this._callbacks !== undefined) {
-			for (const callback of this._callbacks) {
-				callback(this.model);
-			}
-			this._callbacks = [];
+		for (const callback of this._callbacks) {
+			callback(this.model);
 		}
+		this._callbacks.length = 0;
 
 		if (anotherCallback) anotherCallback(this.model);
 	}
 
-	callbackOnLoad(callback) {
+	callbackOnLoad(callback: (scene: THREE.Group) => void) {
 		if (this.loaded) return callback(this.model);
 
-		if (this._callbacks === undefined) this._callbacks = [];
 		this._callbacks.push(callback);
 	}
 
@@ -69,12 +66,8 @@ export class Model {
 
 export class Models extends THREE.EventDispatcher {
 
-	constructor() {
-		super();
-
-		this.models = [];
-		this.cache = {};
-	}
+	models: Model[] = [];
+	cache: Record<string, Model> = {};
 
 	loadData(data: ModelData[]) {
 		const callback = (model) => {
@@ -99,12 +92,12 @@ export class Models extends THREE.EventDispatcher {
 		}
 	}
 
-	get(index) {
+	get(index: number) {
 		return this.models[index];
 	}
 
 	clear() {
-		this.models = [];
+		this.models.length = 0;
 	}
 
 }
