@@ -8,7 +8,7 @@ import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
 import * as Utils from "../utils.js";
 
-import type { DEMBlockData, DEMGridBlockData, DEMGrid, DEMLayerData, DEMMeshData, DEMTileGridBlockData, DEMLayerProperties, TIN_Border } from "../types.js";
+import type { DEMBlockData, DEMGridBlockData, DEMGrid, DEMLayerData, DEMMeshData, DEMTileGridBlockData, DEMLayerProperties, TIN_Border, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
 
 /*
@@ -425,6 +425,30 @@ class DEMMeshBlock extends DEMBlockBase {
 		layer.addObject(mesh);
 
 		this.obj = mesh;
+
+		if (layer.properties.sides) {
+			const boundaries = this.getBoundaries(geom);
+
+			mesh.add(...this.buildSides(boundaries, layer.properties.sides.bottom, layer.auxiliaryMtl.sides.mtl));
+			mesh.add(this.buildBottom(geom, layer.properties.sides.bottom, layer.auxiliaryMtl.sides.mtl));
+
+			layer.sideVisible = true;
+		}
+/*
+		// TODO: addEdges
+		if (this.properties.edges) {
+			block.addEdges(this, mesh, this.auxiliaryMtl.edges.mtl, (this.properties.sides) ? this.properties.sides.bottom : undefined);
+		}
+
+		// TODO: addWireframe
+		if (this.properties.wireframe) {
+			block.addWireframe(this, mesh, this.auxiliaryMtl.wireframe.mtl);
+
+			mesh.material.polygonOffset = true;
+			mesh.material.polygonOffsetFactor = 1;
+			mesh.material.polygonOffsetUnits = 1;
+		}
+*/
 		return mesh;
 	}
 
@@ -445,7 +469,86 @@ class DEMMeshBlock extends DEMBlockBase {
 		return geom;
 	}
 
-	// TODO: buildSides(), addEdges(), addWireframe()
+	getBoundaries(geometry: THREE.BufferGeometry): Vec3[][] {
+		const vertices = geometry.getAttribute("position").array;
+		const indices = geometry.getIndex().array;
+
+		const edgeKey = (a: number, b: number) => (a < b) ? `${a},${b}` : `${b},${a}`;
+
+		const unpairedHalfEdge = new Set<string>();
+		for (let i = 0; i < indices.length; i += 3) {
+			const tri = [indices[i], indices[i + 1], indices[i + 2]];
+
+			for (let j = 0; j < 3; j++) {
+				const key = edgeKey(tri[j], tri[(j + 1) % 3]);
+
+				if (unpairedHalfEdge.has(key))
+					unpairedHalfEdge.delete(key);
+				else
+					unpairedHalfEdge.add(key);
+			}
+		}
+
+		const adjacency = new Map<number, number[]>();
+		for (const key of unpairedHalfEdge) {
+			const [a, b] = key.split(",").map(Number);
+
+			if (!adjacency.has(a)) adjacency.set(a, []);
+			if (!adjacency.has(b)) adjacency.set(b, []);
+			adjacency.get(a).push(b);
+			adjacency.get(b).push(a);
+		}
+
+		const remaining = unpairedHalfEdge;
+		const boundaries: Vec3[][] = [];
+
+		while (remaining.size > 0) {
+			const [firstKey] = remaining;
+
+			const start = Number(firstKey.split(",")[0]);
+			let prev = -1;
+			let curr = start;
+
+			const line: number[] = [start];
+
+			while (true) {
+				const next = (adjacency.get(curr) || []).find(v => v !== prev);
+				if (next === undefined) break;
+
+				remaining.delete(edgeKey(curr, next));
+
+				line.push(next);
+				prev = curr;
+				curr = next;
+
+				if (curr === start) break;
+			}
+
+			boundaries.push(line.map((vi) => [vertices[vi * 3], vertices[vi * 3 + 1], vertices[vi * 3 + 2]]));
+		}
+
+		return boundaries;
+	}
+
+	buildSides(boundaries: Vec3[][], z0: number, material: THREE.Material): THREE.Mesh[] {
+		const sides = [];
+		for (const boundary of boundaries) {
+			// TODO: counter clockwise order and front side material
+			const side_geom = Utils.createWallGeometry(boundary.flat(), () => z0);
+
+			const side = new THREE.Mesh(side_geom, material);
+			sides.push(side);
+		}
+		return sides;
+	}
+
+	buildBottom(surfaceGeom: THREE.BufferGeometry, z0: number, material: THREE.Material): THREE.Mesh {
+		// TODO: back side material
+		const bottom = new THREE.Mesh(surfaceGeom, material);
+		bottom.position.z = z0;
+		bottom.scale.z = 0;
+		return bottom;
+	}
 }
 
 class ClippedDEMBlock extends DEMBlockBase {

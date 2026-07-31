@@ -84,7 +84,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         mtlMan = self.mtlBuilder.materialManager
 
         if self.properties.get("checkBox_Sides"):
-            mi = mtlMan.getMeshIndex(color=hex_color(self.properties.get("colorButton_Side", DEF_SETS.SIDE_COLOR), prefix="0x"), opacity=opacity)
+            mi = mtlMan.getMeshIndex(color=hex_color(self.properties.get("colorButton_Side", DEF_SETS.SIDE_COLOR), prefix="0x"), opacity=opacity, doubleSide=True)
             p["sides"] = {
                 "mtl": mtlMan.build(mi),
                 "bottom": parseFloat(self.properties.get("lineEdit_Bottom"), DEF_SETS.Z_BOTTOM)
