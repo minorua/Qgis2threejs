@@ -4,7 +4,9 @@
 
 import os
 import base64
+import json
 import re
+import struct
 
 from PyQt6.QtCore import QBuffer, QByteArray, QIODevice
 
@@ -135,3 +137,24 @@ def base64file(file_path):
 def imageFile2dataUri(file_path):
     imgType = os.path.splitext(file_path)[1].lower()[1:].replace("jpg", "jpeg")
     return f"data:image/{imgType};base64," + base64file(file_path)
+
+
+def writeBinaryContainer(filepath: str, chunks: dict[str, bytes]):
+    metadata = {}
+    offset = 0
+
+    for name, data in chunks.items():
+        metadata[name] = {
+            "offset": offset,
+            "size": len(data)
+        }
+        offset += len(data)
+
+    json_bytes = json.dumps(metadata, separators=(",", ":")).encode("ascii")
+
+    with open(filepath, "wb") as f:
+        f.write(struct.pack("<I", len(json_bytes)))
+        f.write(json_bytes)
+
+        for data in chunks.values():
+            f.write(data)

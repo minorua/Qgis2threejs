@@ -162,7 +162,7 @@ export interface DEMGridBlockData extends BlockData {
     height: number;
     translate: Vec3;
     zScale: number;
-    mesh?: DEMMeshData;
+    mesh?: DEMMeshData | DataRef;
     grid?: DEMGridData;
     geom?: TIN_Border;
 }
@@ -172,7 +172,7 @@ export interface DEMTileGridBlockData extends BlockData {
     tileSize: number;
     translate: Vec3;
     zScale: number;
-    mesh?: DEMMeshData;
+    mesh?: DEMMeshData | DataRef;
     grid?: DEMGridData;
 }
 
@@ -185,7 +185,11 @@ export type DEMBlockData = DEMGridBlockData | DEMTileGridBlockData | DEMMaterial
 export interface DEMMeshData {
     vertices: string;
     indices: string;
-    uvs: string
+    uvs: string;
+}
+
+export interface DataRef {
+    url: string;
 }
 
 export interface DEMGridData {
@@ -403,7 +407,7 @@ export interface App {
     loadTextureFile(url: string, callback?);
     loadModelFile(url: string, callback?);
     loadModelData(data, ext: string, resourcePath: string, callback?);
-
+    loadBinaryContainer(url: string): Promise<Record<string, ArrayBuffer>>;
     buildCamera(is_ortho?: boolean);
     buildNorthArrow(container: HTMLElement, declination?: number);
     buildViewHelper(container: HTMLElement);

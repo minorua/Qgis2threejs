@@ -8,7 +8,7 @@ import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
 import * as Utils from "../utils.js";
 
-import type { DEMBlockData, DEMGridBlockData, DEMGrid, DEMLayerData, DEMMeshData, DEMTileGridBlockData, DEMLayerProperties, TIN_Border, Vec3 } from "../types.js";
+import type { DEMBlockData, DEMGridBlockData, DEMGrid, DEMLayerData, DEMMeshData, DEMTileGridBlockData, DEMLayerProperties, TIN_Border, Vec3, DataRef } from "../types.js";
 import type { Scene } from "../scene.js";
 
 /*
@@ -413,10 +413,10 @@ class DEMMeshBlock extends DEMBlockBase {
 	loadData(data: DEMGridBlockData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
 		super.loadData(data, layer, callback);
 
-		const mesh_data: DEMMeshData = data.mesh;
+		const mesh_data: DEMMeshData | DataRef = data.mesh;
 		if (mesh_data === undefined) return;
 
-		const geom = this.buildBufferGeometry(mesh_data.vertices, mesh_data.indices, mesh_data.uvs);
+		const geom = new THREE.BufferGeometry();
 		const material = (this.materials[this.currentMtlIndex] || {}).mtl;
 
 		const mesh = new THREE.Mesh(geom, material);
@@ -426,11 +426,44 @@ class DEMMeshBlock extends DEMBlockBase {
 
 		this.obj = mesh;
 
+		const build = (data) => {
+			this.buildBufferGeometry(data, geom);
+			this.buildAuxiliaryObjects(layer, geom, mesh);
+		};
+
+		if ("url" in mesh_data) {
+			app.loadBinaryContainer(mesh_data.url).then((data) => build(data));
+		}
+		else {    // preview
+			build(mesh_data);
+		}
+
+		return mesh;
+	}
+
+	buildBufferGeometry(data: DEMMeshData, geom?: THREE.BufferGeometry): THREE.BufferGeometry {
+		const vert: ArrayBuffer = (typeof data.vertices === "string") ? Utils.base64ToUint8Array(data.vertices).buffer : data.vertices;
+		const ind: ArrayBuffer = (typeof data.indices === "string") ? Utils.base64ToUint8Array(data.indices).buffer : data.indices;
+		const _uv: ArrayBuffer = (typeof data.uvs === "string") ? Utils.base64ToUint8Array(data.uvs).buffer : data.uvs;
+
+		if (!geom) geom = new THREE.BufferGeometry();
+		geom.setAttribute("position", new THREE.Float32BufferAttribute(vert, 3));
+		geom.setAttribute("uv", new THREE.Float32BufferAttribute(_uv, 2));
+		geom.setIndex(new THREE.Uint32BufferAttribute(ind, 1));
+
+		geom.computeBoundingSphere();
+		geom.computeBoundingBox();
+		geom.computeVertexNormals();
+
+		return geom;
+	}
+
+	buildAuxiliaryObjects(layer, geom, parent) {
 		if (layer.properties.sides) {
 			const boundaries = this.getBoundaries(geom);
 
-			mesh.add(...this.buildSides(boundaries, layer.properties.sides.bottom, layer.auxiliaryMtl.sides.mtl));
-			mesh.add(this.buildBottom(geom, layer.properties.sides.bottom, layer.auxiliaryMtl.sides.mtl));
+			parent.add(...this.buildSides(boundaries, layer.properties.sides.bottom, layer.auxiliaryMtl.sides.mtl));
+			parent.add(this.buildBottom(geom, layer.properties.sides.bottom, layer.auxiliaryMtl.sides.mtl));
 
 			layer.sideVisible = true;
 		}
@@ -449,24 +482,6 @@ class DEMMeshBlock extends DEMBlockBase {
 			mesh.material.polygonOffsetUnits = 1;
 		}
 */
-		return mesh;
-	}
-
-	buildBufferGeometry(vertices: ArrayBuffer | string, indices: ArrayBuffer | string, uvs: ArrayBuffer | string): THREE.BufferGeometry {
-		const vert: ArrayBuffer = (typeof vertices === "string") ? Utils.base64ToUint8Array(vertices).buffer : vertices;
-		const ind: ArrayBuffer = (typeof indices === "string") ? Utils.base64ToUint8Array(indices).buffer : indices;
-		const _uv: ArrayBuffer = (typeof uvs === "string") ? Utils.base64ToUint8Array(uvs).buffer : uvs;
-
-		const geom = new THREE.BufferGeometry();
-		geom.setAttribute("position", new THREE.Float32BufferAttribute(vert, 3));
-		geom.setAttribute("uv", new THREE.Float32BufferAttribute(_uv, 2));
-		geom.setIndex(new THREE.Uint32BufferAttribute(ind, 1));
-
-		geom.computeBoundingSphere();
-		geom.computeBoundingBox();
-		geom.computeVertexNormals();
-
-		return geom;
 	}
 
 	getBoundaries(geometry: THREE.BufferGeometry): Vec3[][] {

@@ -383,6 +383,40 @@ app.loadModelData = (data: Uint8Array, ext: string, resourcePath: string, callba
     }
 };
 
+app.loadBinaryContainer = (url: string): Promise<Record<string, ArrayBuffer>> => {
+    app.loadingManager.itemStart(url);
+
+    return new Promise((resolve, reject) => {
+        fetch(url)
+            .then(r => r.arrayBuffer())
+            .then(buf => {
+                const view = new DataView(buf);
+
+                const jsonSize = view.getUint32(0, true);
+
+                const jsonStr = new TextDecoder().decode(
+                    new Uint8Array(buf, 4, jsonSize)
+                );
+
+                const binaryOffset = 4 + jsonSize;
+
+                const meta = JSON.parse(jsonStr);
+                const data = {};
+
+                for (const key in meta) {
+                    data[key] = buf.slice(
+                        binaryOffset + meta[key].offset,
+                        binaryOffset + meta[key].offset + meta[key].size
+                    );
+                }
+
+                app.loadingManager.itemEnd(url);
+
+                resolve(data);
+            });
+    });
+};
+
 app.mouseDownPoint = new THREE.Vector2();
 app.mouseUpPoint = new THREE.Vector2();
 

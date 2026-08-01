@@ -5,7 +5,6 @@
 import base64
 import json
 import numpy as np
-import struct
 
 from qgis.PyQt.QtCore import QSize
 from qgis.core import QgsGeometry, QgsPoint, QgsPointXY
@@ -13,6 +12,7 @@ from qgis.core import QgsGeometry, QgsPoint, QgsPointXY
 from ...geometry import VectorGeometry, LineGeometry, TINGeometry
 from ...mapextent import MapExtent
 from ....conf import DEBUG_MODE
+from ....utils.js import writeBinaryContainer
 from ....utils.logging import logger
 
 
@@ -58,7 +58,7 @@ class DEMGridBuilder:
             # TODO: no data handling
             geom = self.clipped(self.clip_geometry)
 
-            if self.settings.localMode or self.settings.isPreview:
+            if self.settings.isPreview:
                 b["geom"] = geom
             else:
                 tail = f"{self.blockIndex}.json"
@@ -137,13 +137,25 @@ class DEMGridBuilder:
         valid_triangles_mask = np.all(triangles >= 0, axis=1)
         faces = triangles[valid_triangles_mask]
 
-        def arr_to_b64(arr, dtype=np.float32):
-            return base64.b64encode(arr.astype(dtype, copy=False).tobytes()).decode("ascii")
+        def nparr_to_bytes(arr, dtype=np.float32):
+            return arr.astype(dtype, copy=False).tobytes()
+
+        chunks = {
+            "vertices": nparr_to_bytes(vertices),
+            "uvs": nparr_to_bytes(uvs),
+            "indices": nparr_to_bytes(faces, np.int32)
+        }
+
+        if self.settings.isPreview:
+            return {
+                key: base64.b64encode(value).decode("ascii") for key, value in chunks.items()
+            }
+
+        tail = f"{self.blockIndex}.binjson"
+        writeBinaryContainer(self.pathRoot + tail, chunks)
 
         return {
-            "vertices": arr_to_b64(vertices),
-            "uvs": arr_to_b64(uvs),
-            "indices": arr_to_b64(faces, np.int32)
+            "url": self.urlRoot + tail
         }
 
     def clipped(self, clip_geometry):
