@@ -427,7 +427,7 @@ class DEMMeshBlock extends DEMBlockBase {
 		this.obj = mesh;
 
 		const build = (data) => {
-			this.buildBufferGeometry(data, geom);
+			this.setGeometryData(geom, data);
 			this.buildAuxiliaryObjects(layer, geom, mesh);
 		};
 
@@ -441,12 +441,11 @@ class DEMMeshBlock extends DEMBlockBase {
 		return mesh;
 	}
 
-	buildBufferGeometry(data: DEMMeshData, geom?: THREE.BufferGeometry): THREE.BufferGeometry {
+	setGeometryData(geom: THREE.BufferGeometry, data: DEMMeshData) {
 		const vert: ArrayBuffer = (typeof data.vertices === "string") ? Utils.base64ToUint8Array(data.vertices).buffer : data.vertices;
 		const ind: ArrayBuffer = (typeof data.indices === "string") ? Utils.base64ToUint8Array(data.indices).buffer : data.indices;
 		const _uv: ArrayBuffer = (typeof data.uvs === "string") ? Utils.base64ToUint8Array(data.uvs).buffer : data.uvs;
 
-		if (!geom) geom = new THREE.BufferGeometry();
 		geom.setAttribute("position", new THREE.Float32BufferAttribute(vert, 3));
 		geom.setAttribute("uv", new THREE.Float32BufferAttribute(_uv, 2));
 		geom.setIndex(new THREE.Uint32BufferAttribute(ind, 1));
@@ -454,8 +453,6 @@ class DEMMeshBlock extends DEMBlockBase {
 		geom.computeBoundingSphere();
 		geom.computeBoundingBox();
 		geom.computeVertexNormals();
-
-		return geom;
 	}
 
 	buildAuxiliaryObjects(layer, geom, parent) {
