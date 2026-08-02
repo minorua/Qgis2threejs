@@ -489,11 +489,13 @@ export interface Gui {
 
 export interface Modules {
     THREE;
+    BufferGeometryUtils;
     ColladaLoader;
     GLTFLoader;
     OutlineEffect;
     ViewHelper;
     meshline;
+    dat;
 }
 
 export interface Tween {

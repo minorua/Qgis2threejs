@@ -602,6 +602,8 @@ app.anim_timer = new THREE.Timer();
     let _pupListenerAdded = false;
 
     app.buildViewHelper = (container) => {
+        if (!modules.ViewHelper) return;
+
         app.viewHelper = new modules.ViewHelper(app.camera, container);
         app.viewHelper.center = app.controls.target;
         app.viewHelper.setLabels("X", "Y", "Z");
