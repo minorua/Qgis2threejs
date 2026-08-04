@@ -115,284 +115,6 @@ class DEMBlockBase {
 		}
 	}
 
-	_auxArgs(): { x0: number, y0: number, x1: number, y1: number, xres: number, yres: number } {
-		return { x0: 0, y0: 0, x1: 0, y1: 0, xres: 0, yres: 0 };
-	}
-
-	buildSides(layer: DEMLayer, parent: THREE.Mesh, material: THREE.Material, z0: number) {
-		const { values: gridValues, width: w, height: h } = this.data.grid;
-		const { x0, y0, x1, y1 } = this._auxArgs();
-
-		const planeWidth = x1 - x0;
-		const planeHeight = y0 - y1;
-		const cx = (x0 + x1) / 2;
-		const cy = (y0 + y1) / 2;
-
-		const k = w * (h - 1);
-		const bandWidth = -2 * z0;
-
-		// front and back
-		const geomFr = new THREE.PlaneGeometry(planeWidth, bandWidth, w - 1, 1);
-		const geomBa = geomFr.clone();
-
-		const verticesFr = geomFr.attributes.position.array;
-		const verticesBa = geomBa.attributes.position.array;
-
-		for (let i = 0; i < w; i++) {
-			verticesFr[i * 3 + 1] = gridValues[k + i];
-			verticesBa[i * 3 + 1] = gridValues[w - 1 - i];
-		}
-
-		const meshFr = new THREE.Mesh(geomFr, material);
-		meshFr.rotation.x = Math.PI / 2;
-		meshFr.position.x = cx;
-		meshFr.position.y = y1;
-		meshFr.name = "side";
-		parent.add(meshFr);
-
-		const meshBa = new THREE.Mesh(geomBa, material);
-		meshBa.rotation.x = Math.PI / 2;
-		meshBa.rotation.y = Math.PI;
-		meshBa.position.x = cx;
-		meshBa.position.y = y0;
-		meshBa.name = "side";
-		parent.add(meshBa);
-
-		// left and right
-		const geomLe = new THREE.PlaneGeometry(bandWidth, planeHeight, 1, h - 1);
-		const geomRi = geomLe.clone();
-
-		const verticesLe = geomLe.attributes.position.array;
-		const verticesRi = geomRi.attributes.position.array;
-
-		for (let i = 0; i < h; i++) {
-			verticesLe[(i * 2 + 1) * 3] = gridValues[w * i];
-			verticesRi[i * 2 * 3] = -gridValues[w * (i + 1) - 1];
-		}
-
-		const meshLe = new THREE.Mesh(geomLe, material);
-		meshLe.rotation.y = -Math.PI / 2;
-		meshLe.position.x = x0;
-		meshLe.position.y = cy;
-		meshLe.name = "side";
-		parent.add(meshLe);
-
-		const meshRi = new THREE.Mesh(geomRi, material);
-		meshRi.rotation.y = Math.PI / 2;
-		meshRi.position.x = x1;
-		meshRi.position.y = cy;
-		meshRi.name = "side";
-		parent.add(meshRi);
-
-		// bottom
-		const geom = new THREE.PlaneGeometry(planeWidth, planeHeight);
-		const mesh = new THREE.Mesh(geom, material);
-		mesh.rotation.x = Math.PI;
-		mesh.position.set(cx, cy, z0);
-		mesh.name = "bottom";
-		parent.add(mesh);
-
-		parent.updateMatrixWorld();
-	}
-
-	addEdges(layer: DEMLayer, parent: THREE.Mesh, material: THREE.Material, z0: number) {
-		const { values: gridValues, width: w, height: h } = this.data.grid;
-		const { x0, y0, x1, y1, xres, yres } = this._auxArgs();
-
-		const k = w * (h - 1);
-
-		// terrain edges
-		const vlFr = [];
-		const vlBk = [];
-		const vlLe = [];
-		const vlRi = [];
-
-		for (let i = 0; i < w; i++) {
-			const x = x0 + xres * i;
-			vlFr.push(x, y1, gridValues[k + i]);
-			vlBk.push(x, y0, gridValues[i]);
-		}
-
-		for (let i = 0; i < h; i++) {
-			const y = y0 - yres * i;
-			vlLe.push(x0, y, gridValues[w * i]);
-			vlRi.push(x1, y, gridValues[w * (i + 1) - 1]);
-		}
-
-		const verticesList = [vlFr, vlBk, vlLe, vlRi];
-
-		if (z0 !== undefined) {
-			// horizontal rectangle at bottom
-			verticesList.push([
-				x0, y0, z0,
-				x1, y0, z0,
-				x1, y1, z0,
-				x0, y1, z0,
-				x0, y0, z0
-			]);
-
-			// vertical lines at corners
-			[
-				[x0, y1, gridValues.at(-w)],
-				[x1, y1, gridValues.at(-1)],
-				[x1, y0, gridValues[w - 1]],
-				[x0, y0, gridValues[0]]
-			].forEach(([x, y, z]) => {
-				verticesList.push([x, y, z, x, y, z0]);
-			});
-		}
-
-		for (const vertices of verticesList) {
-			const geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
-
-			const line = new THREE.Line(geom, material);
-			line.name = "frame";
-			parent.add(line);
-		}
-
-		parent.updateMatrixWorld();
-	}
-
-	// add quad wireframe
-	addWireframe(layer: DEMLayer, parent: THREE.Mesh, material: THREE.Material) {
-		const { values: gridValues, width: w, height: h } = this.data.grid;
-		const { x0, y0, xres, yres } = this._auxArgs();
-
-		const group = new THREE.Group();
-
-		for (let x = w - 1; x >= 0; x--) {
-			const vertices = [];
-			const vx = x0 + xres * x;
-
-			for (let y = h - 1; y >= 0; y--) {
-				vertices.push(vx, y0 - yres * y, gridValues[x + w * y]);
-			}
-
-			const geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
-
-			group.add(new THREE.Line(geom, material));
-		}
-
-		for (let y = h - 1; y >= 0; y--) {
-			const vertices = [];
-			const vy = y0 - yres * y;
-
-			for (let x = w - 1; x >= 0; x--) {
-				vertices.push(x0 + xres * x, vy, gridValues[x + w * y]);
-			}
-
-			const geom = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
-
-			group.add(new THREE.Line(geom, material));
-		}
-
-		parent.add(group);
-		parent.updateMatrixWorld();
-	}
-}
-
-
-class DEMGridBlock extends DEMBlockBase {
-
-	declare data: DEMBlockGridData;
-
-	loadData(data: DEMBlockGridData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
-		super.loadData(data, layer, callback);
-
-		if (data.grid === undefined) return;
-
-		const geom = new GridGeometry();
-		const material = (this.materials[this.currentMtlIndex] || {}).mtl;
-		const mesh = new THREE.Mesh(geom, material);
-		mesh.position.fromArray(data.translate);
-		mesh.scale.z = data.zScale;
-		layer.addObject(mesh);
-
-		const buildGeometry = (values, grid) => {
-			const nodata = (grid.nodata === undefined) ? undefined : new Float32Array(Utils.base64ToUint8Array(grid.nodata).buffer)[0];
-			geom.loadData(values, grid.columns, grid.rows, data.extent, nodata, data.segments);
-			if (callback) callback(mesh);
-		};
-
-		const grid = data.grid;
-		if ("url" in grid) {
-			app.loadFile(grid.url, "arraybuffer", (buf) => {
-				buildGeometry(new Float32Array(buf), grid);
-			});
-		}
-		else {
-			const bytes = Utils.base64ToUint8Array(grid.base64);
-			delete grid.base64;
-			buildGeometry(new Float32Array(bytes.buffer), grid);
-		}
-
-		this.obj = mesh;
-		return mesh;
-	}
-
-	_auxArgs() {
-		const pw = this.data.width;
-		const ph = this.data.height;
-		return {
-			x0: -pw / 2,
-			y0: ph / 2,
-			x1: pw / 2,
-			y1: -ph / 2,
-			xres: pw / (this.data.grid.columns - 1),
-			yres: ph / (this.data.grid.rows - 1)
-		}
-	}
-}
-
-class DEMMeshBlock extends DEMBlockBase {
-
-	declare data: DEMBlockMeshData;
-
-	loadData(data: DEMBlockMeshData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
-		super.loadData(data, layer, callback);
-
-		const mesh_data = data.mesh;
-		if (mesh_data === undefined) return;
-
-		const geom = new THREE.BufferGeometry();
-		const material = (this.materials[this.currentMtlIndex] || {}).mtl;
-
-		const mesh = new THREE.Mesh(geom, material);
-		mesh.position.fromArray(data.translate);
-		mesh.scale.z = data.zScale;
-		layer.addObject(mesh);
-
-		this.obj = mesh;
-
-		const build = (data) => {
-			this.setGeometryData(geom, data);
-			this.buildAuxiliaryObjects(layer, geom, mesh);
-		};
-
-		if ("url" in mesh_data) {
-			app.loadBinaryContainer(mesh_data.url).then((data) => build(data));
-		}
-		else {    // preview
-			build(mesh_data);
-		}
-
-		return mesh;
-	}
-
-	setGeometryData(geom: THREE.BufferGeometry, data: DEMMeshData) {
-		const vert: ArrayBuffer = (typeof data.vertices === "string") ? Utils.base64ToUint8Array(data.vertices).buffer : data.vertices;
-		const ind: ArrayBuffer = (typeof data.indices === "string") ? Utils.base64ToUint8Array(data.indices).buffer : data.indices;
-		const _uv: ArrayBuffer = (typeof data.uvs === "string") ? Utils.base64ToUint8Array(data.uvs).buffer : data.uvs;
-
-		geom.setAttribute("position", new THREE.Float32BufferAttribute(vert, 3));
-		geom.setAttribute("uv", new THREE.Float32BufferAttribute(_uv, 2));
-		geom.setIndex(new THREE.Uint32BufferAttribute(ind, 1));
-
-		geom.computeBoundingSphere();
-		geom.computeBoundingBox();
-		geom.computeVertexNormals();
-	}
-
 	buildAuxiliaryObjects(layer, geom, parent) {
 		if (layer.properties.sides) {
 			const boundaries = this.getBoundaries(geom);
@@ -498,6 +220,100 @@ class DEMMeshBlock extends DEMBlockBase {
 		bottom.position.z = z0;
 		bottom.scale.z = 0;
 		return bottom;
+	}
+}
+
+
+class DEMGridBlock extends DEMBlockBase {
+
+	declare data: DEMBlockGridData;
+
+	loadData(data: DEMBlockGridData, layer: DEMLayer, callback: () => void): THREE.Mesh | void {
+		super.loadData(data, layer, callback);
+
+		if (data.grid === undefined) return;
+
+		const geom = new GridGeometry();
+		const material = (this.materials[this.currentMtlIndex] || {}).mtl;
+		const mesh = new THREE.Mesh(geom, material);
+		mesh.position.fromArray(data.translate);
+		mesh.scale.z = data.zScale;
+		layer.addObject(mesh);
+
+		const buildGeometry = (values, grid) => {
+			const nodata = (grid.nodata === undefined) ? undefined : new Float32Array(Utils.base64ToUint8Array(grid.nodata).buffer)[0];
+			geom.loadData(values, grid.columns, grid.rows, data.extent, nodata, data.segments);
+			this.buildAuxiliaryObjects(layer, geom, mesh);
+
+			if (callback) callback();
+		};
+
+		const grid = data.grid;
+		if ("url" in grid) {
+			app.loadFile(grid.url, "arraybuffer", (buf) => {
+				buildGeometry(new Float32Array(buf), grid);
+			});
+		}
+		else {
+			const bytes = Utils.base64ToUint8Array(grid.base64);
+			delete grid.base64;
+			buildGeometry(new Float32Array(bytes.buffer), grid);
+		}
+
+		this.obj = mesh;
+		return mesh;
+	}
+}
+
+class DEMMeshBlock extends DEMBlockBase {
+
+	declare data: DEMBlockMeshData;
+
+	loadData(data: DEMBlockMeshData, layer: DEMLayer, callback: () => void): THREE.Mesh | void {
+		super.loadData(data, layer, callback);
+
+		const mesh_data = data.mesh;
+		if (mesh_data === undefined) return;
+
+		const geom = new THREE.BufferGeometry();
+		const material = (this.materials[this.currentMtlIndex] || {}).mtl;
+
+		const mesh = new THREE.Mesh(geom, material);
+		mesh.position.fromArray(data.translate);
+		mesh.scale.z = data.zScale;
+		layer.addObject(mesh);
+
+		this.obj = mesh;
+
+		const build = (data) => {
+			this.setGeometryData(geom, data);
+			this.buildAuxiliaryObjects(layer, geom, mesh);
+
+			if (callback) callback();
+		};
+
+		if ("url" in mesh_data) {
+			app.loadBinaryContainer(mesh_data.url).then((data) => build(data));
+		}
+		else {    // preview
+			build(mesh_data);
+		}
+
+		return mesh;
+	}
+
+	setGeometryData(geom: THREE.BufferGeometry, data: DEMMeshData) {
+		const vert: ArrayBuffer = (typeof data.vertices === "string") ? Utils.base64ToUint8Array(data.vertices).buffer : data.vertices;
+		const ind: ArrayBuffer = (typeof data.indices === "string") ? Utils.base64ToUint8Array(data.indices).buffer : data.indices;
+		const _uv: ArrayBuffer = (typeof data.uvs === "string") ? Utils.base64ToUint8Array(data.uvs).buffer : data.uvs;
+
+		geom.setAttribute("position", new THREE.Float32BufferAttribute(vert, 3));
+		geom.setAttribute("uv", new THREE.Float32BufferAttribute(_uv, 2));
+		geom.setIndex(new THREE.Uint32BufferAttribute(ind, 1));
+
+		geom.computeBoundingSphere();
+		geom.computeBoundingBox();
+		geom.computeVertexNormals();
 	}
 }
 
@@ -659,29 +475,7 @@ export class DEMLayer extends MapLayer {
 			block = this.blocks[data.block] = createBlock(this);
 		}
 
-		block.loadData(data, this, (mesh) => {
-			// add auxiliary objects
-			if (this.properties.sides) {	// sides and bottom
-				block.buildSides(this, mesh, this.auxiliaryMtl.sides.mtl, this.properties.sides.bottom);
-				this.sideVisible = true;
-			}
-
-			if (this.properties.edges) {
-				block.addEdges(this, mesh, this.auxiliaryMtl.edges.mtl, (this.properties.sides) ? this.properties.sides.bottom : undefined);
-			}
-
-			if (this.properties.wireframe) {
-				block.addWireframe(this, mesh, this.auxiliaryMtl.wireframe.mtl);
-
-				mesh.material.polygonOffset = true;
-				mesh.material.polygonOffsetFactor = 1;
-				mesh.material.polygonOffsetUnits = 1;
-			}
-
-			delete data.grid;	// no longer needed
-
-			this.requestRender();
-		});
+		block.loadData(data, this, () => this.requestRender());
 	}
 
 	get opacity() {
