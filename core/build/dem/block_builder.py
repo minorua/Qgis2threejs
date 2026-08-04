@@ -29,6 +29,11 @@ class DEMBlockBuilderBase:
         self.pathRoot = pathRoot
         self.urlRoot = urlRoot
 
+    def setup(self, blockIndex, extent: MapExtent, localOrigin: QgsPoint):
+        self.blockIndex = blockIndex
+        self.extent = extent
+        self.localOrigin = localOrigin
+
     def buildGridData(self, z_arr, extent: MapExtent, localOrigin: QgsPoint, nodata=None):
         """
         @returns {DEMGridData | DEMGridDataRef}
@@ -120,6 +125,74 @@ class DEMBlockBuilderBase:
             "uvs": (uvs, np.float32)
         })
 
+    def exportBinaryChunks(self, arrays):
+
+        def nparr_to_bytes(arr, dtype=np.float32):
+            return arr.astype(dtype, copy=False).tobytes()
+
+        chunks = {
+            key: nparr_to_bytes(arr, dtype) for key, (arr, dtype) in arrays.items()
+        }
+
+        if self.settings.isPreview:
+            return {
+                key: base64.b64encode(b).decode("ascii") for key, b in chunks.items()
+            }
+
+        tail = f"{self.blockIndex}.binjson"
+        writeBinaryContainer(self.pathRoot + tail, chunks)
+
+        return {
+            "url": self.urlRoot + tail
+        }
+
+
+class DEMBlockResampBuilder(DEMBlockBuilderBase):
+
+    def setup(self, blockIndex, extent: MapExtent, localOrigin: QgsPoint, grid_seg: QSize, roughness=1, edgeRoughness=1, clip_geometry=None, neighbors=None):
+        super().setup(blockIndex, extent, localOrigin)
+
+        self.grid_seg = grid_seg
+        self.roughness = roughness
+        self.edgeRoughness = edgeRoughness
+        self.clip_geometry = clip_geometry
+        self.neighbors = neighbors or []
+
+        self.edges = None
+
+    def build(self):
+        """
+        @returns {DEMBlockGridData}
+        """
+        c = self.extent.center()
+        o = self.localOrigin
+
+        b = {
+            "type": "block",
+            "layer": self.layer.jsLayerId,
+            "block": self.blockIndex,
+            "extent": self.extent.toDict(),
+            "translate": [c.x() - o.x(), c.y() - o.y(), 0],
+            "zScale": self.settings.mapTo3d().zScale
+        }
+
+        if self.clip_geometry:
+            b["mesh"] = self.buildClippedMeshData(self.clip_geometry)
+
+        else:
+            columns, rows = (self.grid_seg.width() + 1, self.grid_seg.height() + 1)
+
+            if self.edgeRoughness == 1 and len(self.neighbors) == 0:
+                arr = self.provider.readAsArray(columns, rows, self.extent)
+            else:
+                grid_values = list(self.provider.readValues(columns, rows, self.extent))
+                self.processEdgesCenter(grid_values, self.edgeRoughness)
+                arr = np.array(grid_values, dtype=np.float32).reshape(rows, columns)
+
+            b["grid"] = self.buildGridData(arr, self.extent, self.localOrigin, nodata=self.provider.nodata)
+
+        return b
+
     def buildClippedMeshData(self, clip_geometry):
         """
         @returns {DEMMeshData}
@@ -143,27 +216,6 @@ class DEMBlockBuilderBase:
             "vertices": (np.array(d["vertices"], dtype=np.float32), np.float32),
             "indices": (np.array(d["indices"], dtype=np.int32), np.int32)
         })
-
-    def exportBinaryChunks(self, arrays):
-
-        def nparr_to_bytes(arr, dtype=np.float32):
-            return arr.astype(dtype, copy=False).tobytes()
-
-        chunks = {
-            key: nparr_to_bytes(arr, dtype) for key, (arr, dtype) in arrays.items()
-        }
-
-        if self.settings.isPreview:
-            return {
-                key: base64.b64encode(b).decode("ascii") for key, b in chunks.items()
-            }
-
-        tail = f"{self.blockIndex}.binjson"
-        writeBinaryContainer(self.pathRoot + tail, chunks)
-
-        return {
-            "url": self.urlRoot + tail
-        }
 
     def processEdges(self, grid_values, roughness):
         grid_width, grid_height = (self.grid_seg.width() + 1,
@@ -277,38 +329,16 @@ class DEMBlockBuilderBase:
 
         self.edges = [e_bottom, e_left, e_right, e_top]
 
-    def getValue(self, x, y):
 
-        def _getValue(gx, gy):
-            return self.grid_values[gx + self.grid_width * gy]
+class DEMBlockRawBuilder(DEMBlockBuilderBase):
 
-        if 0 <= x and x <= self.grid_width - 1 and 0 <= y and y <= self.grid_height - 1:
-            ix, iy = int(x), int(y)
-            sx, sy = x - ix, y - iy
+    def setup(self, blockIndex: int, tileExtent: MapExtent, localOrigin: QgsPoint, segments: int, dataExtentLowerRight, clip_geometry=None):
+        super().setup(blockIndex, tileExtent, localOrigin)
 
-            z11 = _getValue(ix, iy)
-            z21 = 0 if x == self.grid_width - 1 else _getValue(ix + 1, iy)
-            z12 = 0 if y == self.grid_height - 1 else _getValue(ix, iy + 1)
-            z22 = 0 if x == self.grid_width - 1 or y == self.grid_height - 1 else _getValue(ix + 1, iy + 1)
-
-            return (1 - sx) * ((1 - sy) * z11 + sy * z12) + sx * ((1 - sy) * z21 + sy * z22)    # bilinear interpolation
-
-        return 0    # as safe null value
-
-
-class DEMBlockResampBuilder(DEMBlockBuilderBase):
-
-    def setup(self, blockIndex, grid_seg: QSize, extent: MapExtent, localOrigin: QgsPoint, roughness=1, edgeRoughness=1, clip_geometry=None, neighbors=None):
-        self.blockIndex = blockIndex
-        self.grid_seg = grid_seg
-        self.extent = extent
-        self.localOrigin = localOrigin
-        self.roughness = roughness
-        self.edgeRoughness = edgeRoughness
+        self.segments = segments
+        self.tileSize = tileExtent.width()
+        self.dataExtentLowerRight = dataExtentLowerRight
         self.clip_geometry = clip_geometry
-        self.neighbors = neighbors or []
-
-        self.edges = None
 
     def build(self):
         """
@@ -321,53 +351,8 @@ class DEMBlockResampBuilder(DEMBlockBuilderBase):
             "type": "block",
             "layer": self.layer.jsLayerId,
             "block": self.blockIndex,
-            "extent": self.extent.toDict(),
-            "translate": [c.x() - o.x(), c.y() - o.y(), 0],
-            "zScale": self.settings.mapTo3d().zScale
-        }
-
-        if self.clip_geometry:
-            b["mesh"] = self.buildClippedMeshData(self.clip_geometry)
-
-        else:
-            columns, rows = (self.grid_seg.width() + 1, self.grid_seg.height() + 1)
-
-            if self.edgeRoughness == 1 and len(self.neighbors) == 0:
-                arr = self.provider.readAsArray(columns, rows, self.extent)
-            else:
-                grid_values = list(self.provider.readValues(columns, rows, self.extent))
-                self.processEdgesCenter(grid_values, self.edgeRoughness)
-                arr = np.array(grid_values, dtype=np.float32).reshape(rows, columns)
-
-            b["grid"] = self.buildGridData(arr, self.extent, self.localOrigin, nodata=self.provider.nodata)
-
-        return b
-
-
-class DEMBlockRawBuilder(DEMBlockBuilderBase):
-
-    def setup(self, blockIndex: int, segments: int, tileExtent: MapExtent, localOrigin: QgsPoint, dataExtentLowerRight, clip_geometry=None):
-        self.blockIndex = blockIndex
-        self.segments = segments
-        self.tileExtent = tileExtent
-        self.localOrigin = localOrigin
-        self.tileSize = tileExtent.width()
-        self.dataExtentLowerRight = dataExtentLowerRight
-        self.clip_geometry = clip_geometry
-
-    def build(self):
-        """
-        @returns {DEMBlockGridData}
-        """
-        c = self.tileExtent.center()
-        o = self.localOrigin
-
-        b = {
-            "type": "block",
-            "layer": self.layer.jsLayerId,
-            "block": self.blockIndex,
             "segments": self.segments,
-            "extent": self.tileExtent.toDict(),
+            "extent": self.extent.toDict(),
             "translate": [c.x() - o.x(), c.y() - o.y(), 0],
             "zScale": self.settings.mapTo3d().zScale
         }
@@ -381,8 +366,8 @@ class DEMBlockRawBuilder(DEMBlockBuilderBase):
             half_segment_size = segment_size / 2
 
             # Determine the valid extent
-            ulx, uly = self.tileExtent.point(0, 1)              # A' (px is pt)
-            tile_lrx, tile_lry = self.tileExtent.point(1, 0)    # B' (px is pt)
+            ulx, uly = self.extent.point(0, 1)              # A' (px is pt)
+            tile_lrx, tile_lry = self.extent.point(1, 0)    # B' (px is pt)
 
             _lrx, _lry = self.dataExtentLowerRight              # C  (px is area)
             layer_lrx, layer_lry = _lrx - half_segment_size, _lry + half_segment_size # C' (px is pt)
@@ -402,6 +387,6 @@ class DEMBlockRawBuilder(DEMBlockBuilderBase):
 
             b["grid"] = self.buildGridData(arr, valid_extent, self.localOrigin, self.provider.nodata)
 
-            # b["mesh"] = self.buildMeshData(arr, valid_extent, self.localOrigin, nodata=self.provider.nodata, full_extent=self.tileExtent)
+            # b["mesh"] = self.buildMeshData(arr, valid_extent, self.localOrigin, nodata=self.provider.nodata, full_extent=self.extent)
             # b["translate"] = [0, 0, 0]
         return b

@@ -184,8 +184,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                 # set up grid builder
                 if not self.layer.opt.onlyMaterial:
                     # DEMBlockRawBuilder
-                    self.blockBuilder.setup(blockIndex, segments, tileExtent,
-                                            localOrigin=self.settings.mapTo3d().origin,
+                    self.blockBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments,
                                             dataExtentLowerRight=data_extent_lr)
                     yield self.blockBuilder
 
@@ -260,20 +259,19 @@ class DEMLayerBuilder(LayerBuilderBase):
             if not self.layer.opt.onlyMaterial:
                 neighbors = None
                 if is_center:
-                    grdBuilder = centerBlk
+                    blkBuilder = centerBlk
                 else:
-                    grdBuilder = self.blockBuilder
+                    blkBuilder = self.blockBuilder
                     if sx * sx <= 1 and sy * sy <= 1:
                         neighbors = [(sx, sy, centerBlk, 1)]
 
                 # DEMBlockResampBuilder
-                grdBuilder.setup(blockIndex, grid_seg, extent,
-                                 localOrigin=self.settings.mapTo3d().origin,
+                blkBuilder.setup(blockIndex, extent, self.settings.mapTo3d().origin, grid_seg,
                                  roughness=1 if is_center else roughness,
                                  edgeRoughness=roughness if is_center else 1,
                                  clip_geometry=clip_geometry if is_center else None,
                                  neighbors=neighbors)
-                yield grdBuilder
+                yield blkBuilder
 
             # set up material builder for remaininig materials
             if self.layer.opt.allMaterials:
