@@ -11,74 +11,210 @@ import * as Utils from "../utils.js";
 import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, DEMMeshData, MapExtent, Point3, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
 
-/*
- The GridGeometry class is almost the same as PlaneGeometry, but it does not
- generate triangles that include vertices with no-data values.
 
- It supports tile mode. When the grid has margin areas (right/bottom)
- with no actual data, pass `segments` explicitly so that UV coordinates
- are calculated based on the full tile extent rather than only the
- data-containing region.
-*/
-class GridGeometry extends THREE.BufferGeometry {
+export class DEMLayer extends MapLayer {
 
-	type = "GridGeometry";
+	type = LayerType.DEM;
+	blocks: DEMBlockBase[] = [];
+	sideVisible: boolean = false;
+	auxiliaryMtl: Partial<Record<"sides" | "edges" | "wireframe", Material>> = {};
 
-	/**
-	 * @param values    - DEM values
-	 * @param columns   - Number of columns of actual grid data
-	 * @param rows      - Number of rows of actual grid data
-	 * @param extent    - Extent of the plane
-	 * @param nodata    - No data value
-	 * @param segments	- Segments of a tile side. When supplied, the grid is treated as a square tile.
-	 */
-	loadData(dem_values: Float32Array, columns: number, rows: number, extent: MapExtent, nodata?: number, segments?: number) {
-		const { width, height }  = extent;
-		const isTileMode = (segments !== undefined);
-		const segmentsX = (isTileMode) ? segments : columns - 1;
-		const segmentsY = (isTileMode) ? segments : rows - 1;
-		const segment_width = width / segmentsX;
-		const segment_height = ((isTileMode) ? width : height) / segmentsY;
-		const half_w = width / 2;
-		const half_h = ((isTileMode) ? width : height) / 2;
+	anim?: any[];
 
-		const indices = [];
-		const vertices = [];
-		const uvs = [];
+	declare properties: DEMLayerProperties;
 
-		for (let iy = 0; iy < rows; iy++) {
+	loadLayerData(data: DEMLayerData, scene: Scene): void {
+		this.clearObjects();
+		super.loadLayerData(data, scene);
 
-			const y = iy * segment_height - half_h;
-			const v = 1 - (iy / segmentsY);
+		this.blocks = [];
 
-			for (let ix = 0; ix < columns; ix++) {
+		var p = scene.userData,
+			rotation = p.baseExtent.rotation;
 
-				const x = ix * segment_width - half_w;
-				const i = ix + iy * columns;
-				const z = dem_values[i];
+		if (data.properties.clipped) {
+			this.objectGroup.position.set(0, 0, 0);
+			this.objectGroup.rotation.z = 0;
 
-				vertices.push(x, -y, (z === nodata) ? 0 : z);
-				uvs.push(ix / segmentsX, v);
+			if (rotation) {
+				// TODO:
 
-				if (ix === 0 || iy === 0) continue;
-
-				const a = i - columns - 1;
-				const b = i - 1;
-				const c = i;
-				const d = i - columns;
-
-				if (dem_values[b] === nodata || dem_values[d] === nodata) continue;
-				if (dem_values[a] !== nodata) indices.push(a, b, d);
-				if (z !== nodata) indices.push(b, c, d);
+				// rotate around center of base extent
+				this.objectGroup.position.copy(p.pivot).negate();
+				this.objectGroup.position.applyAxisAngle(UV.k, rotation * deg2rad);
+				this.objectGroup.position.add(p.pivot);
+				this.objectGroup.rotateOnAxis(UV.k, rotation * deg2rad);
 			}
 		}
+		else {
+			this.objectGroup.position.set(0, 0, 0);
+			this.objectGroup.rotation.z = 0;
+		}
+		this.objectGroup.updateMatrixWorld();
 
-		this.setIndex(indices);
-		this.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-		this.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-		this.computeBoundingSphere();
-		this.computeBoundingBox();
-		this.computeVertexNormals();
+		this._loadAuxiliaryMaterials(data.properties);
+
+		if (data.body && data.body.blocks) {
+			data.body.blocks.forEach((block) => this.loadBlockData(block, scene));
+		}
+	}
+
+	_loadAuxiliaryMaterials(p: DEMLayerProperties) {
+		["sides", "edges", "wireframe"].forEach((a) => {
+			if (!p[a]) return;
+
+			const m = new Material();
+			m.loadData(p[a].mtl);
+			this.materials.add(m);
+			this.auxiliaryMtl[a] = m;
+		});
+	}
+
+	loadBlockData(data: DEMBlockData, scene: Scene): void {
+		super.loadBlockData(data, scene);
+
+		let block = this.blocks[data.block];
+		if (block === undefined) {
+			block = this.blocks[data.block] = createBlock(this);
+		}
+
+		block.loadData(data, this);
+	}
+
+	get opacity() {
+		const b = this.blocks[0];
+		if (b && b.materials[this.currentMtlIndex]) {
+			const m = b.materials[this.currentMtlIndex];
+			return (m.mtl) ? m.mtl.opacity : 1;
+		}
+		return this.materials.opacity();
+	}
+
+	set opacity(value: number) {
+		for (const b of this.blocks) {
+			const m = b.materials[this.currentMtlIndex];
+			if (m && m.mtl) {
+				m.mtl.opacity = value;
+				m.mtl.transparent = (value < 1);
+			}
+		}
+		this.requestRender();
+	}
+
+	get currentMtlIndex(): number | undefined {
+		const b = this.blocks[0];
+		return (b) ? b.currentMtlIndex : undefined;
+	}
+
+	set currentMtlIndex(mtlIndex: number) {
+		this.materials.removeItemsByGroupId(this.currentMtlIndex);
+
+		for (const b of this.blocks) {
+			const m = b.materials[mtlIndex];
+			if (m) {
+				b.currentMtlIndex = mtlIndex;
+				b.obj.material = m.mtl;
+				this.materials.add(m);
+			}
+		}
+		this.requestRender();
+	}
+
+	setSideVisible(visible: boolean) {
+		this.sideVisible = visible;
+		this.objectGroup.traverse((obj) => {
+			if (obj.name == "side" || obj.name == "bottom") obj.visible = visible;
+		});
+	}
+
+	// texture animation
+	prepareTexAnimation(from: number, to: number) {
+		this.anim = [];
+		for (const block of this.blocks) {
+			const imgFrom = block.materials[from].mtl.map.image;
+			const imgTo = block.materials[to].mtl.map.image;
+
+			const canvas = document.createElement("canvas");
+			canvas.width = (imgFrom.width > imgTo.width) ? imgFrom.width : imgTo.width;
+			canvas.height = (imgFrom.width > imgTo.width) ? imgFrom.height : imgTo.height;
+
+			const ctx = canvas.getContext("2d");
+
+			const tex = new THREE.CanvasTexture(canvas);
+			tex.anisotropy = conf.texture.anisotropy;
+			tex.colorSpace = THREE.SRGBColorSpace;
+
+			const opt = {
+				map: tex,
+				side: THREE.DoubleSide,
+				transparent: true
+			};
+
+			let mtl;
+			const m = block.obj.material;
+			if (m) {
+				if (m.isMeshToonMaterial) {
+					mtl = new THREE.MeshToonMaterial(opt);
+				}
+				else if (m.isMeshPhongMaterial) {
+					mtl = new THREE.MeshPhongMaterial(opt);
+				}
+			}
+			if (mtl === undefined) {
+				mtl = new THREE.MeshLambertMaterial(opt);
+			}
+
+			block.obj.material = mtl;
+			this.materials.add(mtl);
+
+			this.anim.push({
+				img_from: imgFrom,
+				img_to: imgTo,
+				ctx: ctx,
+				tex: mtl.map
+			});
+		}
+	}
+
+	setTextureAt(progress: number | null, effect: number) {
+
+		if (this.anim === undefined) return;
+
+		var w, h, w0, h0, w1, h1, ew, ew1;
+		for (const a of this.anim) {
+			w = a.ctx.canvas.width;
+			h = a.ctx.canvas.height;
+			w0 = a.img_from.width;
+			h0 = a.img_from.height;
+			w1 = a.img_to.width;
+			h1 = a.img_to.height;
+
+			if (effect == 0) {  // fade in
+				a.ctx.globalAlpha = 1;
+				a.ctx.drawImage(a.img_from,
+					0, 0, w0, h0,
+					0, 0, w, h);
+				a.ctx.globalAlpha = progress;
+				a.ctx.drawImage(a.img_to,
+					0, 0, w1, h1,
+					0, 0, w, h);
+			}
+			else if (effect == 2) {  // slide to left (not used)
+				if (progress === null) {
+					a.ctx.drawImage(a.img_from,
+						0, 0, w0, h0,
+						0, 0, w, h);
+				}
+				else {
+					ew1 = w1 * progress;
+					ew = w * progress;
+					a.ctx.drawImage(a.img_to,
+						w1 - ew1, 0, ew1, h1,
+						w - ew, 0, ew, h);
+				}
+			}
+			a.tex.needsUpdate = true;
+		}
 	}
 }
 
@@ -339,213 +475,6 @@ class DEMMeshBlock extends DEMBlockBase {
 }
 
 
-export class DEMLayer extends MapLayer {
-
-	type = LayerType.DEM;
-	blocks: DEMBlockBase[] = [];
-	sideVisible: boolean = false;
-	auxiliaryMtl: Partial<Record<"sides" | "edges" | "wireframe", Material>> = {};
-
-	anim?: any[];
-
-	declare properties: DEMLayerProperties;
-
-	loadLayerData(data: DEMLayerData, scene: Scene): void {
-		this.clearObjects();
-		super.loadLayerData(data, scene);
-
-		this.blocks = [];
-
-		var p = scene.userData,
-			rotation = p.baseExtent.rotation;
-
-		if (data.properties.clipped) {
-			this.objectGroup.position.set(0, 0, 0);
-			this.objectGroup.rotation.z = 0;
-
-			if (rotation) {
-				// TODO:
-
-				// rotate around center of base extent
-				this.objectGroup.position.copy(p.pivot).negate();
-				this.objectGroup.position.applyAxisAngle(UV.k, rotation * deg2rad);
-				this.objectGroup.position.add(p.pivot);
-				this.objectGroup.rotateOnAxis(UV.k, rotation * deg2rad);
-			}
-		}
-		else {
-			this.objectGroup.position.set(0, 0, 0);
-			this.objectGroup.rotation.z = 0;
-		}
-		this.objectGroup.updateMatrixWorld();
-
-		this._loadAuxiliaryMaterials(data.properties);
-
-		if (data.body && data.body.blocks) {
-			data.body.blocks.forEach((block) => this.loadBlockData(block, scene));
-		}
-	}
-
-	_loadAuxiliaryMaterials(p: DEMLayerProperties) {
-		["sides", "edges", "wireframe"].forEach((a) => {
-			if (!p[a]) return;
-
-			const m = new Material();
-			m.loadData(p[a].mtl);
-			this.materials.add(m);
-			this.auxiliaryMtl[a] = m;
-		});
-	}
-
-	loadBlockData(data: DEMBlockData, scene: Scene): void {
-		super.loadBlockData(data, scene);
-
-		let block = this.blocks[data.block];
-		if (block === undefined) {
-			block = this.blocks[data.block] = createBlock(this);
-		}
-
-		block.loadData(data, this);
-	}
-
-	get opacity() {
-		const b = this.blocks[0];
-		if (b && b.materials[this.currentMtlIndex]) {
-			const m = b.materials[this.currentMtlIndex];
-			return (m.mtl) ? m.mtl.opacity : 1;
-		}
-		return this.materials.opacity();
-	}
-
-	set opacity(value: number) {
-		for (const b of this.blocks) {
-			const m = b.materials[this.currentMtlIndex];
-			if (m && m.mtl) {
-				m.mtl.opacity = value;
-				m.mtl.transparent = (value < 1);
-			}
-		}
-		this.requestRender();
-	}
-
-	get currentMtlIndex(): number | undefined {
-		const b = this.blocks[0];
-		return (b) ? b.currentMtlIndex : undefined;
-	}
-
-	set currentMtlIndex(mtlIndex: number) {
-		this.materials.removeItemsByGroupId(this.currentMtlIndex);
-
-		for (const b of this.blocks) {
-			const m = b.materials[mtlIndex];
-			if (m) {
-				b.currentMtlIndex = mtlIndex;
-				b.obj.material = m.mtl;
-				this.materials.add(m);
-			}
-		}
-		this.requestRender();
-	}
-
-	setSideVisible(visible: boolean) {
-		this.sideVisible = visible;
-		this.objectGroup.traverse((obj) => {
-			if (obj.name == "side" || obj.name == "bottom") obj.visible = visible;
-		});
-	}
-
-	// texture animation
-	prepareTexAnimation(from: number, to: number) {
-		this.anim = [];
-		for (const block of this.blocks) {
-			const imgFrom = block.materials[from].mtl.map.image;
-			const imgTo = block.materials[to].mtl.map.image;
-
-			const canvas = document.createElement("canvas");
-			canvas.width = (imgFrom.width > imgTo.width) ? imgFrom.width : imgTo.width;
-			canvas.height = (imgFrom.width > imgTo.width) ? imgFrom.height : imgTo.height;
-
-			const ctx = canvas.getContext("2d");
-
-			const tex = new THREE.CanvasTexture(canvas);
-			tex.anisotropy = conf.texture.anisotropy;
-			tex.colorSpace = THREE.SRGBColorSpace;
-
-			const opt = {
-				map: tex,
-				side: THREE.DoubleSide,
-				transparent: true
-			};
-
-			let mtl;
-			const m = block.obj.material;
-			if (m) {
-				if (m.isMeshToonMaterial) {
-					mtl = new THREE.MeshToonMaterial(opt);
-				}
-				else if (m.isMeshPhongMaterial) {
-					mtl = new THREE.MeshPhongMaterial(opt);
-				}
-			}
-			if (mtl === undefined) {
-				mtl = new THREE.MeshLambertMaterial(opt);
-			}
-
-			block.obj.material = mtl;
-			this.materials.add(mtl);
-
-			this.anim.push({
-				img_from: imgFrom,
-				img_to: imgTo,
-				ctx: ctx,
-				tex: mtl.map
-			});
-		}
-	}
-
-	setTextureAt(progress: number | null, effect: number) {
-
-		if (this.anim === undefined) return;
-
-		var w, h, w0, h0, w1, h1, ew, ew1;
-		for (const a of this.anim) {
-			w = a.ctx.canvas.width;
-			h = a.ctx.canvas.height;
-			w0 = a.img_from.width;
-			h0 = a.img_from.height;
-			w1 = a.img_to.width;
-			h1 = a.img_to.height;
-
-			if (effect == 0) {  // fade in
-				a.ctx.globalAlpha = 1;
-				a.ctx.drawImage(a.img_from,
-					0, 0, w0, h0,
-					0, 0, w, h);
-				a.ctx.globalAlpha = progress;
-				a.ctx.drawImage(a.img_to,
-					0, 0, w1, h1,
-					0, 0, w, h);
-			}
-			else if (effect == 2) {  // slide to left (not used)
-				if (progress === null) {
-					a.ctx.drawImage(a.img_from,
-						0, 0, w0, h0,
-						0, 0, w, h);
-				}
-				else {
-					ew1 = w1 * progress;
-					ew = w * progress;
-					a.ctx.drawImage(a.img_to,
-						w1 - ew1, 0, ew1, h1,
-						w - ew, 0, ew, h);
-				}
-			}
-			a.tex.needsUpdate = true;
-		}
-	}
-}
-
-
 type BlockConstructor = new () => DEMBlockBase;
 
 function createBlock(layer: DEMLayer) {
@@ -557,4 +486,76 @@ function createBlock(layer: DEMLayer) {
 	}
 
 	return new BlockClass();
+}
+
+
+/*
+ The GridGeometry class is almost the same as PlaneGeometry, but it does not
+ generate triangles that include vertices with no-data values.
+
+ It supports tile mode. When the grid has margin areas (right/bottom)
+ with no actual data, pass `segments` explicitly so that UV coordinates
+ are calculated based on the full tile extent rather than only the
+ data-containing region.
+*/
+class GridGeometry extends THREE.BufferGeometry {
+
+	type = "GridGeometry";
+
+	/**
+	 * @param values    - DEM values
+	 * @param columns   - Number of columns of actual grid data
+	 * @param rows      - Number of rows of actual grid data
+	 * @param extent    - Extent of the plane
+	 * @param nodata    - No data value
+	 * @param segments	- Segments of a tile side. When supplied, the grid is treated as a square tile.
+	 */
+	loadData(dem_values: Float32Array, columns: number, rows: number, extent: MapExtent, nodata?: number, segments?: number) {
+		const { width, height }  = extent;
+		const isTileMode = (segments !== undefined);
+		const segmentsX = (isTileMode) ? segments : columns - 1;
+		const segmentsY = (isTileMode) ? segments : rows - 1;
+		const segment_width = width / segmentsX;
+		const segment_height = ((isTileMode) ? width : height) / segmentsY;
+		const half_w = width / 2;
+		const half_h = ((isTileMode) ? width : height) / 2;
+
+		const indices = [];
+		const vertices = [];
+		const uvs = [];
+
+		for (let iy = 0; iy < rows; iy++) {
+
+			const y = iy * segment_height - half_h;
+			const v = 1 - (iy / segmentsY);
+
+			for (let ix = 0; ix < columns; ix++) {
+
+				const x = ix * segment_width - half_w;
+				const i = ix + iy * columns;
+				const z = dem_values[i];
+
+				vertices.push(x, -y, (z === nodata) ? 0 : z);
+				uvs.push(ix / segmentsX, v);
+
+				if (ix === 0 || iy === 0) continue;
+
+				const a = i - columns - 1;
+				const b = i - 1;
+				const c = i;
+				const d = i - columns;
+
+				if (dem_values[b] === nodata || dem_values[d] === nodata) continue;
+				if (dem_values[a] !== nodata) indices.push(a, b, d);
+				if (z !== nodata) indices.push(b, c, d);
+			}
+		}
+
+		this.setIndex(indices);
+		this.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+		this.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+		this.computeBoundingSphere();
+		this.computeBoundingBox();
+		this.computeVertexNormals();
+	}
 }
