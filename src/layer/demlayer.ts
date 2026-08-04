@@ -91,7 +91,7 @@ class DEMBlockBase {
 	obj!: THREE.Mesh;
 	data!: DEMBlockData;
 
-	loadData(data: DEMBlockData, layer: DEMLayer, callback?: (mesh: THREE.Mesh) => void) {
+	loadData(data: DEMBlockData, layer: DEMLayer) {
 		this.data = data;
 
 		if ("materials" in data === false) return;
@@ -228,8 +228,8 @@ class DEMGridBlock extends DEMBlockBase {
 
 	declare data: DEMBlockGridData;
 
-	loadData(data: DEMBlockGridData, layer: DEMLayer, callback: () => void): THREE.Mesh | void {
-		super.loadData(data, layer, callback);
+	loadData(data: DEMBlockGridData, layer: DEMLayer): THREE.Mesh | void {
+		super.loadData(data, layer);
 
 		if (data.grid === undefined) return;
 
@@ -245,7 +245,7 @@ class DEMGridBlock extends DEMBlockBase {
 			geom.loadData(values, grid.columns, grid.rows, data.extent, nodata, data.segments);
 			this.buildAuxiliaryObjects(layer, geom, mesh);
 
-			if (callback) callback();
+			layer.requestRender();
 		};
 
 		const grid = data.grid;
@@ -269,8 +269,8 @@ class DEMMeshBlock extends DEMBlockBase {
 
 	declare data: DEMBlockMeshData;
 
-	loadData(data: DEMBlockMeshData, layer: DEMLayer, callback: () => void): THREE.Mesh | void {
-		super.loadData(data, layer, callback);
+	loadData(data: DEMBlockMeshData, layer: DEMLayer): THREE.Mesh | void {
+		super.loadData(data, layer);
 
 		const mesh_data = data.mesh;
 		if (mesh_data === undefined) return;
@@ -289,7 +289,7 @@ class DEMMeshBlock extends DEMBlockBase {
 			this.setGeometryData(geom, data);
 			this.buildAuxiliaryObjects(layer, geom, mesh);
 
-			if (callback) callback();
+			layer.requestRender();
 		};
 
 		if ("url" in mesh_data) {
@@ -475,7 +475,7 @@ export class DEMLayer extends MapLayer {
 			block = this.blocks[data.block] = createBlock(this);
 		}
 
-		block.loadData(data, this, () => this.requestRender());
+		block.loadData(data, this);
 	}
 
 	get opacity() {
