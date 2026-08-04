@@ -29,29 +29,6 @@ export class DEMLayer extends MapLayer {
 
 		this.blocks = [];
 
-		var p = scene.userData,
-			rotation = p.baseExtent.rotation;
-
-		if (data.properties.clipped) {
-			this.objectGroup.position.set(0, 0, 0);
-			this.objectGroup.rotation.z = 0;
-
-			if (rotation) {
-				// TODO:
-
-				// rotate around center of base extent
-				this.objectGroup.position.copy(p.pivot).negate();
-				this.objectGroup.position.applyAxisAngle(UV.k, rotation * deg2rad);
-				this.objectGroup.position.add(p.pivot);
-				this.objectGroup.rotateOnAxis(UV.k, rotation * deg2rad);
-			}
-		}
-		else {
-			this.objectGroup.position.set(0, 0, 0);
-			this.objectGroup.rotation.z = 0;
-		}
-		this.objectGroup.updateMatrixWorld();
-
 		this._loadAuxiliaryMaterials(data.properties);
 
 		if (data.body && data.body.blocks) {
@@ -478,12 +455,9 @@ class DEMMeshBlock extends DEMBlockBase {
 type BlockConstructor = new () => DEMBlockBase;
 
 function createBlock(layer: DEMLayer) {
-	const { clipped } = layer.properties;
+	const { dataType } = layer.properties;
 
-	let BlockClass: BlockConstructor = DEMGridBlock;
-	if (clipped) {
-		BlockClass = DEMMeshBlock;
-	}
+	let BlockClass: BlockConstructor = (dataType === "mesh") ? DEMMeshBlock : DEMGridBlock;
 
 	return new BlockClass();
 }

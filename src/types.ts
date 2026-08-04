@@ -57,8 +57,7 @@ export interface LayerProperties {
 
 export interface DEMLayerProperties extends LayerProperties {
     type: "dem";
-    clipped: boolean;
-    tiled: boolean;
+    dataType: "grid" | "mesh";
     mtlNames: string[];
     mtlIdx: number;
     sides?: {

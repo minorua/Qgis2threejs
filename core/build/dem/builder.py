@@ -21,12 +21,7 @@ from ....utils.logging import logger
 
 
 class DEMLayerBuilder(LayerBuilderBase):
-    """Generates the export data structure for a DEM layer.
-
-    This builder coordinates grid builders and material builders to produce
-    a DEM block or tiled DEM blocks. It supports optional clipping to vector
-    polygons, tiled surrounding blocks, and multiple materials.
-    """
+    """Generates the export data for a DEM layer."""
 
     def __init__(self, layer, settings, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
         """See `LayerBuilderBase.__init__()` for argument details."""
@@ -40,7 +35,7 @@ class DEMLayerBuilder(LayerBuilderBase):
 
     def build(self, build_blocks=False):
         """
-        Generate the export data structure for this DEM layer.
+        Generate the export data for this DEM layer.
 
         Args:
             build_blocks (bool): If True, construct and return DEM blocks under `data['body']['blocks']`.
@@ -74,8 +69,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         """
         p = LayerBuilderBase.layerProperties(self)
         p["type"] = "dem"
-        p["clipped"] = self.properties.get("radioButton_ClipPolygon", False)
-        p["tiled"] = self.properties.get("radioButton_OriginalValues", False)
+        p["dataType"] = "mesh" if self.properties.get("radioButton_ClipPolygon") else "grid"
         p["mtlNames"] = [mtl.get("name", "") for mtl in self.properties.get("materials", [])]
         p["mtlIdx"] = self.layer.mtlIndex(self.properties.get("mtlId"))
 
