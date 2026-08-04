@@ -8,6 +8,7 @@ from qgis.core import (
     QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsGeometryCollection,
     QgsProject, QgsTessellator, QgsVertexId, QgsWkbTypes)
 
+from .geom_types import Face, Vector3, TransformFunc, Triangle, ZFunc
 from ..utils.logging import logger
 
 
@@ -324,8 +325,8 @@ class TINGeometry(PolygonGeometry):
     """Used with Polygon and Overlay (relative to DEM)"""
 
     def __init__(self):
-        self.triangles = []
-        self.centroids = []
+        self.triangles: list[Triangle] = []
+        self.centroids: list[Vector3] = []
 
     def toDict(self, flat=False):
         tris = IndexedTriangles3D()
@@ -374,7 +375,7 @@ class TINGeometry(PolygonGeometry):
         return d
 
     @classmethod
-    def fromQgsGeometry(cls, geometry, z_func, transform_func, centroid=True, drop_z=False,
+    def fromQgsGeometry(cls, geometry, z_func: ZFunc, transform_func: TransformFunc, centroid=True, drop_z=False,
                         ccw2d=False, use_z_func_cache=False):
         geom = cls()
 
@@ -438,15 +439,17 @@ class TINGeometry(PolygonGeometry):
                 v2 = verts[indices[i + 2]]
 
                 if is_clockwise([v0, v1, v2, v0]):
-                    tris.append([v0, v2, v1])
+                    tris.append((v0, v2, v1))
                 else:
-                    tris.append([v0, v1, v2])
+                    tris.append((v0, v1, v2))
         else:
             # use original vertex order
             tris = [
-                [verts[indices[i]],
+                (
+                    verts[indices[i]],
                  verts[indices[i + 1]],
-                 verts[indices[i + 2]]]
+                    verts[indices[i + 2]]
+                )
                 for i in range(0, len(indices), 3)
             ]
 
@@ -504,7 +507,7 @@ class GeometryUtils:
 class GridGeometry:
 
     """
-    Triangular grid geometry
+    Geometry of a regular grid
     """
 
     def __init__(self, extent, x_segments, y_segments, values=None):
@@ -672,60 +675,28 @@ class GridGeometry:
         return z3 + (z2 - z3) * (1 - sdx) + (z1 - z3) * (1 - sdy)
 
 
-class IndexedTriangles2D:
-
-    EMPDICT = {}
-
-    def __init__(self):
-        self.vertices = []
-        self.faces = []
-        self.vidx = {}   # to find whether a vertex already exists: [y][x] = vertex index
-
-    def addTriangle(self, v1, v2, v3):
-        vi1 = self._vertexIndex(v1)
-        vi2 = self._vertexIndex(v2)
-        vi3 = self._vertexIndex(v3)
-        self.faces.append([vi1, vi2, vi3])
-
-    def _vertexIndex(self, v):
-        vi = self.vidx.get(v[1], self.EMPDICT).get(v[0])
-        if vi is not None:
-            return vi
-
-        vi = len(self.vertices)
-        self.vertices.append(v)
-
-        self.vidx[v[1]] = self.vidx.get(v[1], {})
-        self.vidx[v[1]][v[0]] = vi
-        return vi
-
-
 class IndexedTriangles3D:
 
-    EMPDICT = {}
-
     def __init__(self):
-        self.vertices = []
-        self.faces = []
-        self.vidx = {}   # to find whether a vertex already exists: [z][y][x] = vertex index
+        self.vertices: list[Vector3] = []
+        self.faces: list[Face] = []
+        self.vidx: dict[Vector3, int] = {}
 
-    def addTriangle(self, v1, v2, v3):
+    def addTriangle(self, v1: Vector3, v2: Vector3, v3: Vector3):
         vi1 = self._vertexIndex(v1)
         vi2 = self._vertexIndex(v2)
         vi3 = self._vertexIndex(v3)
         self.faces.append([vi1, vi2, vi3])
 
-    def _vertexIndex(self, v):
-        vi = self.vidx.get(v[2], self.EMPDICT).get(v[1], self.EMPDICT).get(v[0])
+    def _vertexIndex(self, v: Vector3) -> int:
+        vi = self.vidx.get(v)
         if vi is not None:
             return vi
 
         vi = len(self.vertices)
         self.vertices.append(v)
 
-        self.vidx[v[2]] = self.vidx.get(v[2], {})
-        self.vidx[v[2]][v[1]] = self.vidx[v[2]].get(v[1], {})
-        self.vidx[v[2]][v[1]][v[0]] = vi
+        self.vidx[v] = vi
         return vi
 
 

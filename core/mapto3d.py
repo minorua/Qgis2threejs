@@ -4,6 +4,7 @@
 
 from qgis.core import QgsPoint
 
+from .geom_types import Vector3
 from .mapextent import MapExtent
 
 
@@ -23,19 +24,19 @@ class MapTo3D:
 
         self._originX, self._originY, self._originZ = (origin.x(), origin.y(), origin.z())
 
-    def transform(self, x, y, z=0):
-        return [
+    def transform(self, x, y, z=0) -> Vector3:
+        return (
             x - self._originX,
             y - self._originY,
             (z - self._originZ) * self.zScale
-        ]
+        )
 
-    def transformXY(self, x, y, z=0):
-        return [
+    def transformXY(self, x, y, z=0) -> Vector3:
+        return (
             x - self._originX,
             y - self._originY,
             z
-        ]
+        )
 
     def __repr__(self):
         origin = "({}, {}, {})".format(self.origin.x(), self.origin.y(), self.origin.z())
