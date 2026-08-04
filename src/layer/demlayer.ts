@@ -8,7 +8,7 @@ import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
 import * as Utils from "../utils.js";
 
-import type { DEMBlockData, DEMGridBlockData, DEMGrid, DEMLayerData, DEMMeshData, DEMTileGridBlockData, DEMLayerProperties, TIN_Border, Vec3, DataRef } from "../types.js";
+import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, DEMMeshData, MapExtent, TIN_Border, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
 
 /*
@@ -25,17 +25,15 @@ class GridGeometry extends THREE.BufferGeometry {
 	type = "GridGeometry";
 
 	/**
-	 * @param grid
-	 * @param width      - Plane width (or tile size).
-	 * @param height     - Plane height (ignored when `segments` is given).
-	 * @param segments   - When supplied, the grid is treated as a square tile.
+	 * @param values    - DEM values
+	 * @param columns   - Number of columns of actual grid data
+	 * @param rows      - Number of rows of actual grid data
+	 * @param extent    - Extent of the plane
+	 * @param nodata    - No data value
+	 * @param segments	- Segments of a tile side. When supplied, the grid is treated as a square tile.
 	 */
-	loadData(grid: DEMGrid, width: number, height: number, segments?: number) {
-		const grid_values = grid.values;
-		const columns = grid.width;		// number of columns of actual grid data
-		const rows = grid.height;		// number of rows of actual grid data
-		const nodata = (grid.nodata === undefined) ? undefined : new Float32Array(Utils.base64ToUint8Array(grid.nodata).buffer)[0];
-
+	loadData(dem_values: Float32Array, columns: number, rows: number, extent: MapExtent, nodata?: number, segments?: number) {
+		const { width, height }  = extent;
 		const isTileMode = (segments !== undefined);
 		const segmentsX = (isTileMode) ? segments : columns - 1;
 		const segmentsY = (isTileMode) ? segments : rows - 1;
@@ -57,7 +55,7 @@ class GridGeometry extends THREE.BufferGeometry {
 
 				const x = ix * segment_width - half_w;
 				const i = ix + iy * columns;
-				const z = grid_values[i];
+				const z = dem_values[i];
 
 				vertices.push(x, -y, (z === nodata) ? 0 : z);
 				uvs.push(ix / segmentsX, v);
@@ -69,8 +67,8 @@ class GridGeometry extends THREE.BufferGeometry {
 				const c = i;
 				const d = i - columns;
 
-				if (grid_values[b] === nodata || grid_values[d] === nodata) continue;
-				if (grid_values[a] !== nodata) indices.push(a, b, d);
+				if (dem_values[b] === nodata || dem_values[d] === nodata) continue;
+				if (dem_values[a] !== nodata) indices.push(a, b, d);
 				if (z !== nodata) indices.push(b, c, d);
 			}
 		}
@@ -294,41 +292,38 @@ class DEMBlockBase {
 }
 
 
-// OBSOLETE
-class DEMBlock extends DEMBlockBase {
+class DEMGridBlock extends DEMBlockBase {
 
-	declare data: DEMGridBlockData;
+	declare data: DEMBlockGridData;
 
-	loadData(data: DEMGridBlockData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
+	loadData(data: DEMBlockGridData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
 		super.loadData(data, layer, callback);
 
 		if (data.grid === undefined) return;
 
 		const geom = new GridGeometry();
-		const mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
+		const material = (this.materials[this.currentMtlIndex] || {}).mtl;
+		const mesh = new THREE.Mesh(geom, material);
 		mesh.position.fromArray(data.translate);
 		mesh.scale.z = data.zScale;
 		layer.addObject(mesh);
 
-		const buildGeometry = (grid) => {
-			geom.loadData(grid, data.width, data.height);
+		const buildGeometry = (values, grid) => {
+			const nodata = (grid.nodata === undefined) ? undefined : new Float32Array(Utils.base64ToUint8Array(grid.nodata).buffer)[0];
+			geom.loadData(values, grid.columns, grid.rows, data.extent, nodata, data.segments);
 			if (callback) callback(mesh);
 		};
 
-		const grid = data.grid as DEMGrid;
-		if (grid.url !== undefined) {
+		const grid = data.grid;
+		if ("url" in grid) {
 			app.loadFile(grid.url, "arraybuffer", (buf) => {
-				grid.values = new Float32Array(buf);
-				buildGeometry(grid);
+				buildGeometry(new Float32Array(buf), grid);
 			});
 		}
 		else {
-			if (grid.base64 !== undefined) {
-				const bytes = Utils.base64ToUint8Array(grid.base64);
-				grid.values = new Float32Array(bytes.buffer);
-				delete grid.base64;
-			}
-			buildGeometry(grid);
+			const bytes = Utils.base64ToUint8Array(grid.base64);
+			delete grid.base64;
+			buildGeometry(new Float32Array(bytes.buffer), grid);
 		}
 
 		this.obj = mesh;
@@ -343,77 +338,20 @@ class DEMBlock extends DEMBlockBase {
 			y0: ph / 2,
 			x1: pw / 2,
 			y1: -ph / 2,
-			xres: pw / (this.data.grid.width - 1),
-			yres: ph / (this.data.grid.height - 1)
+			xres: pw / (this.data.grid.columns - 1),
+			yres: ph / (this.data.grid.rows - 1)
 		}
-	}
-}
-
-
-class DEMTileBlock extends DEMBlockBase {
-
-	declare data: DEMTileGridBlockData;
-
-	loadData(data: DEMTileGridBlockData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
-		const grid = data.grid as DEMGrid;
-
-		super.loadData(data, layer, callback);
-
-		if (grid === undefined) return;
-
-		const geom = new GridGeometry();
-		const mesh = new THREE.Mesh(geom, (this.materials[this.currentMtlIndex] || {}).mtl);
-		mesh.position.fromArray(data.translate);
-		mesh.scale.z = data.zScale;
-		layer.addObject(mesh);
-
-		const buildGeometry = (grid) => {
-			geom.loadData(grid, data.tileSize, data.tileSize, data.segments);
-			if (callback) callback(mesh);
-		};
-
-		if (grid.url !== undefined) {
-			app.loadFile(grid.url, "arraybuffer", (buf) => {
-				grid.values = new Float32Array(buf);
-				buildGeometry(grid);
-			});
-		}
-		else {
-			if (grid.base64 !== undefined) {
-				const bytes = Utils.base64ToUint8Array(grid.base64);
-				grid.values = new Float32Array(bytes.buffer);
-				delete grid.base64;
-			}
-			buildGeometry(grid);
-		}
-
-		this.obj = mesh;
-		return mesh;
-	}
-
-	_auxArgs() {
-		const res = this.data.tileSize / this.data.segments;
-		const pw = (this.data.grid.width - 1) * res;
-		const ph = (this.data.grid.height - 1) * res;
-		return {
-			x0: -this.data.tileSize / 2,
-			y0: this.data.tileSize / 2,
-			x1: pw - this.data.tileSize / 2,
-			y1: this.data.tileSize / 2 - ph,
-			xres: res,
-			yres: res
-		};
 	}
 }
 
 class DEMMeshBlock extends DEMBlockBase {
 
-	declare data: DEMGridBlockData;
+	declare data: DEMBlockMeshData;
 
-	loadData(data: DEMGridBlockData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
+	loadData(data: DEMBlockMeshData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
 		super.loadData(data, layer, callback);
 
-		const mesh_data: DEMMeshData | DataRef = data.mesh;
+		const mesh_data = data.mesh;
 		if (mesh_data === undefined) return;
 
 		const geom = new THREE.BufferGeometry();
@@ -565,7 +503,7 @@ class DEMMeshBlock extends DEMBlockBase {
 
 class ClippedDEMBlock extends DEMBlockBase {
 
-	loadData(data: DEMGridBlockData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
+	loadData(data: DEMBlockGridData, layer: DEMLayer, callback: (mesh: THREE.Mesh) => void): THREE.Mesh | void {
 		super.loadData(data, layer, callback);
 
 		if (data.geom === undefined) return;
@@ -887,14 +825,12 @@ export class DEMLayer extends MapLayer {
 type BlockConstructor = new () => DEMBlockBase;
 
 function createBlock(layer: DEMLayer) {
-	const { tiled, clipped } = layer.properties;
+	const { clipped } = layer.properties;
 
-	let BlockClass: BlockConstructor = DEMMeshBlock;		// OBSOLETE: DEMBlock;
-	if (tiled) {
-		BlockClass = DEMMeshBlock;		// OBSOLETE: DEMBlock;
-	}
-	else if (clipped) {
+	let BlockClass: BlockConstructor = DEMGridBlock;
+	if (clipped) {
 		BlockClass = ClippedDEMBlock;
+		// BlockClass = DEMMeshBlock;
 	}
 
 	return new BlockClass();

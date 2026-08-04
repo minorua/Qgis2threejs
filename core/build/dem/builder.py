@@ -7,7 +7,7 @@ from osgeo import gdal
 from qgis.PyQt.QtCore import QSize
 from qgis.core import QgsPoint, QgsProject
 
-from .grid_builder import DEMGridBuilder, DEMTileGridBuilder
+from .block_builder import DEMBlockResampBuilder, DEMBlockRawBuilder
 from .material_builder import DEMMaterialBuilder
 from .property_reader import DEMPropertyReader
 from ..layerbuilderbase import LayerBuilderBase
@@ -35,8 +35,8 @@ class DEMLayerBuilder(LayerBuilderBase):
         self.provider = settings.demProviderByLayerId(layer.layerId)
         self.mtlBuilder = DEMMaterialBuilder(layer, settings, imageManager, pathRoot, urlRoot)
 
-        gridBldClass = DEMTileGridBuilder if self.properties.get("radioButton_OriginalValues") else DEMGridBuilder
-        self.grdBuilder = gridBldClass(layer, settings, self.provider, self.mtlBuilder.materialManager, self.pathRoot, self.urlRoot)
+        BldClass = DEMBlockRawBuilder if self.properties.get("radioButton_OriginalValues") else DEMBlockResampBuilder
+        self.blockBuilder = BldClass(layer, settings, self.provider, self.mtlBuilder.materialManager, self.pathRoot, self.urlRoot)
 
     def build(self, build_blocks=False):
         """
@@ -110,12 +110,12 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         if orig and self.provider.CanUseOriginalValues:
             self.provider.setResampleAlg(gdal.GRA_NearestNeighbour)
-            yield from self._buildTasks_Orig()
+            yield from self._buildTasks_Raw()
         else:
             self.provider.setResampleAlg(gdal.GRA_Bilinear)
             yield from self._buildTasks_Resamp()
 
-    def _buildTasks_Orig(self):
+    def _buildTasks_Raw(self):
         materials = self.properties.get("materials", [])
         mtlCount = len(materials)
         currentMtlId = self.properties.get("mtlId")
@@ -183,11 +183,11 @@ class DEMLayerBuilder(LayerBuilderBase):
 
                 # set up grid builder
                 if not self.layer.opt.onlyMaterial:
-                    # DEMTileGridBuilder
-                    self.grdBuilder.setup(blockIndex, segments, tileExtent,
-                                          localOrigin=self.settings.mapTo3d().origin,
-                                          dataExtentLowerRight=data_extent_lr)
-                    yield self.grdBuilder
+                    # DEMBlockRawBuilder
+                    self.blockBuilder.setup(blockIndex, segments, tileExtent,
+                                            localOrigin=self.settings.mapTo3d().origin,
+                                            dataExtentLowerRight=data_extent_lr)
+                    yield self.blockBuilder
 
                 # set up material builder for remaininig materials
                 if self.layer.opt.allMaterials:
@@ -229,7 +229,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         size = self.properties.get("spinBox_Size", 1) if tiles else 1
         size2 = size * size
 
-        centerBlk = DEMGridBuilder(self.layer, self.settings, self.provider, self.mtlBuilder.materialManager, self.pathRoot, self.urlRoot)
+        centerBlk = DEMBlockResampBuilder(self.layer, self.settings, self.provider, self.mtlBuilder.materialManager, self.pathRoot, self.urlRoot)
         blks = []
         for i in range(size2):
             sx = i % size - (size - 1) // 2
@@ -262,11 +262,11 @@ class DEMLayerBuilder(LayerBuilderBase):
                 if is_center:
                     grdBuilder = centerBlk
                 else:
-                    grdBuilder = self.grdBuilder
+                    grdBuilder = self.blockBuilder
                     if sx * sx <= 1 and sy * sy <= 1:
                         neighbors = [(sx, sy, centerBlk, 1)]
 
-                # DEMGridBuilder
+                # DEMBlockResampBuilder
                 grdBuilder.setup(blockIndex, grid_seg, extent,
                                  localOrigin=self.settings.mapTo3d().origin,
                                  roughness=1 if is_center else roughness,

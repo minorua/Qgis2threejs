@@ -5,6 +5,7 @@
 import base64
 import json
 import numpy as np
+import struct
 
 from qgis.PyQt.QtCore import QSize
 from qgis.core import QgsGeometry, QgsPoint, QgsPointXY
@@ -16,8 +17,7 @@ from ....utils.js import writeBinaryContainer
 from ....utils.logging import logger
 
 
-class DEMGridBuilder:
-    """Generates 3D geometry grids based on DEM data."""
+class DEMBlockBuilderBase:
 
     def __init__(self, layer, settings, provider, mtlManager, pathRoot=None, urlRoot=None):
         self.layer = layer
@@ -30,62 +30,40 @@ class DEMGridBuilder:
         self.pathRoot = pathRoot
         self.urlRoot = urlRoot
 
-    def setup(self, blockIndex, grid_seg: QSize, extent: MapExtent, localOrigin: QgsPoint, roughness=1, edgeRoughness=1, clip_geometry=None, neighbors=None):
-        self.blockIndex = blockIndex
-        self.grid_seg = grid_seg
-        self.extent = extent
-        self.localOrigin = localOrigin
-        self.roughness = roughness
-        self.edgeRoughness = edgeRoughness
-        self.clip_geometry = clip_geometry
-        self.neighbors = neighbors or []
-
-        self.edges = None
-
-    def build(self):
+    def buildGridData(self, z_arr, extent: MapExtent, localOrigin: QgsPoint, nodata=None):
         """
-        @returns {DEMGridBlockData}
+        @returns {DEMGridData | DEMGridDataRef}
         """
-        b = {
-            "type": "block",
-            "layer": self.layer.jsLayerId,
-            "block": self.blockIndex,
-            "translate": [0, 0, 0],
-            "zScale": self.settings.mapTo3d().zScale
+        rows, cols = z_arr.shape
+        bytearray = z_arr.astype(np.float32, copy=False).tobytes()
+
+        g = {
+            "columns": cols,
+            "rows": rows
         }
 
-        if self.clip_geometry:
-            # TODO: no data handling
-            geom = self.clipped(self.clip_geometry)
+        if nodata is not None:
+            g["nodata"] = base64.b64encode(struct.pack("f", nodata)).decode("ascii")
 
-            if self.settings.isPreview:
-                b["geom"] = geom
-            else:
-                tail = f"{self.blockIndex}.json"
+        if self.settings.isPreview:
+            g["base64"] = base64.b64encode(bytearray).decode("ascii")
 
-                with open(self.pathRoot + tail, "w", encoding="utf-8") as f:
-                    json.dump(geom, f, ensure_ascii=False, indent=2 if DEBUG_MODE else None)
-
-                b["geom"] = {"url": self.urlRoot + tail}
         else:
-            columns, rows = (self.grid_seg.width() + 1, self.grid_seg.height() + 1)
+            # write DEM values to a binary file
+            tail = f"{self.blockIndex}.bin"
 
-            if self.edgeRoughness == 1 and len(self.neighbors) == 0:
-                arr = self.provider.readAsArray(columns, rows, self.extent)
-            else:
-                grid_values = list(self.provider.readValues(columns, rows, self.extent))
-                self.processEdges(grid_values, self.edgeRoughness, is_center=True)
-                arr = np.array(grid_values, dtype=np.float32).reshape(rows, columns)
+            g["url"] = self.urlRoot + tail
 
-            b["mesh"] = self._buildMeshData(arr, self.extent, self.localOrigin, nodata=self.provider.nodata)
+            with open(self.pathRoot + tail, "wb") as f:
+                f.write(bytearray)
 
-        return b
+        return g
 
-    def _buildMeshData(self, z_arr, extent: MapExtent, localOrigin: QgsPoint, full_extent: MapExtent=None, nodata=None):
+    def buildMeshData(self, z_arr, extent: MapExtent, localOrigin: QgsPoint, nodata=None, full_extent: MapExtent=None):
         """
         center: Coordinates of the origin
 
-        @returns {DEMMeshData}
+        @returns {DEMMeshData | DEMMeshDataRef}
         """
         if full_extent is None:
             full_extent = extent
@@ -160,7 +138,7 @@ class DEMGridBuilder:
 
     def clipped(self, clip_geometry):
         """
-        @returns {TIN_Border}
+        @returns {TIN_Border}   // TODO: {DEMMeshData}
         """
         transform_func = self.settings.mapTo3d().transformXY
 
@@ -185,11 +163,7 @@ class DEMGridBuilder:
         d["polygons"] = polygons
         return d
 
-    def processEdges(self, grid_values, roughness, is_center):
-        if is_center:
-            self.processEdgesCenter(grid_values, roughness)
-            return
-
+    def processEdges(self, grid_values, roughness):
         grid_width, grid_height = (self.grid_seg.width() + 1,
                                    self.grid_seg.height() + 1)
 
@@ -320,7 +294,66 @@ class DEMGridBuilder:
         return 0    # as safe null value
 
 
-class DEMTileGridBuilder(DEMGridBuilder):
+class DEMBlockResampBuilder(DEMBlockBuilderBase):
+
+    def setup(self, blockIndex, grid_seg: QSize, extent: MapExtent, localOrigin: QgsPoint, roughness=1, edgeRoughness=1, clip_geometry=None, neighbors=None):
+        self.blockIndex = blockIndex
+        self.grid_seg = grid_seg
+        self.extent = extent
+        self.localOrigin = localOrigin
+        self.roughness = roughness
+        self.edgeRoughness = edgeRoughness
+        self.clip_geometry = clip_geometry
+        self.neighbors = neighbors or []
+
+        self.edges = None
+
+    def build(self):
+        """
+        @returns {DEMBlockGridData}
+        """
+        c = self.extent.center()
+        o = self.localOrigin
+
+        b = {
+            "type": "block",
+            "layer": self.layer.jsLayerId,
+            "block": self.blockIndex,
+            "extent": self.extent.toDict(),
+            "translate": [c.x() - o.x(), c.y() - o.y(), 0],
+            "zScale": self.settings.mapTo3d().zScale
+        }
+
+        if self.clip_geometry:
+            # TODO: no data handling
+            geom = self.clipped(self.clip_geometry)
+
+            if self.settings.isPreview:
+                b["geom"] = geom
+            else:
+                tail = f"{self.blockIndex}.json"
+
+                with open(self.pathRoot + tail, "w", encoding="utf-8") as f:
+                    json.dump(geom, f, ensure_ascii=False, indent=2 if DEBUG_MODE else None)
+
+                b["geom"] = {"url": self.urlRoot + tail}
+
+        else:
+            columns, rows = (self.grid_seg.width() + 1, self.grid_seg.height() + 1)
+
+            if self.edgeRoughness == 1 and len(self.neighbors) == 0:
+                arr = self.provider.readAsArray(columns, rows, self.extent)
+            else:
+                grid_values = list(self.provider.readValues(columns, rows, self.extent))
+                self.processEdgesCenter(grid_values, self.edgeRoughness)
+                arr = np.array(grid_values, dtype=np.float32).reshape(rows, columns)
+
+            b["grid"] = self.buildGridData(arr, self.extent, self.localOrigin, nodata=self.provider.nodata)
+
+        return b
+
+
+class DEMBlockRawBuilder(DEMBlockBuilderBase):
 
     def setup(self, blockIndex: int, segments: int, tileExtent: MapExtent, localOrigin: QgsPoint, dataExtentLowerRight, clip_geometry=None):
         self.blockIndex = blockIndex
@@ -333,15 +366,18 @@ class DEMTileGridBuilder(DEMGridBuilder):
 
     def build(self):
         """
-        @returns {DEMTileGridBlockData}
+        @returns {DEMBlockGridData}
         """
+        c = self.tileExtent.center()
+        o = self.localOrigin
+
         b = {
             "type": "block",
             "layer": self.layer.jsLayerId,
             "block": self.blockIndex,
             "segments": self.segments,
-            "tileSize": self.tileSize,
-            "translate": [0, 0, 0],
+            "extent": self.tileExtent.toDict(),
+            "translate": [c.x() - o.x(), c.y() - o.y(), 0],
             "zScale": self.settings.mapTo3d().zScale
         }
 
@@ -372,6 +408,9 @@ class DEMTileGridBuilder(DEMGridBuilder):
             rows = int(valid_height / segment_size + 1)
 
             arr = self.provider.readAsArray(columns, rows, valid_extent)
-            b["mesh"] = self._buildMeshData(arr, valid_extent, self.localOrigin, full_extent=self.tileExtent, nodata=self.provider.nodata)
 
+            b["grid"] = self.buildGridData(arr, valid_extent, self.localOrigin, self.provider.nodata)
+
+            # b["mesh"] = self.buildMeshData(arr, valid_extent, self.localOrigin, nodata=self.provider.nodata, full_extent=self.tileExtent)
+            # b["translate"] = [0, 0, 0]
         return b

@@ -213,6 +213,15 @@ class MapExtent:
     def unrotatedRect(self):
         return self._unrotated_rect
 
+    def toDict(self):
+        return {
+            "cx": self._center.x(),
+            "cy": self._center.y(),
+            "width": self._width,
+            "height": self._height,
+            "rotation": self._rotation
+        }
+
     def geometry(self):
         geom = QgsGeometry.fromRect(self._unrotated_rect)
         if self._rotation:

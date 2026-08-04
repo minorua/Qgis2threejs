@@ -27,7 +27,7 @@ export interface Point3 {
 
 export type Vec3 = [number, number, number];
 
-export interface BaseExtent {
+export interface MapExtent {
     cx: number;
     cy: number;
     width: number;
@@ -37,7 +37,7 @@ export interface BaseExtent {
 
 /* Properties */
 export interface SceneProperties {
-	baseExtent: BaseExtent;	 // map base extent in map coordinates. center is (cx, cy).
+	baseExtent: MapExtent;	 // map base extent in map coordinates. center is (cx, cy).
 	origin: Point3;		     // origin of 3D world in map coordinates
 	zScale: number;			 // vertical scale factor
     light: string;
@@ -157,30 +157,43 @@ export interface DEMLayerData extends LayerData {
     }
 }
 
-export interface DEMGridBlockData extends BlockData {
-    width: number;
-    height: number;
+export interface DEMBlockDataBase extends BlockData {
+    extent: MapExtent;
     translate: Vec3;
     zScale: number;
-    mesh?: DEMMeshData | DataRef;
-    grid?: DEMGridData;
-    geom?: TIN_Border;
-}
-
-export interface DEMTileGridBlockData extends BlockData {
     segments: number;
-    tileSize: number;
-    translate: Vec3;
-    zScale: number;
-    mesh?: DEMMeshData | DataRef;
-    grid?: DEMGridData;
 }
 
-export interface DEMMaterialBlockData extends BlockData {
-    materials?: MaterialData[];
+/**
+ * DEM block data based on regular grid.
+ */
+export interface DEMBlockGridData extends DEMBlockDataBase {
+    grid: DEMGridData | DEMGridDataRef;
 }
 
-export type DEMBlockData = DEMGridBlockData | DEMTileGridBlockData | DEMMaterialBlockData;
+export interface DEMBlockMeshData extends DEMBlockDataBase {
+    mesh: DEMMeshData | DEMMeshDataRef;
+}
+
+export interface DEMBlockMaterialData extends BlockData {
+    materials: MaterialData[];
+}
+
+export type DEMBlockData = DEMBlockGridData | DEMBlockMeshData | DEMBlockMaterialData;
+
+interface DEMGridDataBase {
+    columns: number;
+    rows: number;
+    nodata?: number;
+}
+
+export interface DEMGridData extends DEMGridDataBase {
+    base64: string;
+}
+
+export interface DEMGridDataRef extends DEMGridDataBase {
+    url: string;
+}
 
 export interface DEMMeshData {
     vertices: string;
@@ -188,23 +201,8 @@ export interface DEMMeshData {
     uvs: string;
 }
 
-export interface DataRef {
+export interface DEMMeshDataRef {
     url: string;
-}
-
-export interface DEMGridData {
-    /** columns */
-    width: number;
-    /** rows */
-    height: number;
-
-    nodata: number;
-    base64?: string;
-    url?: string;
-}
-
-export interface DEMGrid extends DEMGridData {
-    values?: Float32Array;
 }
 
 export interface TIN {
