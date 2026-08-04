@@ -47,19 +47,15 @@ export class MapLayer extends THREE.EventDispatcher {
 	}
 
 	clearObjects() {
-		// dispose of geometries
 		this.objectGroup.traverse((obj) => {
 			if (obj.geometry) obj.geometry.dispose();
 		});
 
-		// dispose of materials
 		this.materials.dispose();
 
-		// remove all child objects from object group
-		for (var i = this.objectGroup.children.length - 1; i >= 0; i--) {
-			this.objectGroup.remove(this.objectGroup.children[i]);
-		}
-		this.objects = [];
+		this.objectGroup.clear();
+
+		this.objects.length = 0;
 	}
 
 	visibleObjects() {
