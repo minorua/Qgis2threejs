@@ -3,23 +3,22 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import base64
-import json
 import numpy as np
 import struct
 
 from qgis.PyQt.QtCore import QSize
 from qgis.core import QgsGeometry, QgsPoint, QgsPointXY
 
-from ...geometry import VectorGeometry, LineGeometry, TINGeometry
+from ...exportsettings import ExportSettings
+from ...geometry import TINGeometry
 from ...mapextent import MapExtent
-from ....conf import DEBUG_MODE
 from ....utils.js import writeBinaryContainer
 from ....utils.logging import logger
 
 
 class DEMBlockBuilderBase:
 
-    def __init__(self, layer, settings, provider, mtlManager, pathRoot=None, urlRoot=None):
+    def __init__(self, layer, settings: ExportSettings, provider, mtlManager, pathRoot=None, urlRoot=None):
         self.layer = layer
         self.properties = layer.properties
 
@@ -115,30 +114,15 @@ class DEMBlockBuilderBase:
         valid_triangles_mask = np.all(triangles >= 0, axis=1)
         faces = triangles[valid_triangles_mask]
 
-        def nparr_to_bytes(arr, dtype=np.float32):
-            return arr.astype(dtype, copy=False).tobytes()
+        return self.exportBinaryChunks({
+            "vertices": (vertices, np.float32),
+            "indices": (faces, np.int32),
+            "uvs": (uvs, np.float32)
+        })
 
-        chunks = {
-            "vertices": nparr_to_bytes(vertices),
-            "uvs": nparr_to_bytes(uvs),
-            "indices": nparr_to_bytes(faces, np.int32)
-        }
-
-        if self.settings.isPreview:
-            return {
-                key: base64.b64encode(value).decode("ascii") for key, value in chunks.items()
-            }
-
-        tail = f"{self.blockIndex}.binjson"
-        writeBinaryContainer(self.pathRoot + tail, chunks)
-
-        return {
-            "url": self.urlRoot + tail
-        }
-
-    def clipped(self, clip_geometry):
+    def buildClippedMeshData(self, clip_geometry):
         """
-        @returns {TIN_Border}   // TODO: {DEMMeshData}
+        @returns {DEMMeshData}
         """
         transform_func = self.settings.mapTo3d().transformXY
 
@@ -149,19 +133,37 @@ class DEMBlockBuilderBase:
             clip_geometry = QgsGeometry(clip_geometry)
             clip_geometry.rotate(self.extent.rotation(), self.extent.center())
 
-        bnds = grid.segmentizeBoundaries(clip_geometry)
         polys = grid.splitPolygon(clip_geometry)
         z_func = lambda x, y: grid.valueOnSurface(x, y) or 0
 
         tin = TINGeometry.fromQgsGeometry(polys, z_func, transform_func, centroid=False)
         d = tin.toDict(flat=True)
 
-        polygons = []
-        for bnd in bnds:
-            geom = LineGeometry.fromQgsGeometry(bnd, None, transform_func, useZM=VectorGeometry.UseZ)
-            polygons.append(geom.toList(flat=True))
-        d["polygons"] = polygons
-        return d
+        return self.exportBinaryChunks({
+            "vertices": (np.array(d["vertices"], dtype=np.float32), np.float32),
+            "indices": (np.array(d["indices"], dtype=np.int32), np.int32)
+        })
+
+    def exportBinaryChunks(self, arrays):
+
+        def nparr_to_bytes(arr, dtype=np.float32):
+            return arr.astype(dtype, copy=False).tobytes()
+
+        chunks = {
+            key: nparr_to_bytes(arr, dtype) for key, (arr, dtype) in arrays.items()
+        }
+
+        if self.settings.isPreview:
+            return {
+                key: base64.b64encode(b).decode("ascii") for key, b in chunks.items()
+            }
+
+        tail = f"{self.blockIndex}.binjson"
+        writeBinaryContainer(self.pathRoot + tail, chunks)
+
+        return {
+            "url": self.urlRoot + tail
+        }
 
     def processEdges(self, grid_values, roughness):
         grid_width, grid_height = (self.grid_seg.width() + 1,
@@ -325,18 +327,7 @@ class DEMBlockResampBuilder(DEMBlockBuilderBase):
         }
 
         if self.clip_geometry:
-            # TODO: no data handling
-            geom = self.clipped(self.clip_geometry)
-
-            if self.settings.isPreview:
-                b["geom"] = geom
-            else:
-                tail = f"{self.blockIndex}.json"
-
-                with open(self.pathRoot + tail, "w", encoding="utf-8") as f:
-                    json.dump(geom, f, ensure_ascii=False, indent=2 if DEBUG_MODE else None)
-
-                b["geom"] = {"url": self.urlRoot + tail}
+            b["mesh"] = self.buildClippedMeshData(self.clip_geometry)
 
         else:
             columns, rows = (self.grid_seg.width() + 1, self.grid_seg.height() + 1)

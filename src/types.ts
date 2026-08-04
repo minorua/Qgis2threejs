@@ -198,23 +198,11 @@ export interface DEMGridDataRef extends DEMGridDataBase {
 export interface DEMMeshData {
     vertices: string;
     indices: string;
-    uvs: string;
+    uvs?: string;
 }
 
 export interface DEMMeshDataRef {
     url: string;
-}
-
-export interface TIN {
-    triangles: {
-        v: number[];
-        f: number[];
-    };
-    centroids?: number[];
-}
-
-export interface TIN_Border extends TIN {
-    polygons: number[];
 }
 
 /* Vector Layer and its Block */

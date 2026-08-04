@@ -328,7 +328,7 @@ class TINGeometry(PolygonGeometry):
         self.triangles: list[Triangle] = []
         self.centroids: list[Vector3] = []
 
-    def toDict(self, flat=False):
+    def toDict(self, flat=True):
         tris = IndexedTriangles3D()
         for v0, v1, v2 in self.triangles:
             tris.addTriangle(v0, v1, v2)
@@ -346,32 +346,13 @@ class TINGeometry(PolygonGeometry):
             v = tris.vertices
             f = tris.faces
 
-        d = {"triangles": {"v": v, "f": f}}
+        d = {
+            "vertices": v,
+            "indices": f
+        }
+
         if self.centroids:
             d["centroids"] = [[x, y, z if z == z else 0] for x, y, z in self.centroids]
-        return d
-
-    def toDict2(self, flat=False):
-        tris = IndexedTriangles2D()
-        for v0, v1, v2 in self.triangles:
-            tris.addTriangle(v0, v1, v2)
-
-        if flat:
-            v = []
-            for pt in tris.vertices:
-                v.extend(pt)
-
-            f = []
-            for c in tris.faces:
-                f.extend(c)
-
-        else:
-            v = tris.vertices
-            f = tris.faces
-
-        d = {"triangles": {"v": v, "f": f}}
-        if self.centroids:
-            d["centroids"] = [[x, y] for x, y, z in self.centroids]
         return d
 
     @classmethod
@@ -447,7 +428,7 @@ class TINGeometry(PolygonGeometry):
             tris = [
                 (
                     verts[indices[i]],
-                 verts[indices[i + 1]],
+                    verts[indices[i + 1]],
                     verts[indices[i + 2]]
                 )
                 for i in range(0, len(indices), 3)
