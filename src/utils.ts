@@ -87,3 +87,8 @@ export const base64ToUint8Array = (base64) => {
 	}
 	return bytes;
 };
+
+export const base64ToFloat32 = (base64: string) => {
+	if (base64 === undefined) return undefined;
+	return new Float32Array(base64ToUint8Array(base64).buffer)[0]
+}

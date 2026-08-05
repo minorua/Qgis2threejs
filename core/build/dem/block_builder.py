@@ -48,17 +48,9 @@ class DEMBlockBuilderBase:
         if nodata is not None:
             g["nodata"] = base64.b64encode(struct.pack("f", nodata)).decode("ascii")
 
-        if self.settings.isPreview:
-            g["base64"] = base64.b64encode(bytearray).decode("ascii")
-
-        else:
-            # write DEM values to a binary file
-            tail = f"{self.blockIndex}.bin"
-
-            g["url"] = self.assetDestination.url(tail)
-
-            with open(self.assetDestination.path(tail), "wb") as f:
-                f.write(bytearray)
+        g.update(self.exportBinaryChunks({
+            "dem_values": bytearray
+        }))
 
         return g
 
@@ -119,23 +111,15 @@ class DEMBlockBuilderBase:
         faces = triangles[valid_triangles_mask]
 
         return self.exportBinaryChunks({
-            "vertices": (vertices, np.float32),
-            "indices": (faces, np.int32),
-            "uvs": (uvs, np.float32)
+            "vertices": nparr_to_bytes(vertices, np.float32),
+            "indices": nparr_to_bytes(faces, np.int32),
+            "uvs": nparr_to_bytes(uvs, np.float32)
         })
 
-    def exportBinaryChunks(self, arrays):
-
-        def nparr_to_bytes(arr, dtype=np.float32):
-            return arr.astype(dtype, copy=False).tobytes()
-
-        chunks = {
-            key: nparr_to_bytes(arr, dtype) for key, (arr, dtype) in arrays.items()
-        }
-
+    def exportBinaryChunks(self, chunks):
         if self.settings.isPreview:
             return {
-                key: base64.b64encode(b).decode("ascii") for key, b in chunks.items()
+                key: base64.b64encode(bin).decode("ascii") for key, bin in chunks.items()
             }
 
         tail = f"{self.blockIndex}.binjson"
@@ -212,8 +196,8 @@ class DEMBlockResampBuilder(DEMBlockBuilderBase):
         d = tin.toDict(flat=True)
 
         return self.exportBinaryChunks({
-            "vertices": (np.array(d["vertices"], dtype=np.float32), np.float32),
-            "indices": (np.array(d["indices"], dtype=np.int32), np.int32)
+            "vertices": nparr_to_bytes(np.array(d["vertices"], dtype=np.float32), np.float32),
+            "indices": nparr_to_bytes(np.array(d["indices"], dtype=np.int32), np.int32)
         })
 
     def processEdges(self, grid_values, roughness):
@@ -389,3 +373,7 @@ class DEMBlockRawBuilder(DEMBlockBuilderBase):
             # b["mesh"] = self.buildMeshData(arr, valid_extent, self.localOrigin, nodata=self.provider.nodata, full_extent=self.extent)
             # b["translate"] = [0, 0, 0]
         return b
+
+
+def nparr_to_bytes(arr, dtype=np.float32):
+    return arr.astype(dtype, copy=False).tobytes()

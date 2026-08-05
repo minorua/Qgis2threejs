@@ -353,9 +353,8 @@ class DEMGridBlock extends DEMBlockBase {
 		mesh.scale.z = data.zScale;
 		layer.addObject(mesh);
 
-		const buildGeometry = (values, grid) => {
-			const nodata = (grid.nodata === undefined) ? undefined : new Float32Array(Utils.base64ToUint8Array(grid.nodata).buffer)[0];
-			geom.loadData(values, grid.columns, grid.rows, data.extent, nodata, data.segments);
+		const build = (array, grid) => {
+			geom.loadData(array, grid.columns, grid.rows, data.extent, Utils.base64ToFloat32(grid.nodata), data.segments);
 			this.buildAuxiliaryObjects(layer, geom, mesh);
 
 			layer.requestRender();
@@ -363,14 +362,14 @@ class DEMGridBlock extends DEMBlockBase {
 
 		const grid = data.grid;
 		if ("url" in grid) {
-			app.loadFile(grid.url, "arraybuffer", (buf) => {
-				buildGeometry(new Float32Array(buf), grid);
+			app.loadBinaryContainer(grid.url).then((cnt) => {
+				build(new Float32Array(cnt.dem_values), grid);
 			});
 		}
 		else {
-			const bytes = Utils.base64ToUint8Array(grid.base64);
-			delete grid.base64;
-			buildGeometry(new Float32Array(bytes.buffer), grid);
+			const bytes = Utils.base64ToUint8Array(grid.dem_values);
+			delete grid.dem_values;
+			build(new Float32Array(bytes.buffer), grid);
 		}
 
 		this.obj = mesh;
@@ -477,14 +476,14 @@ class GridGeometry extends THREE.BufferGeometry {
 	type = "GridGeometry";
 
 	/**
-	 * @param values    - DEM values
+	 * @param array     - DEM values
 	 * @param columns   - Number of columns of actual grid data
 	 * @param rows      - Number of rows of actual grid data
 	 * @param extent    - Extent of the plane
 	 * @param nodata    - No data value
 	 * @param segments	- Segments of a tile side. When supplied, the grid is treated as a square tile.
 	 */
-	loadData(dem_values: Float32Array, columns: number, rows: number, extent: MapExtent, nodata?: number, segments?: number) {
+	loadData(array: Float32Array, columns: number, rows: number, extent: MapExtent, nodata?: number, segments?: number) {
 		const { width, height }  = extent;
 		const isTileMode = (segments !== undefined);
 		const segmentsX = (isTileMode) ? segments : columns - 1;
@@ -507,7 +506,7 @@ class GridGeometry extends THREE.BufferGeometry {
 
 				const x = ix * segment_width - half_w;
 				const i = ix + iy * columns;
-				const z = dem_values[i];
+				const z = array[i];
 
 				vertices.push(x, -y, (z === nodata) ? 0 : z);
 				uvs.push(ix / segmentsX, v);
@@ -519,8 +518,8 @@ class GridGeometry extends THREE.BufferGeometry {
 				const c = i;
 				const d = i - columns;
 
-				if (dem_values[b] === nodata || dem_values[d] === nodata) continue;
-				if (dem_values[a] !== nodata) indices.push(a, b, d);
+				if (array[b] === nodata || array[d] === nodata) continue;
+				if (array[a] !== nodata) indices.push(a, b, d);
 				if (z !== nodata) indices.push(b, c, d);
 			}
 		}

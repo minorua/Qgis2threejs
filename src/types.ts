@@ -185,11 +185,11 @@ export type DEMBlockData = DEMBlockGridData | DEMBlockMeshData | DEMBlockMateria
 interface DEMGridDataBase {
     columns: number;
     rows: number;
-    nodata?: number;
+    nodata?: string;
 }
 
 export interface DEMGridData extends DEMGridDataBase {
-    base64: string;
+    dem_values: string;
 }
 
 export interface DEMGridDataRef extends DEMGridDataBase {
