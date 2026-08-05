@@ -96,9 +96,9 @@ class ModelManager(DataManager):
         files = []
         if self._list:
             if self.hasColladaModel():
-                files.append(("./three/loaders/ColladaLoader.js", ScriptFile.TYPE_CLASS))
+                files.append(("three/addons/loaders/ColladaLoader.js", ScriptFile.TYPE_CLASS))
 
             if self.hasGLTFModel():
-                files.append(("./three/loaders/GLTFLoader.js", ScriptFile.TYPE_CLASS))
+                files.append(("three/addons/loaders/GLTFLoader.js", ScriptFile.TYPE_CLASS))
 
         return files

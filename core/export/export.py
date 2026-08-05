@@ -302,11 +302,11 @@ class ThreeJSExporter(QObject):
         files = []
 
         if self.settings.isNavigationEnabled():
-            files.append(("three/helpers/ViewHelper.js", ScriptFile.TYPE_CLASS))
+            files.append(("three/addons/helpers/ViewHelper.js", ScriptFile.TYPE_CLASS))
 
         # outline effect
         if self.settings.useOutlineEffect():
-            files.append(("three/effects/OutlineEffect.js", ScriptFile.TYPE_CLASS))
+            files.append(("three/addons/effects/OutlineEffect.js", ScriptFile.TYPE_CLASS))
 
         # layer-specific dependencies
         for layer in [lyr for lyr in self.settings.layers() if lyr.visible]:
@@ -316,7 +316,7 @@ class ThreeJSExporter(QObject):
                     files.append(("./meshline/meshline.js", ScriptFile.TYPE_NAMESPACE))
 
                 elif objType == "Box":
-                    files.append(("three/utils/BufferGeometryUtils.js", ScriptFile.TYPE_NAMESPACE))
+                    files.append(("three/addons/utils/BufferGeometryUtils.js", ScriptFile.TYPE_NAMESPACE))
 
         # model loaders
         for manager in self.modelManagers:
