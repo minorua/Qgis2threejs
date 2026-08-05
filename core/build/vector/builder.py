@@ -137,17 +137,15 @@ class VectorLayerBuilder(LayerBuilderBase):
         return math.ceil(len(self.features) / FEATURES_PER_BLOCK)
 
     def layerProperties(self):
-        """Return layer properties such as layer type and object type.
-
-        When attributes or labels are enabled, the corresponding configuration
-        is also included.
+        """
+        @returns {VectorLayerProperties}
         """
         p = LayerBuilderBase.layerProperties(self)
         p["type"] = self.type2str.get(self.layer.type)
         p["objType"] = self.vlayer.ot.name
 
         if self.vlayer.writeAttrs:
-            p["propertyNames"] = self.vlayer.fieldNames
+            p["fieldNames"] = self.vlayer.fieldNames
 
         if self.vlayer.hasLabel:
             label = {

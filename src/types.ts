@@ -75,17 +75,19 @@ export interface DEMLayerProperties extends LayerProperties {
 export interface VectorLayerProperties extends LayerProperties {
     type: "point" | "line" | "polygon";
     objType: string;
-    propertyNames?: string[];
-    label?: {
-        relative?: boolean;
-        font?: string;
-        size?: number;
-        color?: string;
-        olcolor?: string;
-        bgcolor?: string;
-        cncolor?: number;
-        underline?: boolean;
-    };
+    fieldNames?: string[];
+    label?: LabelProperties;
+}
+
+interface LabelProperties {
+    relative?: boolean;
+    font?: string;
+    size?: number;
+    color?: string;
+    olcolor?: string;
+    bgcolor?: string;
+    cncolor?: number;
+    underline?: boolean;
 }
 
 /* Data */

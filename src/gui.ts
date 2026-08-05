@@ -223,10 +223,10 @@ gui.showQueryResult = (point, layer, obj, show_coords) => {
             if (e.children[i].tagName.toUpperCase() == "TR") e.removeChild(e.children[i]);
         }
 
-        if (layer && layer.properties.propertyNames !== undefined) {
-            for (let i = 0, l = layer.properties.propertyNames.length; i < l; i++) {
+        if (layer && layer.properties.fieldNames !== undefined) {
+            for (let i = 0, l = layer.properties.fieldNames.length; i < l; i++) {
                 const row = document.createElement("tr");
-                row.innerHTML = "<td>" + layer.properties.propertyNames[i] + "</td>" +
+                row.innerHTML = "<td>" + layer.properties.fieldNames[i] + "</td>" +
                     "<td>" + obj.userData.properties[i] + "</td>";
                 e.appendChild(row);
             }
