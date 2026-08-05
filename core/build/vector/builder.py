@@ -32,9 +32,9 @@ class VectorLayerBuilder(LayerBuilderBase):
         LayerType.POLYGON: "polygon"
     }
 
-    def __init__(self, layer, settings, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
+    def __init__(self, layer, settings, imageManager, assetDestination=None, progress=None, log=None):
         """See `LayerBuilderBase.__init__()` for argument details."""
-        super().__init__(layer, settings, imageManager, pathRoot, urlRoot, progress, log)
+        super().__init__(layer, settings, imageManager, assetDestination, progress, log)
 
         self.materialManager = MaterialManager(imageManager, settings.materialType())
         self.modelManager = ModelManager(settings)
@@ -55,13 +55,12 @@ class VectorLayerBuilder(LayerBuilderBase):
                              and self.settings.isPreview)
 
     def build(self, build_blocks=False):
-        """Generate the export data structure for this vector layer.
+        """Generate the export data for this vector layer.
 
         Args:
             build_blocks (bool): If True, construct and return feature blocks under `data['body']['blocks']`.
 
-        Returns:
-            dict: Layer export data.
+        @returns {VectorLayerData}
         """
         if self.layer.mapLayer is None or self.vlayer.ot is None:
             return
@@ -88,7 +87,7 @@ class VectorLayerBuilder(LayerBuilderBase):
                 feat.model = vlayer.ot.model(feat)
                 self.features.append(feat)
 
-            data["models"] = self.modelManager.build(self.pathRoot is not None,
+            data["models"] = self.modelManager.build(bool(self.assetDestination is not None),
                                                      base64=self.settings.requiresJsonSerializable)
 
             self.log("This layer references 3D model files. If associated files exist, please copy them to the data directory.", warning=True)
@@ -97,8 +96,10 @@ class VectorLayerBuilder(LayerBuilderBase):
                 feat.material = vlayer.ot.material(feat)
                 self.features.append(feat)
 
-            data["materials"] = self.materialManager.buildAll(self.pathRoot, self.urlRoot,
-                                                              base64=self.settings.requiresJsonSerializable)
+            data["materials"] = self.materialManager.buildAll(
+                self.assetDestination,
+                base64=self.settings.requiresJsonSerializable
+            )
 
         if build_blocks:
             data["blocks"] = list(self.buildBlocks())
@@ -208,8 +209,11 @@ class VectorLayerBuilder(LayerBuilderBase):
             else:
                 z_func = demProvider.readValue      # readValue(x, y)
 
-        builder = FeatureBlockBuilder(self.settings, self.vlayer, self.layer.jsLayerId, self.pathRoot, self.urlRoot,
-                                      useZM, z_func, grid)
+        builder = FeatureBlockBuilder(
+            self.settings, self.vlayer, self.layer.jsLayerId,
+            self.assetDestination,
+            useZM, z_func, grid
+        )
 
         feats = []
         bIndex = startFIdx = 0

@@ -15,6 +15,7 @@ from ..build.datamanager.image import ImageManager
 from ..build.vector.builder import VectorLayerBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings
+from ..storagelocation import StorageLocation
 from ..controller.controller import Q3DController
 from ...conf import DEBUG_MODE, PLUGIN_VERSION
 from ...gui.webview.const import WebViewType, WebViewMode
@@ -394,16 +395,19 @@ class ThreeJSExporter(QObject):
         title = js_utils.abchex(self.nextLayerIndex())
 
         if settings.localMode:
-            pathRoot = urlRoot = None
+            assetDestination = None
         else:
-            pathRoot = os.path.join(settings.outputDataDirectory(), title)
-            urlRoot = "./data/{}/{}".format(settings.outputFileTitle(), title)
+            assetDestination = StorageLocation(
+                outputDir=settings.outputDataDirectory(),
+                baseUrl=f"./data/{settings.outputFileTitle()}/",
+                filePrefix=title
+            )
 
         layer = layer.clone()
         layer.opt.allMaterials = True
 
         builder_cls = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)
-        builder = builder_cls(layer, settings, self.imageManager, pathRoot, urlRoot, log=self.log)
+        builder = builder_cls(layer, settings, self.imageManager, assetDestination, log=self.log)
         if builder_cls == VectorLayerBuilder:
             self.modelManagers.append(builder.modelManager)
 

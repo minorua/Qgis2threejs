@@ -9,14 +9,13 @@ from ..exportsettings import ExportSettings, Layer
 class LayerBuilderBase:
     """Base class for layer builders that generate layer export data."""
 
-    def __init__(self, layer: Layer, settings: ExportSettings, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
+    def __init__(self, layer: Layer, settings: ExportSettings, imageManager, assetDestination=None, progress=None, log=None):
         """
         Args:
             layer: Layer object.
             settings: ExportSettings object.
             imageManager: Image manager used by material builders.
-            pathRoot: Optional filesystem base path for exported assets.
-            urlRoot: Optional URL base for exported assets.
+            assetDestination: Destination info for exporting external assets.
             progress: Callable(current, total, msg) used to report progress.
             log: Callable(message, warning) for logging messages.
         """
@@ -25,8 +24,7 @@ class LayerBuilderBase:
         self.properties = layer.properties
 
         self.imageManager = imageManager
-        self.pathRoot = pathRoot
-        self.urlRoot = urlRoot
+        self.assetDestination = assetDestination
         self.progress = progress or noop
         self.log = log or noop
 

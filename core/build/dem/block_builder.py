@@ -18,7 +18,7 @@ from ....utils.logging import logger
 
 class DEMBlockBuilderBase:
 
-    def __init__(self, layer, settings: ExportSettings, provider, mtlManager, pathRoot=None, urlRoot=None):
+    def __init__(self, layer, settings: ExportSettings, provider, mtlManager, assetDestination=None):
         self.layer = layer
         self.properties = layer.properties
 
@@ -26,8 +26,7 @@ class DEMBlockBuilderBase:
         self.provider = provider
         self.mtlManager = mtlManager
 
-        self.pathRoot = pathRoot
-        self.urlRoot = urlRoot
+        self.assetDestination = assetDestination
 
     def setup(self, blockIndex, extent: MapExtent, localOrigin: QgsPoint):
         self.blockIndex = blockIndex
@@ -56,9 +55,9 @@ class DEMBlockBuilderBase:
             # write DEM values to a binary file
             tail = f"{self.blockIndex}.bin"
 
-            g["url"] = self.urlRoot + tail
+            g["url"] = self.assetDestination.url(tail)
 
-            with open(self.pathRoot + tail, "wb") as f:
+            with open(self.assetDestination.path(tail), "wb") as f:
                 f.write(bytearray)
 
         return g
@@ -140,10 +139,10 @@ class DEMBlockBuilderBase:
             }
 
         tail = f"{self.blockIndex}.binjson"
-        writeBinaryContainer(self.pathRoot + tail, chunks)
+        writeBinaryContainer(self.assetDestination.path(tail), chunks)
 
         return {
-            "url": self.urlRoot + tail
+            "url": self.assetDestination.url(tail)
         }
 
 

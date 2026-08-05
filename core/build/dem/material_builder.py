@@ -11,13 +11,12 @@ from ....utils.js import hex_color
 class DEMMaterialBuilder:
     """Generates materials for DEM layer."""
 
-    def __init__(self, layer, settings, imageManager, pathRoot, urlRoot):
+    def __init__(self, layer, settings, imageManager, assetDestination):
         self.layer = layer
         self.settings = settings
         self.materialManager = MaterialManager(imageManager, settings.materialType())
 
-        self.pathRoot = pathRoot
-        self.urlRoot = urlRoot
+        self.assetDestination = assetDestination
 
         self.mtlId = None
 
@@ -73,10 +72,14 @@ class DEMMaterialBuilder:
                 mi = self.materialManager.getMeshIndex(mt, color, opacity, doubleSide=True)
 
         # build material
+        _mi_str = "_{}".format(mtlIndex) if mtlIndex else ""
         ext = fmt.lower().replace("jpeg", "jpg")
-        suffix = "{}{}.{}".format(self.blockIndex, "_{}".format(mtlIndex) if mtlIndex else "", ext)
-        filepath = None if self.pathRoot is None else (self.pathRoot + suffix)
-        url = None if self.urlRoot is None else (self.urlRoot + suffix)
+        tail = f"{self.blockIndex}{_mi_str}.{ext}"
+
+        filepath = url = None
+        if self.assetDestination:
+            filepath = self.assetDestination.path(tail)
+            url = self.assetDestination.url(tail)
 
         d = self.materialManager.build(mi, filepath, url, self.settings.requiresJsonSerializable)
         d["mtlIndex"] = mtlIndex

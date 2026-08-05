@@ -100,6 +100,9 @@ class MaterialManager(DataManager):
         return self._index(m)
 
     def build(self, index, filepath=None, url=None, base64=False):
+        """
+        @return {MaterialData}
+        """
         mtl: Material = self._list[index]
 
         m = {
@@ -127,9 +130,13 @@ class MaterialManager(DataManager):
                         imgIndex = self.imageManager.imageFileIndex(tex.src)
 
             if url is None:
-                m["image"] = {"base64": self.imageManager.dataUri(imgIndex)}
+                m["image"] = {
+                    "base64": self.imageManager.dataUri(imgIndex)
+                }
             else:
-                m["image"] = {"url": url}
+                m["image"] = {
+                    "url": url
+                }
 
                 if filepath:
                     self.imageManager.write(imgIndex, filepath)
@@ -165,19 +172,19 @@ class MaterialManager(DataManager):
 
         return m
 
-    def buildAll(self, pathRoot=None, urlRoot=None, base64=False):
+    def buildAll(self, assetDestination=None, base64=False):
         mList = []
         for i, mtl in enumerate(self._list):
             filepath = url = None
 
-            if pathRoot and mtl.type == MaterialType.SPRITE_IMAGE:
+            if assetDestination and mtl.type == MaterialType.SPRITE_IMAGE:
                 tex = mtl.options
                 path_url = tex.src
                 if not path_url.startswith("http:") and not path_url.startswith("https:"):
                     ext = os.path.splitext(path_url)[1].lower()
-                    suffix = f"{i}{ext}"
-                    filepath = pathRoot + suffix
-                    url = urlRoot + suffix
+                    tail = f"{i}{ext}"
+                    filepath = assetDestination.path(tail)
+                    url = assetDestination.url(tail)
 
             m = self.build(i, filepath, url, base64)
             mList.append(m)

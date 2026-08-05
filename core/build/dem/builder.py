@@ -23,15 +23,15 @@ from ....utils.logging import logger
 class DEMLayerBuilder(LayerBuilderBase):
     """Generates the export data for a DEM layer."""
 
-    def __init__(self, layer, settings, imageManager, pathRoot=None, urlRoot=None, progress=None, log=None):
+    def __init__(self, layer, settings, imageManager, assetDestination=None, progress=None, log=None):
         """See `LayerBuilderBase.__init__()` for argument details."""
-        super().__init__(layer, settings, imageManager, pathRoot, urlRoot, progress, log)
+        super().__init__(layer, settings, imageManager, assetDestination, progress, log)
 
         self.provider = settings.demProviderByLayerId(layer.layerId)
-        self.mtlBuilder = DEMMaterialBuilder(layer, settings, imageManager, pathRoot, urlRoot)
+        self.mtlBuilder = DEMMaterialBuilder(layer, settings, imageManager, assetDestination)
 
         BldClass = DEMBlockRawBuilder if self.properties.get("radioButton_OriginalValues") else DEMBlockResampBuilder
-        self.blockBuilder = BldClass(layer, settings, self.provider, self.mtlBuilder.materialManager, self.pathRoot, self.urlRoot)
+        self.blockBuilder = BldClass(layer, settings, self.provider, self.mtlBuilder.materialManager, self.assetDestination)
 
     def build(self, build_blocks=False):
         """
@@ -222,7 +222,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         size = self.properties.get("spinBox_Size", 1) if tiles else 1
         size2 = size * size
 
-        centerBlk = DEMBlockResampBuilder(self.layer, self.settings, self.provider, self.mtlBuilder.materialManager, self.pathRoot, self.urlRoot)
+        centerBlk = DEMBlockResampBuilder(self.layer, self.settings, self.provider, self.mtlBuilder.materialManager, self.assetDestination)
         blks = []
         for i in range(size2):
             sx = i % size - (size - 1) // 2

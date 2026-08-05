@@ -21,12 +21,11 @@ class FeatureBlockBuilder:
     """Generates blocks of 3D feature data from a vector layer. When the number of features is large,
         the data is divided into multiple data blocks."""
 
-    def __init__(self, settings, vlayer, jsLayerId, pathRoot=None, urlRoot=None, useZM=VectorGeometry.NotUseZM, z_func=None, grid=None):
+    def __init__(self, settings, vlayer, jsLayerId, assetDestination=None, useZM=VectorGeometry.NotUseZM, z_func=None, grid=None):
         self.settings = settings
         self.vlayer = vlayer
         self.jsLayerId = jsLayerId
-        self.pathRoot = pathRoot
-        self.urlRoot = urlRoot
+        self.assetDestination = assetDestination
         self.useZM = useZM
         self.z_func = z_func
         self.grid = grid
@@ -36,9 +35,11 @@ class FeatureBlockBuilder:
         self.features = []
 
     def clone(self):
-        return FeatureBlockBuilder(self.settings, self.vlayer, self.jsLayerId,
-                                   self.pathRoot, self.urlRoot,
-                                   self.useZM, self.z_func, self.grid)
+        return FeatureBlockBuilder(
+            self.settings, self.vlayer, self.jsLayerId,
+            self.assetDestination,
+            self.useZM, self.z_func, self.grid
+        )
 
     def setBlockIndex(self, index):
         self.blockIndex = index
@@ -47,6 +48,9 @@ class FeatureBlockBuilder:
         self.features = features
 
     def build(self):
+        """
+        @returns {FeatureBlockData | FeatureBlockDataRef}
+        """
         be = self.settings.baseExtent()
         obj_geom_func = self.vlayer.ot.geometry
         mapTo3d = self.settings.mapTo3d()
@@ -88,12 +92,15 @@ class FeatureBlockBuilder:
             "startIndex": self.startFIdx
         }
 
-        if self.pathRoot is not None:
-            with open(self.pathRoot + f"{self.blockIndex}.json", "w", encoding="utf-8") as f:
+        if self.assetDestination:
+            tail = f"{self.blockIndex}.json"
+            with open(self.assetDestination.path(tail), "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2 if DEBUG_MODE else None, default=json_default)
 
-            url = self.urlRoot + f"{self.blockIndex}.json"
-            return {"url": url, "featureCount": len(feats)}
+            return {
+                "url": self.assetDestination.url(tail),
+                "featureCount": len(feats)
+            }
 
         else:
             return data
