@@ -7,6 +7,7 @@ import base64
 import json
 import re
 import struct
+import zlib
 
 from PyQt6.QtCore import QBuffer, QByteArray, QIODevice
 
@@ -139,16 +140,23 @@ def imageFile2dataUri(file_path):
     return f"data:image/{imgType};base64," + base64file(file_path)
 
 
-def writeBinaryContainer(filepath: str, chunks: dict[str, bytes]):
+def writeBinaryContainer(filepath: str, chunks: dict[str, bytes], compress=True):
     metadata = {}
     offset = 0
+    chunk_data = []
 
     for name, data in chunks.items():
+        if compress:
+            data = zlib.compress(data)
+
         metadata[name] = {
             "offset": offset,
-            "size": len(data)
+            "size": len(data),
+            "compressed": compress
         }
+
         offset += len(data)
+        chunk_data.append(data)
 
     json_bytes = json.dumps(metadata, separators=(",", ":")).encode("ascii")
 
@@ -156,5 +164,5 @@ def writeBinaryContainer(filepath: str, chunks: dict[str, bytes]):
         f.write(struct.pack("<I", len(json_bytes)))
         f.write(json_bytes)
 
-        for data in chunks.values():
+        for data in chunk_data:
             f.write(data)

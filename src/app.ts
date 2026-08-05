@@ -389,7 +389,7 @@ app.loadBinaryContainer = (url: string): Promise<Record<string, ArrayBuffer>> =>
     return new Promise((resolve, reject) => {
         fetch(url)
             .then(r => r.arrayBuffer())
-            .then(buf => {
+            .then(async buf => {
                 const view = new DataView(buf);
 
                 const jsonSize = view.getUint32(0, true);
@@ -401,18 +401,29 @@ app.loadBinaryContainer = (url: string): Promise<Record<string, ArrayBuffer>> =>
                 const binaryOffset = 4 + jsonSize;
 
                 const meta = JSON.parse(jsonStr);
-                const data = {};
+                const data: Record<string, ArrayBuffer> = {};
 
                 for (const key in meta) {
-                    data[key] = buf.slice(
-                        binaryOffset + meta[key].offset,
-                        binaryOffset + meta[key].offset + meta[key].size
+                    const m = meta[key];
+
+                    let chunk = buf.slice(
+                        binaryOffset + m.offset,
+                        binaryOffset + m.offset + m.size
                     );
+
+                    if (m.compressed) {
+                        chunk = await decompress(chunk);
+                    }
+
+                    data[key] = chunk;
                 }
 
                 app.loadingManager.itemEnd(url);
 
                 resolve(data);
+            })
+            .catch(err => {
+                reject(err);
             });
     });
 };
@@ -1120,3 +1131,12 @@ app.saveCanvasImage = (width, height, fill_background = true, saveImageFunc) => 
         }
     };
 })();
+
+
+async function decompress(buf: ArrayBuffer): Promise<ArrayBuffer> {
+    const ds = new DecompressionStream("deflate");
+
+    const stream = new Blob([buf]).stream().pipeThrough(ds);
+
+    return await new Response(stream).arrayBuffer();
+}
