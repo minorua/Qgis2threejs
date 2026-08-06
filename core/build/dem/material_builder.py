@@ -6,6 +6,7 @@ from .property_reader import DEMPropertyReader
 from ..datamanager.material import MaterialManager, MaterialType
 from ...const import DEMMtlType
 from ....utils.js import hex_color
+from ....utils.qt import canSaveAsWebP
 
 
 class DEMMaterialBuilder:
@@ -45,10 +46,16 @@ class DEMMaterialBuilder:
         tex_size = DEMPropertyReader.textureSize(p, self.extent, self.settings)
         opacity = DEMPropertyReader.opacity(p)
 
-        isJPEG = p.get("radioButton_JPEG")
-        fmt = "JPEG" if isJPEG else "PNG"
-        transparent_bg = p.get("checkBox_TransparentBackground", False) and not isJPEG
+        transparent_bg = p.get("checkBox_TransparentBackground", False)
         shading = p.get("checkBox_Shading", True)
+
+        if p.get("radioButton_WebP") and canSaveAsWebP():
+            fmt = "WebP"
+        elif p.get("radioButton_PNG"):
+            fmt = "PNG"
+        else:
+            fmt = "JPEG"
+            transparent_bg = False
 
         mtl_type = m.get("type", DEMMtlType.MAPCANVAS)
         match mtl_type:

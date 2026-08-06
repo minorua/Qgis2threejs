@@ -37,6 +37,7 @@ from ..utils.gui import selectImageFile
 from ..utils.js import hex_color
 from ..utils.logging import logger
 from ..utils.qgis import getDEMLayersInProject, getLayersInProject, selectColor, shortTextFromSelectedLayerIds
+from ..utils.qt import canSaveAsWebP
 
 
 PAGE_NONE = 0
@@ -409,7 +410,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.hasPolygonLayer = False
 
         widgets = [self.lineEdit_Name]
-        # geometry
+        # widgets in geometry tab
         if self.isPlane:
             widgets += [self.lineEdit_Altitude]
         else:
@@ -419,7 +420,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         widgets += [self.checkBox_Tiles, self.spinBox_Size]
 
-        # others
+        # widgets in others tab
         widgets += [self.checkBox_Sides, self.colorButton_Side, self.lineEdit_Bottom,
                     self.checkBox_Frame, self.colorButton_Edge]
         if not self.isPlane:
@@ -429,7 +430,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         self.registerPropertyWidgets(widgets)
 
-        # geometry group
+        # configure geometry tab widgets
         if self.isPlane:
             self.setWidgetsVisible([self.groupBoxResampMethod, self.groupBoxClip], False)
             self.setWidgetsVisible([self.labelRoughness, self.spinBox_Roughening], False)
@@ -457,15 +458,20 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
             self.lineEdit_Name.setPlaceholderText(layer.mapLayer.name() if layer.mapLayer else layer.name)
 
-
         self.checkBox_Tiles.toggled.connect(self.tilesToggled)
         self.spinBox_Roughening.valueChanged.connect(self.rougheningChanged)
 
-        # material group
+        # material tab - a layer can have multiple materials.
         self.mtlLayerIds = HiddenProperty("layerIds", [])
-        self.mtlWidgets = [self.comboBox_TextureSize, self.radioButton_JPEG, self.radioButton_PNG, self.lineEdit_ImageFile, self.colorButton_Color,
-                           self.spinBox_Opacity, self.checkBox_TransparentBackground, self.checkBox_Shading,
-                           self.mtlLayerIds]
+        self.mtlWidgets = [
+            self.comboBox_TextureSize, self.radioButton_WebP, self.radioButton_JPEG, self.radioButton_PNG, self.lineEdit_ImageFile, self.colorButton_Color,
+            self.spinBox_Opacity, self.checkBox_TransparentBackground, self.checkBox_Shading,
+            self.mtlLayerIds
+        ]
+
+        if not canSaveAsWebP():
+            self.radioButton_WebP.setEnabled(False)
+            self.radioButton_JPEG.setChecked(True)
 
         self.toolButton_AddMtl.setIcon(QgsApplication.getThemeIcon("symbologyAdd.svg"))
         self.toolButton_RemoveMtl.setIcon(QgsApplication.getThemeIcon("symbologyRemove.svg"))

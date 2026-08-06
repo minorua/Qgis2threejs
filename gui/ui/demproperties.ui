@@ -29,7 +29,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="tabPosition">
-      <enum>QTabWidget::West</enum>
+      <enum>QTabWidget::TabPosition::West</enum>
      </property>
      <property name="currentIndex">
       <number>0</number>
@@ -54,7 +54,7 @@
        <item>
         <widget class="QScrollArea" name="scrollArea">
          <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
+          <enum>QFrame::Shape::NoFrame</enum>
          </property>
          <property name="widgetResizable">
           <bool>true</bool>
@@ -64,7 +64,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>357</width>
+            <width>352</width>
             <height>483</height>
            </rect>
           </property>
@@ -145,10 +145,10 @@
                    <number>2</number>
                   </property>
                   <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
+                   <enum>Qt::Orientation::Horizontal</enum>
                   </property>
                   <property name="tickPosition">
-                   <enum>QSlider::TicksBelow</enum>
+                   <enum>QSlider::TickPosition::TicksBelow</enum>
                   </property>
                   <property name="tickInterval">
                    <number>1</number>
@@ -362,7 +362,7 @@
            <item>
             <spacer name="verticalSpacer">
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Orientation::Vertical</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -398,7 +398,7 @@
        <item>
         <widget class="QScrollArea" name="scrollArea_2">
          <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
+          <enum>QFrame::Shape::NoFrame</enum>
          </property>
          <property name="widgetResizable">
           <bool>true</bool>
@@ -408,7 +408,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>357</width>
+            <width>352</width>
             <height>483</height>
            </rect>
           </property>
@@ -438,7 +438,7 @@
              <item row="0" column="2">
               <spacer name="horizontalSpacer">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -474,7 +474,7 @@
                 <number>100</number>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -549,7 +549,7 @@
                 <string/>
                </property>
                <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -613,20 +613,27 @@
              </item>
              <item row="3" column="1" colspan="2">
               <layout class="QGridLayout" name="gridLayout_2">
-               <item row="0" column="1">
-                <widget class="QRadioButton" name="radioButton_PNG">
+               <item row="0" column="0">
+                <widget class="QRadioButton" name="radioButton_WebP">
                  <property name="text">
-                  <string>PNG</string>
+                  <string>WebP</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
-               <item row="0" column="0">
+               <item row="0" column="1">
                 <widget class="QRadioButton" name="radioButton_JPEG">
                  <property name="text">
                   <string>JPEG</string>
                  </property>
-                 <property name="checked">
-                  <bool>true</bool>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QRadioButton" name="radioButton_PNG">
+                 <property name="text">
+                  <string>PNG</string>
                  </property>
                 </widget>
                </item>
@@ -637,7 +644,7 @@
            <item>
             <spacer name="verticalSpacer_2">
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Orientation::Vertical</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -714,7 +721,7 @@
           <string>Bottom altitude</string>
          </property>
          <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
          </property>
         </widget>
        </item>
@@ -770,7 +777,7 @@
        <item row="8" column="0" colspan="2">
         <spacer name="verticalSpacer_3">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -783,7 +790,7 @@
        <item row="4" column="0" colspan="2">
         <widget class="Line" name="line">
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
         </widget>
        </item>
@@ -801,7 +808,6 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>tabWidget</tabstop>
   <tabstop>lineEdit_Altitude</tabstop>
   <tabstop>radioButton_Resampling</tabstop>
   <tabstop>horizontalSlider_DEMSize</tabstop>
@@ -816,8 +822,10 @@
   <tabstop>spinBox_Roughening</tabstop>
   <tabstop>toolButton_AddMtl</tabstop>
   <tabstop>toolButton_RemoveMtl</tabstop>
+  <tabstop>listWidget_Materials</tabstop>
   <tabstop>toolButton_SelectLayer</tabstop>
   <tabstop>comboBox_TextureSize</tabstop>
+  <tabstop>radioButton_WebP</tabstop>
   <tabstop>radioButton_JPEG</tabstop>
   <tabstop>radioButton_PNG</tabstop>
   <tabstop>lineEdit_ImageFile</tabstop>
@@ -837,6 +845,9 @@
   <tabstop>lineEdit_Name</tabstop>
   <tabstop>checkBox_Visible</tabstop>
   <tabstop>checkBox_Clickable</tabstop>
+  <tabstop>scrollArea_2</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>scrollArea</tabstop>
  </tabstops>
  <resources/>
  <connections>
