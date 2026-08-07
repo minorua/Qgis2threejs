@@ -3,12 +3,12 @@
 
 import { THREE } from "../three.js";
 
-import { app, conf, deg2rad, LayerType, UV } from "../core.js";
+import { app, conf, LayerType } from "../core.js";
 import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
-import * as Utils from "../utils.js";
+import { decodeBase64TypedArrayObject, createWallGeometry } from "../utils.js";
 
-import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, DEMMeshData, MapExtent, Point3, Vec3 } from "../types.js";
+import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, MapExtent, ParsedDEMGridData, ParsedDEMMeshData, Point3, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
 
 
@@ -319,7 +319,7 @@ class DEMBlockBase {
 		const sides = [];
 		for (const boundary of boundaries) {
 			// TODO: counter clockwise order and front side material
-			const side_geom = Utils.createWallGeometry(boundary.flat(), () => z0);
+			const side_geom = createWallGeometry(boundary.flat(), () => z0);
 
 			const side = new THREE.Mesh(side_geom, material);
 			sides.push(side);
@@ -353,8 +353,8 @@ class DEMGridBlock extends DEMBlockBase {
 		mesh.scale.z = data.zScale;
 		layer.addObject(mesh);
 
-		const build = (array, grid) => {
-			geom.loadData(array, grid.columns, grid.rows, data.extent, Utils.base64ToFloat32(grid.nodata), data.segments);
+		const build = (grid_data: ParsedDEMGridData) => {
+			geom.loadData(grid_data.dem_values, grid_data.columns, grid_data.rows, data.extent, grid_data.nodata, data.segments);
 			this.buildAuxiliaryObjects(layer, geom, mesh);
 
 			layer.requestRender();
@@ -362,14 +362,10 @@ class DEMGridBlock extends DEMBlockBase {
 
 		const grid = data.grid;
 		if ("url" in grid) {
-			app.loadBinaryContainer(grid.url).then((cnt) => {
-				build(new Float32Array(cnt.dem_values), grid);
-			});
+			app.loadJSONBinaryFile(grid.url).then(build);
 		}
 		else {
-			const bytes = Utils.base64ToUint8Array(grid.dem_values);
-			delete grid.dem_values;
-			build(new Float32Array(bytes.buffer), grid);
+			decodeBase64TypedArrayObject(grid).then(build);
 		}
 
 		this.obj = mesh;
@@ -397,7 +393,7 @@ class DEMMeshBlock extends DEMBlockBase {
 
 		this.obj = mesh;
 
-		const build = (mesh_data) => {
+		const build = (mesh_data: ParsedDEMMeshData) => {
 			this.setGeometryData(geom, mesh_data);
 			if (!geom.getAttribute("uvs")) {
 				this.calculateUVs(geom, data.extent, layer.sceneData.origin);
@@ -408,25 +404,22 @@ class DEMMeshBlock extends DEMBlockBase {
 		};
 
 		if ("url" in mesh_data) {
-			app.loadBinaryContainer(mesh_data.url).then((mesh_data) => build(mesh_data));
+			app.loadJSONBinaryFile(mesh_data.url).then(build);
 		}
 		else {    // preview
-			build(mesh_data);
+			decodeBase64TypedArrayObject(mesh_data).then(build);
 		}
 
 		return mesh;
 	}
 
-	setGeometryData(geom: THREE.BufferGeometry, data: DEMMeshData) {
-		const vert: ArrayBuffer = (typeof data.vertices === "string") ? Utils.base64ToUint8Array(data.vertices).buffer : data.vertices;
-		geom.setAttribute("position", new THREE.Float32BufferAttribute(vert, 3));
+	setGeometryData(geom: THREE.BufferGeometry, data: ParsedDEMMeshData) {
+		geom.setAttribute("position", new THREE.Float32BufferAttribute(data.vertices, 3));
 
-		const ind: ArrayBuffer = (typeof data.indices === "string") ? Utils.base64ToUint8Array(data.indices).buffer : data.indices;
-		geom.setIndex(new THREE.Uint32BufferAttribute(ind, 1));
+		geom.setIndex(new THREE.Uint32BufferAttribute(data.indices, 1));
 
 		if (data.uvs) {
-			const _uv: ArrayBuffer = (typeof data.uvs === "string") ? Utils.base64ToUint8Array(data.uvs).buffer : data.uvs;
-			geom.setAttribute("uv", new THREE.Float32BufferAttribute(_uv, 2));
+			geom.setAttribute("uv", new THREE.Float32BufferAttribute(data.uvs, 2));
 		}
 
 		geom.computeBoundingSphere();
@@ -483,7 +476,9 @@ class GridGeometry extends THREE.BufferGeometry {
 	 * @param nodata    - No data value
 	 * @param segments	- Segments of a tile side. When supplied, the grid is treated as a square tile.
 	 */
-	loadData(array: Float32Array, columns: number, rows: number, extent: MapExtent, nodata?: number, segments?: number) {
+	loadData(array: Float32Array, columns: number, rows: number, extent: MapExtent, nodata?: number | Float32Array, segments?: number) {
+		if (Array.isArray(nodata)) nodata = nodata[0];
+
 		const { width, height }  = extent;
 		const isTileMode = (segments !== undefined);
 		const segmentsX = (isTileMode) ? segments : columns - 1;

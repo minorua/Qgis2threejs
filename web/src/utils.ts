@@ -3,6 +3,8 @@
 
 import { THREE } from "./three.js";
 
+import type { Base64Data } from "./types.js";
+
 export const E = (id) => document.getElementById(id);
 
 // Put a stick to given position (for debugging)
@@ -88,7 +90,55 @@ export const base64ToUint8Array = (base64) => {
 	return bytes;
 };
 
-export const base64ToFloat32 = (base64: string) => {
-	if (base64 === undefined) return undefined;
-	return new Float32Array(base64ToUint8Array(base64).buffer)[0]
+export const decodeBase64TypedArrayObject = async (obj) => {
+	return transformObjectValues(obj, async (value) => {
+		if (value.__type__ !== undefined) {
+			const bin = value as Base64Data;
+			let chunk = base64ToUint8Array(bin.data).buffer;
+
+			if (bin.compressed) {
+				chunk = await decompress(chunk);
+			}
+
+			switch (bin.__type__) {
+				case "f32":
+					return new Float32Array(chunk);
+				case "I32":
+					return new Uint32Array(chunk);
+			}
+		}
+	});
+};
+
+export const decompress = async (buf: ArrayBuffer): Promise<ArrayBuffer> => {
+    const ds = new DecompressionStream("deflate");
+
+    const stream = new Blob([buf]).stream().pipeThrough(ds);
+
+    return await new Response(stream).arrayBuffer();
 }
+
+export const transformObjectValues = async (obj, transform) => {
+	const visit = async (value) => {
+		if (!value || typeof value !== "object") {
+			return value;
+		}
+
+		const transformed = await transform(value, visit);
+		if (transformed !== undefined) {
+			return transformed;
+		}
+
+		if (Array.isArray(value)) {
+			return Promise.all(value.map(visit));
+		}
+
+		const o = {};
+		for (const key in value) {
+			o[key] = await visit(value[key]);
+		}
+		return o;
+	};
+
+	return visit(obj);
+};

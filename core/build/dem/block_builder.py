@@ -9,6 +9,7 @@ import struct
 from qgis.PyQt.QtCore import QSize
 from qgis.core import QgsGeometry, QgsPoint, QgsPointXY
 
+from ..jsonbinarywriter import BinaryContainer, JSONBinaryWriter
 from ...exportsettings import ExportSettings
 from ...geometry import TINGeometry
 from ...mapextent import MapExtent
@@ -42,17 +43,14 @@ class DEMBlockBuilderBase:
 
         g = {
             "columns": cols,
-            "rows": rows
+            "rows": rows,
+            "dem_values": BinaryContainer(bytearray, "f32")
         }
 
         if nodata is not None:
-            g["nodata"] = base64.b64encode(struct.pack("f", nodata)).decode("ascii")
+            g["nodata"] = BinaryContainer.fromFloat(nodata)
 
-        g.update(self.exportBinaryChunks({
-            "dem_values": bytearray
-        }))
-
-        return g
+        return self.buildJSONBinary(g)
 
     def buildMeshData(self, z_arr, extent: MapExtent, localOrigin: QgsPoint, nodata=None, full_extent: MapExtent=None):
         """
@@ -110,21 +108,19 @@ class DEMBlockBuilderBase:
         valid_triangles_mask = np.all(triangles >= 0, axis=1)
         faces = triangles[valid_triangles_mask]
 
-        return self.exportBinaryChunks({
-            "vertices": nparr_to_bytes(vertices, np.float32),
-            "indices": nparr_to_bytes(faces, np.int32),
-            "uvs": nparr_to_bytes(uvs, np.float32)
+        return self.buildJSONBinary({
+            "vertices": BinaryContainer(nparr_to_bytes(vertices, np.float32), "f32"),
+            "indices": BinaryContainer(nparr_to_bytes(faces, np.uint32), "I32"),
+            "uvs": BinaryContainer(nparr_to_bytes(uvs, np.float32), "f32")
         })
 
-    def exportBinaryChunks(self, chunks):
+    def buildJSONBinary(self, data):
+        jhb = JSONBinaryWriter(data)
         if self.settings.isPreview:
-            return {
-                key: base64.b64encode(bin).decode("ascii") for key, bin in chunks.items()
-            }
+            return jhb.toJSONCompatible()
 
         tail = f"{self.blockIndex}.binjson"
-        writeBinaryContainer(self.assetDestination.path(tail), chunks)
-
+        jhb.write(self.assetDestination.path(tail))
         return {
             "url": self.assetDestination.url(tail)
         }
@@ -195,9 +191,9 @@ class DEMBlockResampBuilder(DEMBlockBuilderBase):
         tin = TINGeometry.fromQgsGeometry(polys, z_func, transform_func, centroid=False)
         d = tin.toDict(flat=True)
 
-        return self.exportBinaryChunks({
-            "vertices": nparr_to_bytes(np.array(d["vertices"], dtype=np.float32), np.float32),
-            "indices": nparr_to_bytes(np.array(d["indices"], dtype=np.int32), np.int32)
+        return self.buildJSONBinary({
+            "vertices": BinaryContainer(nparr_to_bytes(np.array(d["vertices"], dtype=np.float32)), "f32"),
+            "indices": BinaryContainer(nparr_to_bytes(np.array(d["indices"], dtype=np.uint32)), "I32")
         })
 
     def processEdges(self, grid_values, roughness):
@@ -375,5 +371,8 @@ class DEMBlockRawBuilder(DEMBlockBuilderBase):
         return b
 
 
-def nparr_to_bytes(arr, dtype=np.float32):
+def nparr_to_bytes(arr, dtype=None):
+    if dtype is None:
+        return arr.tobytes()
+
     return arr.astype(dtype, copy=False).tobytes()
