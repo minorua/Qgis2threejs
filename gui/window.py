@@ -131,6 +131,7 @@ class Q3DWindow(QMainWindow):
 
         self._modelFile = None
         self._saveModelState = None
+        self._dialogs = {}
 
     def commandReceived(self, method, params, payload):
         if method == Command.EMBED_WND:
@@ -366,10 +367,47 @@ class Q3DWindow(QMainWindow):
     def setDirty(self):
         self.isDirty = True
 
+    def _getManagedDialog(self, key):
+        return self._dialogs.get(key)
+
+    def _clearManagedDialog(self, key):
+        self._dialogs[key] = None
+
+    def _setManagedDialog(self, key, dialog):
+        self._dialogs[key] = dialog
+        dialog.destroyed.connect(lambda _=None: self._clearManagedDialog(key))
+
+    def _focusManagedDialog(self, key, beforeShow=None):
+        dialog = self._getManagedDialog(key)
+        if dialog is None:
+            return None
+
+        try:
+            if beforeShow:
+                beforeShow(dialog)
+
+            dialog.show()
+            dialog.raise_()
+            dialog.activateWindow()
+            return dialog
+
+        except RuntimeError:
+            self._clearManagedDialog(key)
+            return None
+
     # layer tree view
     def showLayerPropertiesDialog(self, layer, tab=0):
+        def setTab(dlg):
+            if hasattr(dlg.page, "tabWidget"):
+                dlg.page.tabWidget.setCurrentIndex(tab)
+
+        dialog = self._focusManagedDialog(layer.layerId, beforeShow=setTab)
+        if dialog:
+            return dialog
+
         dialog = PropertiesDialog(self, self.settings, self.qgisIface)
         dialog.propertiesAccepted.connect(self.updateLayerProperties)
+        self._setManagedDialog(layer.layerId, dialog)
 
         dialog.showLayerProperties(layer, tab)
         return dialog
@@ -410,11 +448,17 @@ class Q3DWindow(QMainWindow):
     def exportToWeb(self):
         from .exportdialog import ExportToWebDialog
 
+        dialog = self._focusManagedDialog("exportToWeb")
+        if dialog:
+            return dialog
+
         self.settings.setAnimationData(self.ui.animationPanel.data())
 
         dialog = ExportToWebDialog(self, self.settings, self.controller)
+        self._setManagedDialog("exportToWeb", dialog)
         dialog.show()
         dialog.exec()
+        return dialog
 
     def saveAsImage(self):
         if not self.ui.checkBoxPreview.isChecked():
@@ -562,8 +606,13 @@ class Q3DWindow(QMainWindow):
 
     # Scene menu
     def showScenePropertiesDialog(self):
+        dialog = self._focusManagedDialog("sceneProperties")
+        if dialog:
+            return dialog
+
         dialog = PropertiesDialog(self, self.settings, self.qgisIface)
         dialog.propertiesAccepted.connect(self.updateSceneProperties)
+        self._setManagedDialog("sceneProperties", dialog)
         dialog.showSceneProperties()
         return dialog
 
@@ -621,16 +670,28 @@ class Q3DWindow(QMainWindow):
         self.runScript(f"setNavigationEnabled({js_bool(enabled)})")
 
     def showNorthArrowDialog(self):
+        dialog = self._focusManagedDialog("northArrow")
+        if dialog:
+            return dialog
+
         dialog = NorthArrowDialog(self, self.settings.widgetProperties("NorthArrow"))
         dialog.propertiesAccepted.connect(lambda p: self.updateWidgetProperties("NorthArrow", p))
+        self._setManagedDialog("northArrow", dialog)
         dialog.show()
         dialog.exec()
+        return dialog
 
     def showHFLabelDialog(self):
+        dialog = self._focusManagedDialog("hfLabel")
+        if dialog:
+            return dialog
+
         dialog = HFLabelDialog(self, self.settings.widgetProperties("Label"))
         dialog.propertiesAccepted.connect(lambda p: self.updateWidgetProperties("Label", p))
+        self._setManagedDialog("hfLabel", dialog)
         dialog.show()
         dialog.exec()
+        return dialog
 
     def updateWidgetProperties(self, name, properties):
         self.settings.setWidgetProperties(name, properties)
