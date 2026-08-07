@@ -182,17 +182,21 @@ export interface DEMBlockMaterialData extends BlockData {
 
 export type DEMBlockData = DEMBlockGridData | DEMBlockMeshData | DEMBlockMaterialData;
 
-interface DEMGridDataBase {
+export interface DEMGridData {
     columns: number;
     rows: number;
-    nodata?: string;
+    dem_values: Base64F32;
+    nodata?: Base64F32;
 }
 
-export interface DEMGridData extends DEMGridDataBase {
-    dem_values: string;
+export interface ParsedDEMGridData {
+    columns: number;
+    rows: number;
+    dem_values: Float32Array;
+    nodata?: Float32Array1;
 }
 
-export interface DEMGridDataRef extends DEMGridDataBase {
+export interface DEMGridDataRef {
     url: string;
 }
 
@@ -200,6 +204,12 @@ export interface DEMMeshData {
     vertices: string;
     indices: string;
     uvs?: string;
+}
+
+export interface ParsedDEMMeshData {
+    vertices: Float32Array;
+    indices: Uint32Array;
+    uvs?: Float32Array;
 }
 
 export interface DEMMeshDataRef {
@@ -344,6 +354,46 @@ export type PreviewData =
     | SignalData;
 
 
+//// binary data
+type BinaryDataType = "f32" | "I32";
+
+interface Base64DataBase {
+    __type__: BinaryDataType;
+    compressed: boolean;
+    data: string;
+}
+
+interface Base64F32 extends Base64DataBase {
+    __type__: "f32";
+}
+
+interface Base64I32 extends Base64DataBase {
+    __type__: "I32";
+}
+
+export type Base64Data = Base64F32 | Base64I32;
+
+interface DataRefBase {
+    __type__: BinaryDataType;
+    compressed: boolean;
+    offset: number;
+    size: number;
+}
+
+interface DataRefF32 extends DataRefBase {
+    __type__: "f32";
+}
+
+interface DataRefI32 extends DataRefBase {
+    __type__: "I32";
+}
+
+type DataRef = DataRefF32 | DataRefI32;
+
+/** Float32Array & { length: 1 } */
+type Float32Array1 = Float32Array;
+
+
 //// Interfaces for the app, gui, and modules objects
 export interface App {
     /* core objects */
@@ -394,7 +444,7 @@ export interface App {
     loadTextureFile(url: string, callback?);
     loadModelFile(url: string, callback?);
     loadModelData(data, ext: string, resourcePath: string, callback?);
-    loadBinaryContainer(url: string): Promise<Record<string, ArrayBuffer>>;
+    loadJSONBinaryFile(url: string): Promise<any>;
     buildCamera(is_ortho?: boolean);
     buildNorthArrow(container: HTMLElement, declination?: number);
     buildViewHelper(container: HTMLElement);

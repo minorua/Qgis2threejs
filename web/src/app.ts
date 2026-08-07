@@ -6,7 +6,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 import { app, conf, deg2rad, gui, modules, Group, LayerType } from "./core.js";
 import { Scene } from "./scene.js";
-import { E } from "./utils.js";
+import { E, decompress, transformObjectValues } from "./utils.js";
 
 import type { AppData, Q3DEventListener } from "./types.js";
 
@@ -383,7 +383,7 @@ app.loadModelData = (data: Uint8Array, ext: string, resourcePath: string, callba
     }
 };
 
-app.loadBinaryContainer = (url: string): Promise<Record<string, ArrayBuffer>> => {
+app.loadJSONBinaryFile = (url: string): Promise<Record<string, ArrayBuffer>> => {
     app.loadingManager.itemStart(url);
 
     return new Promise((resolve, reject) => {
@@ -400,23 +400,25 @@ app.loadBinaryContainer = (url: string): Promise<Record<string, ArrayBuffer>> =>
 
                 const binaryOffset = 4 + jsonSize;
 
-                const meta = JSON.parse(jsonStr);
-                const data: Record<string, ArrayBuffer> = {};
+                const data = await transformObjectValues(JSON.parse(jsonStr), async (value) => {
+                    if (value.__type__ !== undefined) {
+                        let chunk = buf.slice(
+                            binaryOffset + value.offset,
+                            binaryOffset + value.offset + value.size
+                        );
 
-                for (const key in meta) {
-                    const m = meta[key];
+                        if (value.compressed) {
+                            chunk = await decompress(chunk);
+                        }
 
-                    let chunk = buf.slice(
-                        binaryOffset + m.offset,
-                        binaryOffset + m.offset + m.size
-                    );
-
-                    if (m.compressed) {
-                        chunk = await decompress(chunk);
+                        switch (value.__type__) {
+                            case "f32":
+                                return new Float32Array(chunk);
+                            case "I32":
+                                return new Uint32Array(chunk);
+                        }
                     }
-
-                    data[key] = chunk;
-                }
+                });
 
                 app.loadingManager.itemEnd(url);
 
@@ -1131,12 +1133,3 @@ app.saveCanvasImage = (width, height, fill_background = true, saveImageFunc) => 
         }
     };
 })();
-
-
-async function decompress(buf: ArrayBuffer): Promise<ArrayBuffer> {
-    const ds = new DecompressionStream("deflate");
-
-    const stream = new Blob([buf]).stream().pipeThrough(ds);
-
-    return await new Response(stream).arrayBuffer();
-}

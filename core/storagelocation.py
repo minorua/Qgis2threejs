@@ -13,6 +13,9 @@ class StorageLocation:
     baseUrl: str
     filePrefix: str
 
+    def filename(self, fileTail: str) -> str:
+        return self.filePrefix + fileTail
+
     def path(self, fileTail: str) -> str:
         return os.path.join(self.outputDir, self.filePrefix + fileTail)
 
