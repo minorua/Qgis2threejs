@@ -42,7 +42,7 @@ def parseFloat(string, def_val=None):
 
 ### template config ###
 def templateDir():
-    return pluginDir("web/html_templates")
+    return pluginDir("web/templates")
 
 
 def getTemplateConfig(template_path):
