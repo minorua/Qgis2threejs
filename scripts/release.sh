@@ -6,9 +6,9 @@ export PATH=$PATH:/c/OSGeo4W/bin
 PLUGINNAME=Qgis2threejs
 
 JS_FILES="\
-web/js/Qgis2threejs.js
-web/js/gui_dat.js
-web/js/preview.js"
+web/js/dist/Qgis2threejs.js
+web/js/dist/gui_dat.js
+web/js/dist/preview.js"
 
 echo "============================================================"
 echo " Release process started: ${PLUGINNAME}"

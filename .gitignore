@@ -10,9 +10,6 @@
 *.map
 package-lock.json
 pyrightconfig.json
-web/js/Qgis2threejs.js
-web/js/gui_dat.js
-web/js/preview.js
 
 .venv/
 .venv-pyqt5/
@@ -23,6 +20,7 @@ web/js/preview.js
 .env-pyqt6/
 node_modules/
 docs/build/
+web/js/dist/
 web/src/schema/
 web/src/types/
 tests/cache/
