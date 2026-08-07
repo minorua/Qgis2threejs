@@ -151,7 +151,7 @@ function loadData(data: PreviewData, viaQueue: boolean): boolean {
 			break;
 
 		case "signal":
-			if (data.name = "queueCompleted") {
+			if (data.name === "queueCompleted") {
 				tasksAndLoadingFinalized(data.success, data.is_scene);
 
 				// Temporary workaround: schedule a delayed redraw to ensure changes
