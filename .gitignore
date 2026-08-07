@@ -23,7 +23,7 @@ web/js/preview.js
 .env-pyqt6/
 node_modules/
 docs/build/
-src/schema/
-src/types/
+web/src/schema/
+web/src/types/
 tests/cache/
 tests/output/

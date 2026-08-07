@@ -29,7 +29,7 @@ rm -f $JS_FILES
 echo
 echo "== Version check =="
 echo "Please confirm:"
-echo "  - src/Qgis2threejs.ts version is updated"
+echo "  - web/src/Qgis2threejs.ts version is updated"
 echo "  - PLUGIN_VERSION and PLUGIN_VERSION_INT in conf.py are updated"
 echo "  - metadata.txt version is updated"
 
@@ -89,7 +89,7 @@ git rm -q gui/ui/*.ui
 git rm -q -r .github
 git rm -q -r docs
 git rm -q -r scripts
-git rm -q -r src
+git rm -q -r web/src
 git rm -q -r tests
 git commit -q -m "remove development files"
 

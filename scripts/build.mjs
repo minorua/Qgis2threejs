@@ -6,9 +6,9 @@ const watch = process.argv.includes("--watch");
 
 const ctx = await esbuild.context({
     entryPoints: [
-        "./src/Qgis2threejs.ts",
-        "./src/gui_dat.ts",
-        "./src/preview.ts"
+        "./web/src/Qgis2threejs.ts",
+        "./web/src/gui_dat.ts",
+        "./web/src/preview.ts"
     ],
     bundle: true,
     format: "esm",

@@ -6,8 +6,8 @@
     "noEmit": true,
     "strict": false,
 
-    "rootDir": "src/",
-    "outDir": "src/types",
+    "rootDir": "web/src/",
+    "outDir": "web/src/types",
 
     "paths": {
       "three": ["./node_modules/@types/three"],
@@ -15,10 +15,10 @@
     }
   },
   "include": [
-    "src/**/*.js",
-    "src/**/*.ts"
+    "web/src/**/*.js",
+    "web/src/**/*.ts"
   ],
   "exclude": [
-    "src/types"
+    "web/src/types"
   ]
 }
