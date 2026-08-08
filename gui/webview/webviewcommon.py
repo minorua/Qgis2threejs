@@ -76,7 +76,7 @@ class Q3DWebPageCommon:
         path, type = ScriptFile.FILES[scriptFileId]
         is_module = js_bool(type != ScriptFile.TYPE_NON_MODULE)
         is_namespace = js_bool(type == ScriptFile.TYPE_NAMESPACE)
-        script = f"loadScriptFile('../js/{path}', () => {{pyObj.emitScriptReady({scriptFileId})}}, {is_module}, {is_namespace})"
+        script = f"loadScriptFile('{path}', () => {{pyObj.emitScriptReady({scriptFileId})}}, {is_module}, {is_namespace})"
 
         if wait:
             loop = QEventLoop()
