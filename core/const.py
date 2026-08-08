@@ -47,18 +47,18 @@ class ScriptFile:
     TYPE_CLASS = 1
     TYPE_NAMESPACE = 2
 
-    # relative paths to script files from js directory
-    THREE_DIR = "lib/three"
+    THREE_DIR = "three/addons/"
     FILES = {
-        GLTFLOADER: (THREE_DIR + "/loaders/GLTFLoader.js", TYPE_CLASS),
-        COLLADALOADER: (THREE_DIR + "/loaders/ColladaLoader.js", TYPE_CLASS),
-        OUTLINE: (THREE_DIR + "/effects/OutlineEffect.js", TYPE_CLASS),
-        VIEWHELPER: (THREE_DIR + "/helpers/ViewHelper.js", TYPE_CLASS),
+        GLTFLOADER: (THREE_DIR + "loaders/GLTFLoader.js", TYPE_CLASS),
+        COLLADALOADER: (THREE_DIR + "loaders/ColladaLoader.js", TYPE_CLASS),
+        OUTLINE: (THREE_DIR + "effects/OutlineEffect.js", TYPE_CLASS),
+        VIEWHELPER: (THREE_DIR + "helpers/ViewHelper.js", TYPE_CLASS),
 
-        BUFGEOMUTILS: (THREE_DIR + "/utils/BufferGeometryUtils.js", TYPE_NAMESPACE),
+        BUFGEOMUTILS: (THREE_DIR + "utils/BufferGeometryUtils.js", TYPE_NAMESPACE),
         MESHLINE: ("lib/meshline/meshline.js", TYPE_NAMESPACE),
 
-        PROJ4: ("lib/proj4js/proj4.js", TYPE_NON_MODULE),
+        # relative paths to script files from viewer directory
+        PROJ4: ("../js/lib/proj4js/proj4.js", TYPE_NON_MODULE),
         TEST: ("../../tests/gui/test.js", TYPE_NON_MODULE)
     }
 
