@@ -3,7 +3,7 @@
 
 import { app, conf, gui, modules, E } from "./Qgis2threejs.js";
 const THREE = modules.THREE;
-export { app, conf, gui, THREE }
+export { app, conf, gui, modules, THREE }
 
 import { ViewHelper } from "three/addons/helpers/ViewHelper.js";
 modules.ViewHelper = ViewHelper;
