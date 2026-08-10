@@ -2,9 +2,7 @@
 # (C) 2014 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import base64
 import numpy as np
-import struct
 
 from qgis.PyQt.QtCore import QSize
 from qgis.core import QgsGeometry, QgsPoint, QgsPointXY
@@ -13,7 +11,7 @@ from ..jsonbinarywriter import BinaryContainer, JSONBinaryWriter
 from ...exportsettings import ExportSettings
 from ...geometry import TINGeometry
 from ...mapextent import MapExtent
-from ....utils.js import writeBinaryContainer
+from ....conf import GRID_DEM_OUTPUT_MODE
 from ....utils.logging import logger
 
 
@@ -168,7 +166,11 @@ class DEMBlockResampBuilder(DEMBlockBuilderBase):
                 self.processEdgesCenter(grid_values, self.edgeRoughness)
                 arr = np.array(grid_values, dtype=np.float32).reshape(rows, columns)
 
-            b["grid"] = self.buildGridData(arr, self.extent, self.localOrigin, nodata=self.provider.nodata)
+            if GRID_DEM_OUTPUT_MODE == "mesh":
+                b["mesh"] = self.buildMeshData(arr, self.extent, self.localOrigin, self.provider.nodata, full_extent=self.extent)
+                b["translate"] = [0, 0, 0]
+            else:
+                b["grid"] = self.buildGridData(arr, self.extent, self.localOrigin, self.provider.nodata)
 
         return b
 
@@ -364,10 +366,12 @@ class DEMBlockRawBuilder(DEMBlockBuilderBase):
 
             arr = self.provider.readAsArray(columns, rows, valid_extent)
 
-            b["grid"] = self.buildGridData(arr, valid_extent, self.localOrigin, self.provider.nodata)
+            if GRID_DEM_OUTPUT_MODE == "mesh":
+                b["mesh"] = self.buildMeshData(arr, valid_extent, self.localOrigin, self.provider.nodata)
+                b["translate"] = [0, 0, 0]
+            else:
+                b["grid"] = self.buildGridData(arr, valid_extent, self.localOrigin, self.provider.nodata)
 
-            # b["mesh"] = self.buildMeshData(arr, valid_extent, self.localOrigin, nodata=self.provider.nodata, full_extent=self.extent)
-            # b["translate"] = [0, 0, 0]
         return b
 
 

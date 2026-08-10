@@ -14,7 +14,7 @@ from ..layerbuilderbase import LayerBuilderBase
 from ...const import DEMMtlType
 from ...geometry import dissolvePolygonsWithinExtent
 from ...mapextent import MapExtent
-from ....conf import DEF_SETS
+from ....conf import DEF_SETS, GRID_DEM_OUTPUT_MODE
 from ....utils.basic import  parseFloat
 from ....utils.js import hex_color
 from ....utils.logging import logger
@@ -69,7 +69,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         """
         p = LayerBuilderBase.layerProperties(self)
         p["type"] = "dem"
-        p["dataType"] = "mesh" if self.properties.get("radioButton_ClipPolygon") else "grid"
+        p["dataType"] = "mesh" if self.properties.get("radioButton_ClipPolygon") else GRID_DEM_OUTPUT_MODE
         p["mtlNames"] = [mtl.get("name", "") for mtl in self.properties.get("materials", [])]
         p["mtlIdx"] = self.layer.mtlIndex(self.properties.get("mtlId"))
 

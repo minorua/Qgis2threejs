@@ -11,6 +11,9 @@ PLUGIN_VERSION_INT = 30102
 # web engine view
 WEBENGINE_INPROCESS_WEBGL_AVAILABLE = False
 
+# dem layer
+GRID_DEM_OUTPUT_MODE = "grid"       # "grid" or "mesh"
+
 # vector layer
 FEATURES_PER_BLOCK = 500    # max number of features in a data block
 

@@ -138,31 +138,3 @@ def base64file(file_path):
 def imageFile2dataUri(file_path):
     imgType = os.path.splitext(file_path)[1].lower()[1:].replace("jpg", "jpeg")
     return f"data:image/{imgType};base64," + base64file(file_path)
-
-
-def writeBinaryContainer(filepath: str, chunks: dict[str, bytes], compress=True):
-    metadata = {}
-    offset = 0
-    chunk_data = []
-
-    for name, data in chunks.items():
-        if compress:
-            data = zlib.compress(data)
-
-        metadata[name] = {
-            "offset": offset,
-            "size": len(data),
-            "compressed": compress
-        }
-
-        offset += len(data)
-        chunk_data.append(data)
-
-    json_bytes = json.dumps(metadata, separators=(",", ":")).encode("ascii")
-
-    with open(filepath, "wb") as f:
-        f.write(struct.pack("<I", len(json_bytes)))
-        f.write(json_bytes)
-
-        for data in chunk_data:
-            f.write(data)
