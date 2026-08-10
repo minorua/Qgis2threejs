@@ -430,7 +430,7 @@ class WallType(LineTypeBase):
 
     def material(self, feat):
         return {
-            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), doubleSide=True, flat=True)
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), flat=True, doubleSide=True)
         }
 
     def geometry(self, feat, geom):
@@ -453,7 +453,7 @@ class PolygonType(PolygonTypeBase):
 
     def material(self, feat):
         return {
-            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), doubleSide=True, flat=True)
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), flat=True, doubleSide=True)
         }
 
     def geometry(self, feat, geom):

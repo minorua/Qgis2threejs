@@ -47,8 +47,8 @@ class Material(NamedTuple):
     type: int
     color: str = ""
     opacity: float = 1.0
-    doubleSide: bool = False
     flat: bool = False
+    doubleSide: bool = False
     options: tuple | Texture | None = None
 
 
@@ -69,8 +69,8 @@ class MaterialManager(DataManager):
 
         return self._index(mtl)
 
-    def getMeshIndex(self, type=MaterialType.DEFAULT_MESH, color="", opacity=1.0, doubleSide=False, flat=False, options: tuple | Texture | None = None):
-        return self._indexCol(Material(type, color, opacity, doubleSide, flat, options))
+    def getMeshIndex(self, type=MaterialType.DEFAULT_MESH, color="", opacity=1.0, flat=False, doubleSide=False, options: tuple | Texture | None = None):
+        return self._indexCol(Material(type, color, opacity, flat, doubleSide, options))
 
     def getLineIndex(self, color, opacity=1, dashed=False):
         return self._indexCol(Material(MaterialType.LINE, color, opacity, options=(dashed,)))
@@ -78,21 +78,21 @@ class MaterialManager(DataManager):
     def getMeshLineIndex(self, color, opacity=1, thickness=1, dashed=False):
         return self._indexCol(Material(MaterialType.LINE_MESH, color, opacity, options=(thickness, dashed)))
 
-    def _indexTex(self, texture, opacity, shading, doubleSide=True):
-        m = Material(MaterialType.DEFAULT_MESH if shading else MaterialType.MESH_BASIC, opacity=opacity, doubleSide=doubleSide, options=texture)
+    def _indexTex(self, texture, opacity, shading, flat=False, doubleSide=True):
+        m = Material(MaterialType.DEFAULT_MESH if shading else MaterialType.MESH_BASIC, opacity=opacity, flat=flat, doubleSide=doubleSide, options=texture)
         return self._index(m)
 
-    def getMapImageIndex(self, width, height, extent, opacity=1, transparent_bg=False, shading=True, format="PNG"):      # TODO: order
+    def getMapImageIndex(self, width, height, extent, opacity=1, transparent_bg=False, shading=True, flat=False, format="PNG"):
         tex = Texture(TextureType.MAP_IMAGE, None, width, height, extent, transparent_bg, format)
-        return self._indexTex(tex, opacity, shading)
+        return self._indexTex(tex, opacity, shading, flat)
 
-    def getLayerImageIndex(self, layerids, width, height, extent, opacity=1, transparent_bg=False, shading=True, format="PNG"):
+    def getLayerImageIndex(self, layerids, width, height, extent, opacity=1, transparent_bg=False, shading=True, flat=False, format="PNG"):
         tex = Texture(TextureType.LAYER_IMAGE, layerids, width, height, extent, transparent_bg, format)
-        return self._indexTex(tex, opacity, shading)
+        return self._indexTex(tex, opacity, shading, flat)
 
-    def getImageFileIndex(self, path, opacity=1, transparent_bg=False, doubleSide=False, shading=True):
+    def getImageFileIndex(self, path, opacity=1, transparent_bg=False, shading=True, flat=False, doubleSide=False):
         tex = Texture(TextureType.IMAGE_FILE, src=path, transparent_bg=transparent_bg)
-        return self._indexTex(tex, opacity, shading, doubleSide)
+        return self._indexTex(tex, opacity, shading, flat, doubleSide)
 
     def getSpriteImageIndex(self, path_url, opacity=1):
         tex = Texture(TextureType.IMAGE_FILE, src=path_url, transparent_bg=True)

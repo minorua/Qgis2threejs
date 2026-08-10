@@ -465,7 +465,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         self.mtlLayerIds = HiddenProperty("layerIds", [])
         self.mtlWidgets = [
             self.comboBox_TextureSize, self.radioButton_WebP, self.radioButton_JPEG, self.radioButton_PNG, self.lineEdit_ImageFile, self.colorButton_Color,
-            self.spinBox_Opacity, self.checkBox_TransparentBackground, self.checkBox_Shading,
+            self.spinBox_Opacity, self.checkBox_TransparentBackground, self.checkBox_Shading, self.checkBox_FlatShading,
             self.mtlLayerIds
         ]
 
@@ -735,7 +735,8 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
     def addMaterial(self, action=None):
         p = {
             "spinBox_Opacity": 100,
-            "checkBox_Shading": True
+            "checkBox_Shading": True,
+            "checkBox_FlatShading": False
         }
 
         mtl_type = action.data() if action else DEMMtlType.MAPCANVAS

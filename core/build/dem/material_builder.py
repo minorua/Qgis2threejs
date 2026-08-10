@@ -48,6 +48,7 @@ class DEMMaterialBuilder:
 
         transparent_bg = p.get("checkBox_TransparentBackground", False)
         shading = p.get("checkBox_Shading", True)
+        flat = shading and p.get("checkBox_FlatShading", False)
 
         if p.get("radioButton_WebP") and canSaveAsWebP():
             fmt = "WebP"
@@ -60,23 +61,30 @@ class DEMMaterialBuilder:
         mtl_type = m.get("type", DEMMtlType.MAPCANVAS)
         match mtl_type:
             case DEMMtlType.MAPCANVAS:
-                mi = self.materialManager.getMapImageIndex(tex_size.width(), tex_size.height(), self.extent,
-                                                           opacity, transparent_bg, shading, fmt)
+                mi = self.materialManager.getMapImageIndex(
+                    tex_size.width(), tex_size.height(), self.extent,
+                    opacity, transparent_bg, shading, flat, fmt
+                )
 
             case DEMMtlType.LAYER:
                 layerids = p.get("layerIds", [])
-                mi = self.materialManager.getLayerImageIndex(layerids, tex_size.width(), tex_size.height(), self.extent,
-                                                             opacity, transparent_bg, shading, fmt)
+                mi = self.materialManager.getLayerImageIndex(
+                    layerids, tex_size.width(), tex_size.height(), self.extent,
+                    opacity, transparent_bg, shading, flat, fmt
+                )
 
             case DEMMtlType.FILE:
                 filepath = p.get("lineEdit_ImageFile", "")
-                mi = self.materialManager.getImageFileIndex(filepath, opacity, transparent_bg=True, doubleSide=True, shading=shading)
+                mi = self.materialManager.getImageFileIndex(
+                    filepath,
+                    opacity, transparent_bg=True, shading=shading, flat=flat, doubleSide=True
+                )
 
             case _:     # const.MTL_COLOR
                 mt = MaterialType.DEFAULT_MESH if shading else MaterialType.MESH_BASIC
                 color = hex_color(p.get("colorButton_Color", 0), prefix="0x")
 
-                mi = self.materialManager.getMeshIndex(mt, color, opacity, doubleSide=True)
+                mi = self.materialManager.getMeshIndex(mt, color, opacity, flat=flat, doubleSide=True)
 
         # build material
         _mi_str = "_{}".format(mtlIndex) if mtlIndex else ""

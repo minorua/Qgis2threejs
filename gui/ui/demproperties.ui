@@ -455,16 +455,6 @@
            </item>
            <item>
             <layout class="QGridLayout" name="gridLayout_Mtl">
-             <item row="4" column="0">
-              <widget class="QLabel" name="label_ImageFile">
-               <property name="text">
-                <string>Image file</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="1">
-              <widget class="QLineEdit" name="lineEdit_ImageFile"/>
-             </item>
              <item row="8" column="1">
               <widget class="QSlider" name="horizontalSlider_Opacity">
                <property name="maximum">
@@ -478,10 +468,10 @@
                </property>
               </widget>
              </item>
-             <item row="8" column="0">
-              <widget class="QLabel" name="label_17">
+             <item row="9" column="0" colspan="3">
+              <widget class="QCheckBox" name="checkBox_TransparentBackground">
                <property name="text">
-                <string>Opacity (%)</string>
+                <string>Transparent background</string>
                </property>
               </widget>
              </item>
@@ -513,10 +503,39 @@
                </property>
               </widget>
              </item>
-             <item row="4" column="2">
-              <widget class="QToolButton" name="toolButton_ImageFile">
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_TextureSize">
+               <property name="minimumSize">
+                <size>
+                 <width>110</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="text">
-                <string>Browse...</string>
+                <string>Image width (px)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QLineEdit" name="lineEdit_ImageFile"/>
+             </item>
+             <item row="10" column="0" colspan="3">
+              <widget class="QCheckBox" name="checkBox_Shading">
+               <property name="text">
+                <string>Enable shading</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLabel" name="label_LayerImage">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -543,43 +562,10 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
-              <widget class="QLabel" name="label_LayerImage">
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_Format">
                <property name="text">
-                <string/>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="10" column="0" colspan="3">
-              <widget class="QCheckBox" name="checkBox_Shading">
-               <property name="text">
-                <string>Enable shading</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_TextureSize">
-               <property name="minimumSize">
-                <size>
-                 <width>110</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Image width (px)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="0">
-              <widget class="QLabel" name="label_Color">
-               <property name="text">
-                <string>Color</string>
+                <string>Image format</string>
                </property>
               </widget>
              </item>
@@ -590,10 +576,10 @@
                </property>
               </widget>
              </item>
-             <item row="9" column="0" colspan="3">
-              <widget class="QCheckBox" name="checkBox_TransparentBackground">
+             <item row="8" column="0">
+              <widget class="QLabel" name="label_17">
                <property name="text">
-                <string>Transparent background</string>
+                <string>Opacity (%)</string>
                </property>
               </widget>
              </item>
@@ -604,10 +590,24 @@
                </property>
               </widget>
              </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_Format">
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_ImageFile">
                <property name="text">
-                <string>Image format</string>
+                <string>Image file</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="0">
+              <widget class="QLabel" name="label_Color">
+               <property name="text">
+                <string>Color</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="2">
+              <widget class="QToolButton" name="toolButton_ImageFile">
+               <property name="text">
+                <string>Browse...</string>
                </property>
               </widget>
              </item>
@@ -638,6 +638,13 @@
                 </widget>
                </item>
               </layout>
+             </item>
+             <item row="11" column="0" colspan="3">
+              <widget class="QCheckBox" name="checkBox_FlatShading">
+               <property name="text">
+                <string>Flat shading</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -835,6 +842,7 @@
   <tabstop>spinBox_Opacity</tabstop>
   <tabstop>checkBox_TransparentBackground</tabstop>
   <tabstop>checkBox_Shading</tabstop>
+  <tabstop>checkBox_FlatShading</tabstop>
   <tabstop>checkBox_Sides</tabstop>
   <tabstop>colorButton_Side</tabstop>
   <tabstop>lineEdit_Bottom</tabstop>
@@ -845,9 +853,9 @@
   <tabstop>lineEdit_Name</tabstop>
   <tabstop>checkBox_Visible</tabstop>
   <tabstop>checkBox_Clickable</tabstop>
-  <tabstop>scrollArea_2</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>scrollArea</tabstop>
+  <tabstop>scrollArea_2</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -1008,6 +1016,22 @@
     <hint type="destinationlabel">
      <x>199</x>
      <y>340</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBox_Shading</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>checkBox_FlatShading</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>201</x>
+     <y>425</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>201</x>
+     <y>455</y>
     </hint>
    </hints>
   </connection>
