@@ -88,6 +88,8 @@ class ExportToWebDialog(QDialog):
         self.ui.textBrowser.setOpenLinks(False)
         self.ui.textBrowser.anchorClicked.connect(openUrl)
 
+        self.hideProgress()
+
         # Qgis2OnlineMap plugin integration
         self.q2om = qgis.utils.plugins.get("Qgis2OnlineMap")
         if self.q2om:
@@ -221,6 +223,9 @@ th {text-align:left;}
         self.warnings = 0
         success = False
 
+        self.ui.progressBar.show()
+        self.ui.pushButton_Cancel.show()
+
         self.progress(0, msg="Export started.")
         t0 = datetime.now()
 
@@ -229,6 +234,7 @@ th {text-align:left;}
         try:
             exporter.export(filepath, abortSignal=self.ui.pushButton_Cancel.clicked)
             success = True
+            self.progress(100)
 
         except ExportCancelled:
             self.progress(msg="<br>Export was canceled by the user.")
@@ -242,16 +248,16 @@ th {text-align:left;}
         for w in disabled_widgets:
             w.setEnabled(True)
 
+        self.hideProgress()
         self.ui.pushButton_Publish.setVisible(success)
 
         if not success:
-            self.ui.progressBar.setValue(0)
             return
 
         msg = "<br><a name='complete'>Export completed in {:,.2f} seconds.</a>".format(elapsed.total_seconds())
         if self.warnings:
             msg += "<br><b>There {} during the export. See above.</b>".format("was a warning" if self.warnings == 1 else "were {} warnings".format(self.warnings))
-        self.progress(100, msg=msg)
+        self.progress(None, msg=msg)
 
         data_dir = settings.outputDataDirectory()
 
@@ -291,10 +297,6 @@ th {text-align:left;}
             percentage = int(current / total * 100)
             self.ui.progressBar.setValue(percentage)
 
-            v = bool(percentage != 100)
-            self.ui.progressBar.setEnabled(v)
-            self.ui.pushButton_Cancel.setEnabled(v)
-
         if msg:
             if numbered:
                 msg = f"{self.logNextIndex}. {msg}"
@@ -306,6 +308,10 @@ th {text-align:left;}
 
     def progressNumbered(self, current=None, total=100, msg=""):
         self.progress(current, total, msg, numbered=True)
+
+    def hideProgress(self):
+        self.ui.progressBar.hide()
+        self.ui.pushButton_Cancel.hide()
 
     def log(self, msg, warning=False, indented=False):
         if warning:
