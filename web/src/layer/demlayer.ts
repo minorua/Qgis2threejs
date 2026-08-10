@@ -3,10 +3,10 @@
 
 import { THREE } from "../three.js";
 
-import { app, conf, LayerType } from "../core.js";
+import { app, conf, deg2rad, LayerType } from "../core.js";
 import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
-import { decodeBase64TypedArrayObject, createWallGeometry } from "../utils.js";
+import { createWallGeometry, decodeBase64TypedArrayObject } from "../utils.js";
 
 import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, MapExtent, ParsedDEMGridData, ParsedDEMMeshData, Point3, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
@@ -349,8 +349,9 @@ class DEMGridBlock extends DEMBlockBase {
 		const geom = new GridGeometry();
 		const material = (this.materials[this.currentMtlIndex] || {}).mtl;
 		const mesh = new THREE.Mesh(geom, material);
-		mesh.position.fromArray(data.translate);
 		mesh.scale.z = data.zScale;
+		mesh.rotation.z = data.extent.rotation * deg2rad;
+		mesh.position.fromArray(data.translate);
 		layer.addObject(mesh);
 
 		const build = (grid_data: ParsedDEMGridData) => {
