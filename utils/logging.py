@@ -7,7 +7,7 @@
 import logging
 
 from .basic import NoopClass, pluginDir
-from ..conf import PLUGIN_NAME, DEBUG_MODE, TESTING
+from ..conf import PLUGIN_NAME, DEBUG_MODE, IS_TESTING
 
 WRITE_LOG_FILE = bool(DEBUG_MODE == 3)
 
@@ -93,7 +93,7 @@ def configureLoggers(is_test=False, log_to_stream=False):
 
     logger = getLogger(name=PLUGIN_NAME,
                        stream=log_to_stream,
-                       qgis_log=not TESTING,
+                       qgis_log=not IS_TESTING,
                        filepath=pluginDir("qgis2threejs.log") if WRITE_LOG_FILE else "",
                        list_handler=list_handler)
 

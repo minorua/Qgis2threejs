@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from ... import conf
-conf.TESTING = True
+conf.IS_TESTING = True
 conf.VALIDATE_DATA = True
 
 import os
@@ -28,7 +28,7 @@ log_to_stream = not sys.argv[0].endswith("run_test.py")
 # configure logger handlers for tests
 configureLoggers(is_test=True, log_to_stream=log_to_stream)
 
-logger.info(f"TESTING: {conf.TESTING}")
+logger.info(f"TESTING: {conf.IS_TESTING}")
 logger.info(f"DEBUG_MODE: {conf.DEBUG_MODE}")
 logger.info(f"sys.argv: {sys.argv}")
 

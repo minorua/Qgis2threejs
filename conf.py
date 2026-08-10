@@ -30,8 +30,10 @@ DEBUG_MODE = 1
                 # 2: Same as 1, plus JSON schema validation
                 # 3: Same as 2, plus write debug information to log files
 
-TESTING = False                         # logger configuration
 VALIDATE_DATA = bool(DEBUG_MODE >= 2)   # enables JSON schema validation
+
+ENABLE_TESTING = bool(DEBUG_MODE)       # or True
+IS_TESTING = False                      # logger configuration
 
 # help
 HELP_URL_BASE = "https://minorua.github.io/Qgis2threejs/help/"

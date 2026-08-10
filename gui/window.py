@@ -19,7 +19,7 @@ from .ui.propertiesdialog import Ui_PropertiesDialog
 from .webview.webview import getWebViewClass
 from .webview.webviewcontainer import WebViewContainer
 from .. import conf
-from ..conf import DEBUG_MODE, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
+from ..conf import DEBUG_MODE, ENABLE_TESTING, PLUGIN_NAME, PLUGIN_VERSION, RUN_BLDR_IN_BKGND
 from ..core.const import LayerType
 from ..core.controller.controller import Q3DController
 from ..core.exportsettings import Layer
@@ -237,7 +237,7 @@ class Q3DWindow(QMainWindow):
 
         self.alwaysOnTopToggled(False)
 
-        if DEBUG_MODE and self.webViewType == WebViewType.WEBENGINE:
+        if ENABLE_TESTING and self.webViewType == WebViewType.WEBENGINE:
             ui.menuTestDebug = QMenu(ui.menubar)
             ui.menuTestDebug.setTitle("Test&&&Debug")
             ui.menubar.addAction(ui.menuTestDebug.menuAction())
@@ -720,12 +720,12 @@ class Q3DWindow(QMainWindow):
 
     # Dev menu
     def runTest(self):
-        conf.TESTING = True
+        conf.IS_TESTING = True
 
         from ..tests.gui.test_gui import runTest
         runTest(self)
 
-        conf.TESTING = False
+        conf.IS_TESTING = False
 
     def showJSInfo(self):
         def showInfo(info):

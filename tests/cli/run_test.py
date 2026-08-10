@@ -44,7 +44,7 @@ def runTest(debug_mode=None):
     from Qgis2threejs.tests.cli.utils import logger     # need to import the logger after setting debug mode
 
     logger.info("Starting tests...")
-    logger.info(f"TESTING: {conf.TESTING}")
+    logger.info(f"TESTING: {conf.IS_TESTING}")
     logger.info(f"DEBUG_MODE: {conf.DEBUG_MODE}")
     logger.info(f"Plugin Dir: {pluginDir()}")
     logger.info(f"Output Dir: {outputPath()}")

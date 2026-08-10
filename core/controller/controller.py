@@ -469,5 +469,5 @@ class Q3DController(QObject):
     def validateData(self, data):
         from ...utils.debug import validateData
         e = validateData(data)
-        if e and conf.TESTING:
+        if e and conf.IS_TESTING:
             raise e
