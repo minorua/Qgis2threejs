@@ -4,7 +4,9 @@
 
 import random
 from qgis.PyQt.QtGui import QColor
-from qgis.core import (QgsCoordinateTransform, QgsExpression, QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext)
+from qgis.core import (
+    QgsCoordinateTransform, QgsExpression, QgsFeatureRequest, QgsGeometry, QgsProject, QgsRenderContext
+)
 
 from .feature import Feature
 from .object import ObjectType

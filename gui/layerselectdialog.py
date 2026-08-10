@@ -4,7 +4,7 @@
 # begin: 2015-04-22
 
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QLabel, QVBoxLayout
-from qgis.core import Qgis, QgsLayerTreeModel, QgsMapLayerProxyModel, QgsProject
+from qgis.core import Qgis, QgsLayerTreeModel, QgsProject
 from qgis.gui import QgsMapLayerComboBox
 
 from .ui.layerselectdialog import Ui_LayerSelectDialog

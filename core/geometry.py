@@ -6,7 +6,8 @@ from math import ceil, floor
 from qgis.core import (
     Qgis, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest,
     QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsGeometryCollection,
-    QgsProject, QgsTessellator, QgsVertexId, QgsWkbTypes)
+    QgsProject, QgsTessellator, QgsVertexId, QgsWkbTypes
+)
 
 from .geom_types import Face, Vector3, TransformFunc, Triangle, ZFunc
 from ..utils.logging import logger

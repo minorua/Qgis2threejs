@@ -7,7 +7,7 @@ import os
 from configparser import ConfigParser
 
 from qgis.PyQt.QtCore import Qt, QDir, QSettings
-from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
+from qgis.PyQt.QtWidgets import QDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 
 from .ui.settingsdialog import Ui_SettingsDialog
 from ..utils.basic import pluginDir

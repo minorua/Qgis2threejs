@@ -7,8 +7,10 @@ import os
 
 from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QSettings, QTimer, QUrl, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QColor, QDesktopServices, QIcon
-from qgis.PyQt.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
-                                 QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
+from qgis.PyQt.QtWidgets import (
+    QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog,
+    QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton
+)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
 from .ipc.ipc_const import Command
