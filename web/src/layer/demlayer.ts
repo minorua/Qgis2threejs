@@ -477,7 +477,7 @@ class GridGeometry extends THREE.BufferGeometry {
 	 * @param segments	- Segments of a tile side. When supplied, the grid is treated as a square tile.
 	 */
 	loadData(array: Float32Array, columns: number, rows: number, extent: MapExtent, nodata?: number | Float32Array, segments?: number) {
-		if (Array.isArray(nodata)) nodata = nodata[0];
+		if (nodata instanceof Float32Array) nodata = nodata[0];
 
 		const { width, height }  = extent;
 		const isTileMode = (segments !== undefined);
