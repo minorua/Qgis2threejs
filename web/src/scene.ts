@@ -88,25 +88,24 @@ export class Scene extends THREE.Scene {
 
 			// set initial camera position and parameters
 			if (this.userData.origin === undefined) {
-
 				const s = be.width;
-				let v = conf.viewpoint;
-				let pos, focal;
 
-				if (v.pos === undefined) {
-					v = v.default;
-					if (be.rotation) {
-						v = {
-							pos: v.pos.clone().applyAxisAngle(UV.k, be.rotation * deg2rad),
-							lookAt: v.lookAt.clone().applyAxisAngle(UV.k, be.rotation * deg2rad)
-						};
-					}
-					pos = v.pos.clone().multiplyScalar(s).add(p.pivot);
-					focal = v.lookAt.clone().multiplyScalar(s).add(p.pivot);
-				}
-				else {
+				let pos, focal;
+				let v = conf.viewpoint.preset;
+				if (v) {
 					pos = new THREE.Vector3().copy(v.pos).sub(p.origin);
 					focal = new THREE.Vector3().copy(v.lookAt).sub(p.origin);
+				}
+				else {
+					v = conf.viewpoint.default;
+					if (be.rotation) {
+						v = {
+							pos: new THREE.Vector3().copy(v.pos).applyAxisAngle(UV.k, be.rotation * deg2rad),
+							lookAt: new THREE.Vector3().copy(v.lookAt).applyAxisAngle(UV.k, be.rotation * deg2rad)
+						};
+					}
+					pos = new THREE.Vector3().copy(v.pos).multiplyScalar(s).add(p.pivot);
+					focal = new THREE.Vector3().copy(v.lookAt).multiplyScalar(s).add(p.pivot);
 				}
 
 				pos.z *= p.zScale;

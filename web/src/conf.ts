@@ -1,7 +1,7 @@
 // (C) 2014 Minoru Akagi
 // SPDX-License-Identifier: MIT
 
-import { THREE } from "./three.js";
+import { CameraState } from "./types.js";
 
 export const conf = {
     renderer: {
@@ -27,10 +27,15 @@ export const conf = {
 
     /** Z-up. */
     viewpoint: {
+        /** Camera presets in map coordinates. */
+        /** @type: {CameraState | null} */
+        preset: null,
+
         /** Default value is assumed that origin is (0, 0, 0) and base extent width in 3D world coordinates is 1. */
+        /** @type: {CameraState} */
         default: {
-            pos: new THREE.Vector3(0, -1, 1),
-            lookAt: new THREE.Vector3()
+            pos: { x: 0, y: -1, z: 1 },
+            lookAt: { x: 0, y: 0, z: 0 }
         }
     },
 

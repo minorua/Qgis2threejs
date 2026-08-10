@@ -49,7 +49,7 @@ class ExportToWebDialog(QDialog):
         title = settings.title() or QgsProject.instance().title() or QgsProject.instance().baseName() or os.path.splitext(bn)[0]
         self.ui.lineEdit_Title.setText(title)
 
-        self.ui.checkBox_UseCurrentView.setChecked(bool(settings.option("viewpoint")))
+        self.ui.checkBox_UseCurrentView.setChecked(bool(settings.option("viewpoint.preset")))
 
         # template settings
         cbox = self.ui.comboBox_Template
@@ -157,7 +157,7 @@ class ExportToWebDialog(QDialog):
         self.settings.setTitle(self.ui.lineEdit_Title.text())
 
         if self.ui.checkBox_UseCurrentView.isChecked():
-            self.settings.setOption("viewpoint", self.controller.cameraState())
+            self.settings.setOption("viewpoint.preset", self.controller.cameraState())
 
         # template settings
         self.settings.setTemplate(self.ui.comboBox_Template.currentData())

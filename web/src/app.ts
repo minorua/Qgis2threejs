@@ -91,8 +91,20 @@ function applyUrlParameters(container: HTMLElement) {
     if (params.hiDpi == "no") conf.renderer.hiDpi = false;
     if (params.anisotropy) conf.texture.anisotropy = parseFloat(params.anisotropy);
 
-    if (params.cx !== undefined) conf.viewpoint.pos = new THREE.Vector3(parseFloat(params.cx), parseFloat(params.cy), parseFloat(params.cz));
-    if (params.tx !== undefined) conf.viewpoint.lookAt = new THREE.Vector3(parseFloat(params.tx), parseFloat(params.ty), parseFloat(params.tz));
+    if (params.cx !== undefined) {
+        conf.viewpoint.preset = {
+            pos: {
+                x: parseFloat(params.cx),
+                y: parseFloat(params.cy),
+                z: parseFloat(params.cz)
+            },
+            lookAt: {
+                x: parseFloat(params.tx),
+                y: parseFloat(params.ty),
+                z: parseFloat(params.tz)
+            }
+        };
+    }
 
     if (params.width && params.height) {
         container.style.width = params.width + "px";
@@ -216,7 +228,7 @@ function setupEventListeners() {
 
         app.adjustCameraNearFar();
 
-        if (conf.viewpoint.pos === undefined && conf.autoAdjustCameraPos) {
+        if (conf.viewpoint.preset === null && conf.autoAdjustCameraPos) {
             app.adjustCameraPosition();
         }
         app.render();
