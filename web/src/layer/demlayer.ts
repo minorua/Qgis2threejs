@@ -493,31 +493,50 @@ class GridGeometry extends THREE.BufferGeometry {
 		const vertices = [];
 		const uvs = [];
 
+		let vertexIndex = 0;
+		let currIndices = new Array(columns);
+		let prevIndices = new Array(columns);
+
 		for (let iy = 0; iy < rows; iy++) {
 
-			const y = iy * segment_height - half_h;
+		    currIndices.fill(-1);
+
+			const y = -iy * segment_height + half_h;
 			const v = 1 - (iy / segmentsY);
 
 			for (let ix = 0; ix < columns; ix++) {
 
-				const x = ix * segment_width - half_w;
 				const i = ix + iy * columns;
 				const z = array[i];
 
-				vertices.push(x, -y, (z === nodata) ? 0 : z);
+				if (z === nodata) continue;
+
+				currIndices[ix] = vertexIndex;
+				++vertexIndex;
+
+				const x = ix * segment_width - half_w;
+
+				vertices.push(x, y, z);
 				uvs.push(ix / segmentsX, v);
 
 				if (ix === 0 || iy === 0) continue;
 
-				const a = i - columns - 1;
-				const b = i - 1;
-				const c = i;
-				const d = i - columns;
+				/*
+				prev: a - d
+				      | / |
+				curr: b - c
+				*/
+				const a = prevIndices[ix - 1];
+				const b = currIndices[ix - 1];
+				const c = currIndices[ix];
+				const d = prevIndices[ix];
 
-				if (array[b] === nodata || array[d] === nodata) continue;
-				if (array[a] !== nodata) indices.push(a, b, d);
-				if (z !== nodata) indices.push(b, c, d);
+				if (b === -1 || d == -1) continue
+				if (a !== -1) indices.push(a, b, d);
+				if (c !== -1) indices.push(b, c, d);
 			}
+
+			[prevIndices, currIndices] = [currIndices, prevIndices];
 		}
 
 		this.setIndex(indices);

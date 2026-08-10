@@ -87,11 +87,11 @@ class DEMBlockBuilderBase:
         vertices = np.column_stack((x.ravel(), y.ravel(), z.ravel()))[valid_mask.ravel()]   # (N_valid, 3)
         uvs = np.column_stack((u.ravel(), v.ravel()))[valid_mask.ravel()]                   # (N_valid, 2)
 
-        # Assign vertex IDs to valid points and use -1 for NoData points
+        # Assign vertex indices to valid points and use -1 for NoData points
         grid_indices = np.full((rows, cols), -1, dtype=np.int32)    # np.int16 if rows * cols < 256 * 256
         grid_indices[valid_mask] = np.arange(np.sum(valid_mask))
 
-        # Obtain the vertex IDs of the four corners of each cell using slicing
+        # Obtain the vertex indices of the four corners of each cell using slicing
         p00 = grid_indices[:-1, :-1]
         p01 = grid_indices[:-1, 1:]
         p10 = grid_indices[1:, :-1]
