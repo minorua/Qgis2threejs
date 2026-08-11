@@ -28,6 +28,8 @@ class GDALDEMProvider:
         self.dest_wkt = dest_wkt
         self.source_wkt = source_wkt
 
+        self.nodata = NODATA_VALUE
+
         self.mem_driver = gdal.GetDriverByName("MEM")
 
         filename_utf8 = filename.encode("utf-8") if isinstance(filename, str) else filename
@@ -44,20 +46,12 @@ class GDALDEMProvider:
             "format": "MEM",
             "dstSRS": self.dest_wkt,
             "outputType": gdal.GDT_Float32,
-            "resampleAlg": gdal.GRA_Bilinear
+            "resampleAlg": gdal.GRA_Bilinear,
+            "dstNodata": NODATA_VALUE
         }
 
         if source_wkt:
             self._opts["srcSRS"] = self.source_wkt
-
-        src_nodata = self.ds.GetRasterBand(1).GetNoDataValue()
-        if src_nodata is None:
-            self.nodata = None
-            return
-
-        self._opts["srcNodata"] = src_nodata
-        self._opts["dstNodata"] = NODATA_VALUE
-        self.nodata = NODATA_VALUE
 
     def setResampleAlg(self, alg):
         self._opts["resampleAlg"] = alg
@@ -74,12 +68,12 @@ class GDALDEMProvider:
     def gridRectangle(self):
         return GridRectangle.fromGeotransform(self.ds.GetGeoTransform(), self.width, self.height)
 
-    def _read(self, width, height, gt, asList=False, asNumpyArray=False):
-        self._opts["width"] = width
-        self._opts["height"] = height
-        self._opts["outputBounds"] = [gt[0], gt[3] + gt[5] * height, gt[0] + gt[1] * width, gt[3]]
+    def _read(self, width, height, geotransform, asList=False, asNumpyArray=False):
+        if geotransform[2]:
+            warped_ds = self._readReprojectImage(width, height, geotransform)
+        else:
+            warped_ds = self._readWarp(width, height, geotransform)
 
-        warped_ds = gdal.Warp("", self.ds, **self._opts)
         band = warped_ds.GetRasterBand(1)
 
         if numpy is None:
@@ -96,6 +90,25 @@ class GDALDEMProvider:
             return arr.flatten().tolist()
 
         return arr.tobytes()
+
+    def _readWarp(self, width, height, gt):
+        self._opts["width"] = width
+        self._opts["height"] = height
+        self._opts["outputBounds"] = [gt[0], gt[3] + gt[5] * height, gt[0] + gt[1] * width, gt[3]]
+
+        return gdal.Warp("", self.ds, **self._opts)
+
+    def _readReprojectImage(self, width, height, geotransform):
+        warped_ds = self.mem_driver.Create("", width, height, 1, gdal.GDT_Float32)
+        warped_ds.SetProjection(self.dest_wkt)
+        warped_ds.SetGeoTransform(geotransform)
+        warped_ds.GetRasterBand(1).SetNoDataValue(self.nodata)
+
+        options = ["INIT_DEST=NO_DATA"]
+
+        gdal.ReprojectImage(self.ds, warped_ds, self.source_wkt, None, self._opts["resampleAlg"], options=options)
+
+        return warped_ds
 
     def read(self, width, height, extent):
         """read data into a byte array"""
