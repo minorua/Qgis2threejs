@@ -205,8 +205,6 @@ class DEMBlockBase {
 	data!: DEMBlockData;
 
 	loadData(data: DEMBlockData, layer: DEMLayer) {
-		this.data = data;
-
 		if ("materials" in data === false) return;
 
 		// load material
@@ -356,6 +354,8 @@ class DEMGridBlock extends DEMBlockBase {
 
 		const build = (grid_data: ParsedDEMGridData) => {
 			geom.loadData(grid_data.dem_values, grid_data.columns, grid_data.rows, data.extent, grid_data.nodata, data.segments);
+			mesh.material.needsUpdate = true;		// update shader after computing vertex normals
+
 			this.buildAuxiliaryObjects(layer, geom, mesh);
 
 			layer.requestRender();
@@ -426,6 +426,11 @@ class DEMMeshBlock extends DEMBlockBase {
 		geom.computeBoundingSphere();
 		geom.computeBoundingBox();
 		geom.computeVertexNormals();
+
+		// update shader after computing vertex normals
+		if (this.obj && this.obj.material) {
+			this.obj.material.needsUpdate = true;
+		}
 	}
 
 	// TODO: extent.rotation
