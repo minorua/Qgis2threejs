@@ -433,7 +433,7 @@ class Q3DWindow(QMainWindow):
 
             self.controller.taskManager.addBuildLayerTask(layer)
 
-            if layer.properties.get("materials") != orig_layer.properties.get("materials"):
+            if layer.properties.get("materials") != orig_layer.properties.get("materials") or layer.properties.get("mtlId") != orig_layer.properties.get("mtlId"):
                 self.ui.treeView.updateLayerMaterials(item, layer)
                 self.ui.animationPanel.tree.materialChanged(layer)
 
