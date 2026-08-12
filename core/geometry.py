@@ -545,32 +545,28 @@ class GridGeometry:
         self.hidx = QgsSpatialIndex()
         self.hidx.addFeatures(hbands)
 
-    def vSplit(self, geom):
+    def _vSplit(self, geom):
         """split polygon vertically"""
         for idx in self.vidx.intersects(geom.boundingBox()):
             geometry = geom.clipped(self.vrects[idx])
-            if geometry:
+            if geometry and not geometry.isEmpty():
                 yield idx, geometry
 
-    def hSplit(self, geom):
+    def _hSplit(self, geom):
         """split polygon horizontally"""
         for idx in self.hidx.intersects(geom.boundingBox()):
             geometry = geom.clipped(self.hrects[idx])
-            if geometry:
+            if geometry and not geometry.isEmpty():
                 yield idx, geometry
 
-    def splitPolygonXY(self, geom):
-        return QgsGeometry.fromMultiPolygonXY(list(self._splitPolygon(geom)))
-
-    def splitPolygon(self, geom):
+    def splitPolygon(self, geom) -> QgsGeometry:
         if self.vbands is None:
             self.setupBands()
 
         geoms = []
-        for x, vc in self.vSplit(geom):
-            for y, c in self.hSplit(vc):
-                if not c.isEmpty():
-                    geoms.append(c)
+        for x, vc in self._vSplit(geom):
+            for y, c in self._hSplit(vc):
+                geoms.append(c)
 
         return QgsGeometry.collectGeometry(geoms)
 
