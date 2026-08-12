@@ -6,5 +6,4 @@ from qgis.PyQt.QtGui import QImageWriter
 
 
 def canSaveAsWebP():
-    return False
     return b"webp" in QImageWriter.supportedImageFormats()
