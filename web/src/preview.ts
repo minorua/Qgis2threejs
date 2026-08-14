@@ -387,7 +387,7 @@ export function saveAsGLTF(filename: string) {
 
 export function saveAsJSON(filename: string) {
 	const obj = app.scene.toJSON();
-	const json = JSON.stringify(obj, null, 2).replace(/\[\s*([\d\s,.-]+)\s*\]/g, (match, inner) => {
+	const json = JSON.stringify(obj, null, 2).replace(/\[\s*([\d\s,.e+-]+)\s*\]/g, (match, inner) => {
 		return '[' + inner.replace(/\s+/g, ' ').trim() + ']';
 	});
 	sendData(json, false, filename);
