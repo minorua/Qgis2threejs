@@ -113,7 +113,6 @@ d.initCustomPlaneFolder = (zMin, zMax) => {
 		const geometry = new THREE.PlaneGeometry(p.baseExtent.width, p.baseExtent.height, 1, 1);
 		const material = d.customPlaneMaterial(color);
 		d.customPlane = new THREE.Mesh(geometry, material);
-		d.customPlane.rotation.z = p.baseExtent.rotation * deg2rad;
 		scene.add(d.customPlane);
 		app.render();
 	};

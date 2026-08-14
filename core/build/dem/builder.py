@@ -110,14 +110,11 @@ class DEMLayerBuilder(LayerBuilderBase):
             yield from self._buildTasks_Resamp()
 
     def _buildTasks_Raw(self):
+        be = self.settings.baseExtent()
+
         materials = self.properties.get("materials", [])
         mtlCount = len(materials)
         currentMtlId = self.properties.get("mtlId")
-
-        be = self.settings.baseExtent()
-        if be.rotation():
-            logger.error(f'{self.layer.name}: Map rotation is not supported when using the "Use original values" option.')
-            return
 
         segments = self.properties.get("spinBox_TileSideSegments", 512)
         noClip = self.properties.get("radioButton_NoClip")
@@ -165,7 +162,6 @@ class DEMLayerBuilder(LayerBuilderBase):
 
                 tiles.append((-row, blockIndex, tileExtent))
 
-        beCenterX, beCenterY = be.center().x(), be.center().y()
         for i, (_r, blockIndex, tileExtent) in enumerate(sorted(tiles)):
                 # set up material builder for first/current material
                 if self.layer.opt.allMaterials and len(materials):
@@ -192,19 +188,16 @@ class DEMLayerBuilder(LayerBuilderBase):
                 self.progress(i + 1, tile_cols * tile_rows)
 
     def _buildTasks_Resamp(self):
-        be = self.settings.baseExtent()
-
         materials = self.properties.get("materials", [])
         mtlCount = len(materials)
         currentMtlId = self.properties.get("mtlId")
 
+        be = self.settings.baseExtent()
         if self.mtlBuilder.currentMtlType() in (DEMMtlType.LAYER, DEMMtlType.MAPCANVAS):
             # calculate extent with the same aspect ratio as current material texture image
             tex_size = DEMPropertyReader.textureSize(self.mtlBuilder.currentMtlProperties(), be, self.settings)
             be = MapExtent(be.center(), be.width(), be.width() * tex_size.height() / tex_size.width(), be.rotation())
 
-        center = be.center()
-        rotation = be.rotation()
         base_grid_seg = self.settings.demGridSegments(self.layer.layerId)
 
         # clipping
@@ -236,8 +229,9 @@ class DEMLayerBuilder(LayerBuilderBase):
                 extent = be
                 grid_seg = base_grid_seg
             else:
-                block_center = QgsPoint(center.x() + sx * be.width(), center.y() + sy * be.height())
-                extent = MapExtent(block_center, be.width(), be.height()).rotate(rotation, center)
+                block_center = QgsPoint(be.center().x() + sx * be.width(),
+                                        be.center().y() + sy * be.height())
+                extent = MapExtent(block_center, be.width(), be.height())
                 grid_seg = QSize(max(1, base_grid_seg.width() // roughness),
                                  max(1, base_grid_seg.height() // roughness))
 

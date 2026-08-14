@@ -107,9 +107,6 @@ class VectorLayer:
         """
 
         mapTo3d = self.settings.mapTo3d()
-        be = self.settings.baseExtent()
-        beGeom = be.geometry()
-        rotation = be.rotation()
         fields = self.mapLayer.fields()
         attrs = None
 
@@ -130,11 +127,6 @@ class VectorLayer:
             if geom.transform(self.transform) != 0:
                 logger.warning(f"[{self.name}] Failed to transform a geometry.")
                 continue
-
-            if rotation and self.onlyIntersecting:
-                # if map is rotated, check whether geometry intersects with the base extent
-                if not beGeom.intersects(geom):
-                    continue
 
             # set feature to expression context
             self.expressionContext.setFeature(f)

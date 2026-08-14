@@ -8,8 +8,10 @@ import math
 import re
 
 from qgis.PyQt.QtCore import Qt, QPoint, QSize
-from qgis.PyQt.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QGroupBox, QLineEdit,
-                                 QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget)
+from qgis.PyQt.QtWidgets import (
+    QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QGroupBox, QLineEdit,
+    QListWidgetItem, QMenu, QMessageBox, QRadioButton, QSlider, QSpinBox, QToolTip, QWidget
+)
 from qgis.PyQt.QtGui import QColor, QCursor, QIcon, QPixmap
 from qgis.core import Qgis, QgsApplication, QgsCoordinateTransform, QgsFieldProxyModel, QgsProject, QgsWkbTypes
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget
@@ -214,14 +216,16 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
 
         self.mapSettings = canvas.mapSettings()
 
-        widgets = [self.comboBox_xyShift, self.radioButton_FixedExtent, self.lineEdit_CenterX, self.lineEdit_CenterY,
-                   self.lineEdit_Width, self.lineEdit_Height, self.lineEdit_Rotation, self.checkBox_FixAspectRatio,
-                   self.lineEdit_zFactor,
-                   self.radioButton_Color, self.colorButton_Color,
-                   self.groupBox_Fog, self.colorButton_Fog, self.slider_Fog,
-                   self.radioButton_PtLight,
-                   self.comboBox_MaterialType, self.checkBox_Outline,
-                   self.radioButton_WGS84, self.radioButton_NoCoords]
+        widgets = [
+            self.comboBox_xyShift, self.radioButton_FixedExtent, self.lineEdit_CenterX, self.lineEdit_CenterY,
+            self.lineEdit_Width, self.lineEdit_Height, self.checkBox_FixAspectRatio,
+            self.lineEdit_zFactor,
+            self.radioButton_Color, self.colorButton_Color,
+            self.groupBox_Fog, self.colorButton_Fog, self.slider_Fog,
+            self.radioButton_PtLight,
+            self.comboBox_MaterialType, self.checkBox_Outline,
+            self.radioButton_WGS84, self.radioButton_NoCoords
+        ]
         self.registerPropertyWidgets(widgets)
 
         # 3D world coordinates
@@ -298,12 +302,15 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         return p
 
     def setExtent(self, extent=None):
-        be = extent or MapExtent.fromMapSettings(self.mapSettings, self.checkBox_FixAspectRatio.isChecked())
+        be = extent or MapExtent.fromMapSettings(
+            self.mapSettings,
+            square=self.checkBox_FixAspectRatio.isChecked(),
+            ignoreRotation=True
+        )
         self.lineEdit_CenterX.setText(str(be.center().x()))
         self.lineEdit_CenterY.setText(str(be.center().y()))
         self.lineEdit_Width.setText(str(be.width()))
         self.lineEdit_Height.setText(str(be.height()))
-        self.lineEdit_Rotation.setText(str(be.rotation()))
 
         for i in range(self.gridLayout_Extent.count()):
             w = self.gridLayout_Extent.itemAt(i).widget()
@@ -366,8 +373,7 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
         self.checkBox_FixAspectRatio.setChecked(False)
 
         r = self.mapTool.rectangle()
-        extent = MapExtent(r.center(), r.width(), r.height(), self.canvas.mapSettings().rotation())  # get current map settings
-        self.setExtent(extent)
+        self.setExtent(MapExtent(r.center(), r.width(), r.height()))
 
         self.mapTool.reset()
         self.canvas.setMapTool(self.prevMapTool)

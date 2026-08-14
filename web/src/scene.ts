@@ -76,10 +76,9 @@ export class Scene extends THREE.Scene {
 			}
 
 			// light
-			const rotation0 = (this.userData.baseExtent) ? this.userData.baseExtent.rotation : 0;
-			if (p.light != this.userData.light || p.baseExtent.rotation != rotation0) {
+			if (p.light != this.userData.light) {
 				this.lightGroup.clear();
-				this.buildLights(conf.lights[p.light] || conf.lights.directional, p.baseExtent.rotation);
+				this.buildLights(conf.lights[p.light] || conf.lights.directional);
 				this.dispatchEvent({ type: "lightChanged", light: p.light });
 			}
 
@@ -98,12 +97,6 @@ export class Scene extends THREE.Scene {
 				}
 				else {
 					v = conf.viewpoint.default;
-					if (be.rotation) {
-						v = {
-							pos: new THREE.Vector3().copy(v.pos).applyAxisAngle(UV.k, be.rotation * deg2rad),
-							lookAt: new THREE.Vector3().copy(v.lookAt).applyAxisAngle(UV.k, be.rotation * deg2rad)
-						};
-					}
 					pos = new THREE.Vector3().copy(v.pos).multiplyScalar(s).add(p.pivot);
 					focal = new THREE.Vector3().copy(v.lookAt).multiplyScalar(s).add(p.pivot);
 				}
@@ -115,10 +108,6 @@ export class Scene extends THREE.Scene {
 					far = 100 * s;
 
 				this.requestCameraUpdate(pos, focal, near, far);
-			}
-
-			if (p.baseExtent.rotation != rotation0) {
-				this.dispatchEvent({ type: "mapRotationChanged", rotation: p.baseExtent.rotation });
 			}
 
 			this.userData = p;
@@ -155,7 +144,7 @@ export class Scene extends THREE.Scene {
 		this.requestRender();
 	}
 
-	buildLights(lights, rotation) {
+	buildLights(lights, rotation = 0) {
 		let light;
 		for (const p of lights) {
 			if (p.type == "ambient") {

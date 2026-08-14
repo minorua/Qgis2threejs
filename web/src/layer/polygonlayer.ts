@@ -164,15 +164,6 @@ class OverlayBuilder extends Builder {
 
 		const mesh = new THREE.Mesh(geom, this.materials.mtl(f.mtl.idx));
 
-		const { rotation } = sceneData.baseExtent;
-		if (rotation) {
-			// rotate around center of base extent
-			mesh.position.copy(sceneData.pivot).negate();
-			mesh.position.applyAxisAngle(UV.k, rotation * deg2rad);
-			mesh.position.add(sceneData.pivot);
-			mesh.rotateOnAxis(UV.k, rotation * deg2rad);
-		}
-
 		if (f.geom.brdr === undefined) return mesh;
 
 		// borders

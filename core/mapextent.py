@@ -134,9 +134,9 @@ class MapExtent:
         return MapExtent(rect.center(), rect.width(), rect.height())
 
     @staticmethod
-    def fromMapSettings(mapSettings, square=False):
+    def fromMapSettings(mapSettings, square=False, ignoreRotation=False):
         extent = mapSettings.visibleExtent()
-        rotation = mapSettings.rotation()
+        rotation = 0 if ignoreRotation else mapSettings.rotation()
         if rotation == 0:
             e = MapExtent(extent.center(), extent.width(), extent.height())
         else:

@@ -138,8 +138,7 @@ class ThreeJSBuilder(QObject):
                 "cx": be.center().x(),
                 "cy": be.center().y(),
                 "width": be.width(),
-                "height": be.height(),
-                "rotation": be.rotation()
+                "height": be.height()
             },
             "origin": {
                 "x": mapTo3d.origin.x(),

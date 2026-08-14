@@ -183,10 +183,6 @@ class DEMBlockResampBuilder(DEMBlockBuilderBase):
         # create a grid geometry and split polygons with the grid
         grid = self.provider.readAsGridGeometry(self.grid_seg.width() + 1, self.grid_seg.height() + 1, self.extent)
 
-        if self.extent.rotation():
-            clip_geometry = QgsGeometry(clip_geometry)
-            clip_geometry.rotate(self.extent.rotation(), self.extent.center())
-
         polys = grid.splitPolygon(clip_geometry)
         z_func = lambda x, y: grid.valueOnSurface(x, y) or 0
 

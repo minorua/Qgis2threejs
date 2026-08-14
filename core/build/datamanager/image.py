@@ -43,7 +43,6 @@ class ImageManager(DataManager):
         return self._index(img)
 
     def _renderImage(self, layerids, width, height, extent, transparent_bg=False):
-        # render layers with QgsMapRendererCustomPainterJob
         from qgis.core import QgsMapRendererCustomPainterJob
         antialias = True
 
@@ -64,14 +63,12 @@ class ImageManager(DataManager):
                 has_pluginlayer = True
                 break
 
-        # create an image
         image = QImage(width, height, QImage.Format.Format_ARGB32_Premultiplied)
         painter = QPainter()
         painter.begin(image)
         if antialias:
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # rendering
         job = QgsMapRendererCustomPainterJob(settings, painter)
         if has_pluginlayer:
             job.renderSynchronously()   # use this method so that TileLayerPlugin layer is rendered correctly

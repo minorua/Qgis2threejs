@@ -29,7 +29,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="tabPosition">
-      <enum>QTabWidget::West</enum>
+      <enum>QTabWidget::TabPosition::West</enum>
      </property>
      <property name="currentIndex">
       <number>0</number>
@@ -54,7 +54,7 @@
        <item>
         <widget class="QScrollArea" name="scrollArea">
          <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
+          <enum>QFrame::Shape::NoFrame</enum>
          </property>
          <property name="widgetResizable">
           <bool>true</bool>
@@ -84,10 +84,10 @@
                  </size>
                 </property>
                 <property name="inputMethodHints">
-                 <set>Qt::ImhFormattedNumbersOnly</set>
+                 <set>Qt::InputMethodHint::ImhFormattedNumbersOnly</set>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                 <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -152,13 +152,6 @@
               </item>
               <item row="3" column="0">
                <layout class="QGridLayout" name="gridLayout_Extent">
-                <item row="7" column="0">
-                 <widget class="QLabel" name="label_10">
-                  <property name="text">
-                   <string>Rotation</string>
-                  </property>
-                 </widget>
-                </item>
                 <item row="4" column="2">
                  <widget class="QLabel" name="label_7">
                   <property name="text">
@@ -176,7 +169,7 @@
                 <item row="1" column="3">
                  <widget class="QLineEdit" name="lineEdit_CenterY">
                   <property name="inputMethodHints">
-                   <set>Qt::ImhFormattedNumbersOnly</set>
+                   <set>Qt::InputMethodHint::ImhFormattedNumbersOnly</set>
                   </property>
                  </widget>
                 </item>
@@ -204,28 +197,21 @@
                 <item row="4" column="3">
                  <widget class="QLineEdit" name="lineEdit_Height">
                   <property name="inputMethodHints">
-                   <set>Qt::ImhFormattedNumbersOnly</set>
+                   <set>Qt::InputMethodHint::ImhFormattedNumbersOnly</set>
                   </property>
                  </widget>
                 </item>
                 <item row="4" column="1">
                  <widget class="QLineEdit" name="lineEdit_Width">
                   <property name="inputMethodHints">
-                   <set>Qt::ImhFormattedNumbersOnly</set>
-                  </property>
-                 </widget>
-                </item>
-                <item row="7" column="1">
-                 <widget class="QLineEdit" name="lineEdit_Rotation">
-                  <property name="inputMethodHints">
-                   <set>Qt::ImhFormattedNumbersOnly</set>
+                   <set>Qt::InputMethodHint::ImhFormattedNumbersOnly</set>
                   </property>
                  </widget>
                 </item>
                 <item row="1" column="1">
                  <widget class="QLineEdit" name="lineEdit_CenterX">
                   <property name="inputMethodHints">
-                   <set>Qt::ImhFormattedNumbersOnly|Qt::ImhLowercaseOnly</set>
+                   <set>Qt::InputMethodHint::ImhFormattedNumbersOnly|Qt::InputMethodHint::ImhLowercaseOnly</set>
                   </property>
                  </widget>
                 </item>
@@ -315,7 +301,7 @@
            <item>
             <spacer name="verticalSpacer">
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Orientation::Vertical</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -351,7 +337,7 @@
        <item>
         <widget class="QScrollArea" name="scrollArea_2">
          <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
+          <enum>QFrame::Shape::NoFrame</enum>
          </property>
          <property name="widgetResizable">
           <bool>true</bool>
@@ -443,10 +429,10 @@
                  <number>41</number>
                 </property>
                 <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
+                 <enum>Qt::Orientation::Horizontal</enum>
                 </property>
                 <property name="tickPosition">
-                 <enum>QSlider::TicksBelow</enum>
+                 <enum>QSlider::TickPosition::TicksBelow</enum>
                 </property>
                </widget>
               </item>
@@ -515,7 +501,7 @@
            <item>
             <spacer name="verticalSpacer_2">
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Orientation::Vertical</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -552,7 +538,6 @@
   <tabstop>lineEdit_CenterY</tabstop>
   <tabstop>lineEdit_Width</tabstop>
   <tabstop>lineEdit_Height</tabstop>
-  <tabstop>lineEdit_Rotation</tabstop>
   <tabstop>pushButton_SelectExtent</tabstop>
   <tabstop>checkBox_FixAspectRatio</tabstop>
   <tabstop>radioButton_Sky</tabstop>
@@ -563,10 +548,13 @@
   <tabstop>radioButton_NoCoords</tabstop>
   <tabstop>radioButton_DirLight</tabstop>
   <tabstop>radioButton_PtLight</tabstop>
+  <tabstop>groupBox_Fog</tabstop>
   <tabstop>colorButton_Fog</tabstop>
   <tabstop>slider_Fog</tabstop>
   <tabstop>comboBox_MaterialType</tabstop>
   <tabstop>checkBox_Outline</tabstop>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>scrollArea_2</tabstop>
  </tabstops>
  <resources/>
  <connections>

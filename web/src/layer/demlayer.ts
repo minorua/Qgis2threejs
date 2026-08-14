@@ -348,7 +348,6 @@ class DEMGridBlock extends DEMBlockBase {
 		const material = (this.materials[this.currentMtlIndex] || {}).mtl;
 		const mesh = new THREE.Mesh(geom, material);
 		mesh.scale.z = data.zScale;
-		mesh.rotation.z = data.extent.rotation * deg2rad;
 		mesh.position.fromArray(data.translate);
 		layer.addObject(mesh);
 
@@ -433,7 +432,6 @@ class DEMMeshBlock extends DEMBlockBase {
 		}
 	}
 
-	// TODO: extent.rotation
 	calculateUVs(geom: THREE.BufferGeometry, extent: MapExtent, localOrigin: Point3) {
 		const vert = geom.getAttribute("position").array;
 

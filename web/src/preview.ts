@@ -569,7 +569,7 @@ export function adjustCameraPos() {
 //// lights
 export function changeLight(type) {
 	app.scene.lightGroup.clear();
-	app.scene.buildLights(conf.lights[type], app.scene.userData.baseExtent.rotation);
+	app.scene.buildLights(conf.lights[type]);
 	app.scene.dispatchEvent({ type: "lightChanged", light: type });
 	app.render();
 }
@@ -594,7 +594,7 @@ export function setNavigationEnabled(enabled) {
 export function setNorthArrowVisible(visible) {
 	E("northarrow").style.display = (visible) ? "block" : "none";
 	if (visible && app.scene2 === undefined) {
-		app.buildNorthArrow(E("northarrow"), 0, app.scene.userData.baseExtent.rotation);		// TODO: FIXME
+		app.buildNorthArrow(E("northarrow"));
 		app.render();
 	}
 }

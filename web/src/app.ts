@@ -181,13 +181,6 @@ function setupScene() {
             app.scene.add(app.scene.lightGroup);
         }
     });
-
-    app.scene.addEventListener("mapRotationChanged", (event) => {
-        if (app.scene2) {
-            app.scene2.lightGroup.clear();
-            app.scene2.buildLights(conf.lights.directional, event.rotation);
-        }
-    });
 }
 
 function setupControls() {
@@ -575,7 +568,7 @@ app.adjustCameraPosition = (force) => {
  * @param container
  * @param declination Clockwise from +y, in degrees
  */
-app.buildNorthArrow = (container, declination) => {
+app.buildNorthArrow = (container, declination = 0) => {
     container.style.display = "block";
 
     app.renderer2 = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -590,7 +583,7 @@ app.buildNorthArrow = (container, declination) => {
     app.camera2.up = app.camera.up;
 
     app.scene2 = new Scene();
-    app.scene2.buildLights(conf.lights.directional, 0);
+    app.scene2.buildLights(conf.lights.directional);
 
     // an arrow object
     const vertices = [

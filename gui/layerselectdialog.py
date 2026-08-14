@@ -8,6 +8,7 @@ from qgis.core import Qgis, QgsLayerTreeModel, QgsProject
 from qgis.gui import QgsMapLayerComboBox
 
 from .ui.layerselectdialog import Ui_LayerSelectDialog
+from ..core.mapextent import MapExtent
 
 
 class LayerSelectDialog(QDialog):
@@ -63,8 +64,9 @@ class LayerSelectDialog(QDialog):
 
             c.setCanvasColor(s.backgroundColor())
             c.setDestinationCrs(s.destinationCrs())
-            c.setRotation(s.rotation())
-            c.setExtent(s.extent())
+
+            extent = MapExtent.fromMapSettings(s, square=True, ignoreRotation=True)
+            c.setExtent(extent.unrotatedRect())
 
             self.canvasReady = True
 

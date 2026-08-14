@@ -32,7 +32,6 @@ export interface MapExtent {
     cy: number;
     width: number;
     height: number;
-    rotation: number;
 }
 
 /* Properties */

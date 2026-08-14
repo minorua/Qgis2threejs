@@ -70,9 +70,6 @@ class Feature:
         # relative to DEM
         transform_func = mapTo3d.transform
 
-        if baseExtent.rotation():
-            self.geom.rotate(baseExtent.rotation(), baseExtent.center())
-
         polys = grid.splitPolygon(self.geom)
         g = TINGeometry.fromQgsGeometry(polys, zf, transform_func)
 

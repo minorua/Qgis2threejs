@@ -683,8 +683,6 @@ def dissolvePolygonsWithinExtent(polygon_layer, extent, crs):
        polygon_layer: QgsVectorLayer
        extent: MapExtent
        crs: QgsCoordinateReferenceSystem. CRS of the extent"""
-    extGeom = extent.geometry()
-    rotation = extent.rotation()
     transform = QgsCoordinateTransform(polygon_layer.crs(), crs, QgsProject.instance())
 
     combi = None
@@ -700,10 +698,6 @@ def dissolvePolygonsWithinExtent(polygon_layer, extent, crs):
         geom = QgsGeometry(geometry)
         if geom.transform(transform) != 0:
             logger.warning("Failed to transform geometry to project CRS")
-            continue
-
-        # check if geometry intersects with the base extent
-        if rotation and not extGeom.intersects(geom):
             continue
 
         if combi:
