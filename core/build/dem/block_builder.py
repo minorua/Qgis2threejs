@@ -75,8 +75,8 @@ class DEMBlockBuilderBase:
         z = z_arr - localOrigin.z() if localOrigin.z() else z_arr
 
         # UVs
-        u = c / ((cols - 1) * extent.width() / full_extent.width())
-        v = 1 - r / ((rows - 1) * extent.height() / full_extent.height())
+        u = c / ((cols - 1) * full_extent.width() / extent.width())
+        v = 1 - r / ((rows - 1) * full_extent.height() / extent.height())
 
         if nodata is not None:
             valid_mask = z_arr != nodata
@@ -363,7 +363,7 @@ class DEMBlockRawBuilder(DEMBlockBuilderBase):
             arr = self.provider.readAsArray(columns, rows, valid_extent)
 
             if GRID_DEM_OUTPUT_MODE == "mesh":
-                b["mesh"] = self.buildMeshData(arr, valid_extent, self.localOrigin, self.provider.nodata)
+                b["mesh"] = self.buildMeshData(arr, valid_extent, self.localOrigin, self.provider.nodata, full_extent=self.extent)
                 b["translate"] = [0, 0, 0]
             else:
                 b["grid"] = self.buildGridData(arr, valid_extent, self.localOrigin, self.provider.nodata)
