@@ -395,7 +395,7 @@ class DEMMeshBlock extends DEMBlockBase {
 
 		const build = (mesh_data: ParsedDEMMeshData) => {
 			this.setGeometryData(geom, mesh_data);
-			if (!geom.getAttribute("uvs")) {
+			if (!geom.getAttribute("uv")) {
 				this.calculateUVs(geom, data.extent, layer.sceneData.origin);
 			}
 			this.buildAuxiliaryObjects(layer, geom, mesh);
