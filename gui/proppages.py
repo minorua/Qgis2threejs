@@ -427,11 +427,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         widgets += [self.checkBox_Tiles, self.spinBox_Size]
 
         # widgets in others tab
-        widgets += [self.checkBox_Sides, self.colorButton_Side, self.lineEdit_Bottom,
-                    self.checkBox_Frame, self.colorButton_Edge]
-        if not self.isPlane:
-            widgets += [self.checkBox_Wireframe, self.colorButton_Wireframe]
-
+        widgets += [self.checkBox_Sides, self.colorButton_Side, self.lineEdit_Bottom]
         widgets += [self.checkBox_Visible, self.checkBox_Clickable]
 
         self.registerPropertyWidgets(widgets)
@@ -440,7 +436,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         if self.isPlane:
             self.setWidgetsVisible([self.groupBoxResampMethod, self.groupBoxClip], False)
             self.setWidgetsVisible([self.labelRoughness, self.spinBox_Roughening], False)
-            self.setWidgetsVisible([self.checkBox_Wireframe, self.colorButton_Wireframe], False)
             self.lineEdit_Altitude.textChanged.connect(self.altitudeChanged)
 
         else:
@@ -523,8 +518,6 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         # restore properties
         properties = layer.properties
         properties["colorButton_Side"] = properties.get("colorButton_Side", DEF_SETS.SIDE_COLOR)
-        properties["colorButton_Edge"] = properties.get("colorButton_Edge", DEF_SETS.EDGE_COLOR)                   # added in 2.6
-        properties["colorButton_Wireframe"] = properties.get("colorButton_Wireframe", DEF_SETS.WIREFRAME_COLOR)    # added in 2.6
         properties["lineEdit_Bottom"] = properties.get("lineEdit_Bottom", str(DEF_SETS.Z_BOTTOM))                  # added in 2.7
 
         self.restoreProperties(properties)

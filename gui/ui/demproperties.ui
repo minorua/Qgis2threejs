@@ -672,23 +672,20 @@
        <string>Others</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="2" column="1">
-        <widget class="QgsColorButton" name="colorButton_Edge">
-         <property name="enabled">
-          <bool>false</bool>
+       <item row="5" column="0" colspan="2">
+        <widget class="QCheckBox" name="checkBox_Clickable">
+         <property name="text">
+          <string>Clickable</string>
          </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QCheckBox" name="checkBox_Sides">
-         <property name="text">
-          <string>Build sides</string>
+       <item row="2" column="0" colspan="2">
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
         </widget>
        </item>
@@ -708,20 +705,6 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QCheckBox" name="checkBox_Wireframe">
-         <property name="text">
-          <string>Add quad wireframe</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QCheckBox" name="checkBox_Frame">
-         <property name="text">
-          <string>Add edge lines</string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label_Bottom">
          <property name="text">
@@ -732,56 +715,7 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label">
-         <property name="minimumSize">
-          <size>
-           <width>110</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Name</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QLineEdit" name="lineEdit_Name"/>
-       </item>
-       <item row="3" column="1">
-        <widget class="QgsColorButton" name="colorButton_Wireframe">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
        <item row="6" column="0" colspan="2">
-        <widget class="QCheckBox" name="checkBox_Visible">
-         <property name="text">
-          <string>Visible on load</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0" colspan="2">
-        <widget class="QCheckBox" name="checkBox_Clickable">
-         <property name="text">
-          <string>Clickable</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="0" colspan="2">
         <spacer name="verticalSpacer_3">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
@@ -794,10 +728,36 @@
          </property>
         </spacer>
        </item>
+       <item row="0" column="0">
+        <widget class="QCheckBox" name="checkBox_Sides">
+         <property name="text">
+          <string>Build sides</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label">
+         <property name="minimumSize">
+          <size>
+           <width>110</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Name</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="lineEdit_Name"/>
+       </item>
        <item row="4" column="0" colspan="2">
-        <widget class="Line" name="line">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
+        <widget class="QCheckBox" name="checkBox_Visible">
+         <property name="text">
+          <string>Visible on load</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -846,10 +806,6 @@
   <tabstop>checkBox_Sides</tabstop>
   <tabstop>colorButton_Side</tabstop>
   <tabstop>lineEdit_Bottom</tabstop>
-  <tabstop>checkBox_Frame</tabstop>
-  <tabstop>colorButton_Edge</tabstop>
-  <tabstop>checkBox_Wireframe</tabstop>
-  <tabstop>colorButton_Wireframe</tabstop>
   <tabstop>lineEdit_Name</tabstop>
   <tabstop>checkBox_Visible</tabstop>
   <tabstop>checkBox_Clickable</tabstop>
@@ -888,38 +844,6 @@
     <hint type="destinationlabel">
      <x>411</x>
      <y>638</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>checkBox_Frame</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>colorButton_Edge</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>144</x>
-     <y>667</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>411</x>
-     <y>671</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>checkBox_Wireframe</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>colorButton_Wireframe</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>144</x>
-     <y>700</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>411</x>
-     <y>704</y>
     </hint>
    </hints>
   </connection>

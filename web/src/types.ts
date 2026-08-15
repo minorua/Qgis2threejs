@@ -63,12 +63,6 @@ export interface DEMLayerProperties extends LayerProperties {
         mtl: MaterialData;
         bottom: number;
     };
-    edges?: {
-        mtl: MaterialData;
-    };
-    wireframe?: {
-        mtl: MaterialData;
-    };
 }
 
 export interface VectorLayerProperties extends LayerProperties {

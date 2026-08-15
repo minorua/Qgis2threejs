@@ -17,7 +17,7 @@ export class DEMLayer extends MapLayer {
 	type = LayerType.DEM;
 	blocks: DEMBlockBase[] = [];
 	sideVisible: boolean = false;
-	auxiliaryMtl: Partial<Record<"sides" | "edges" | "wireframe", Material>> = {};
+	auxiliaryMtl: Partial<Record<"sides", Material>> = {};
 
 	anim?: any[];
 
@@ -37,7 +37,7 @@ export class DEMLayer extends MapLayer {
 	}
 
 	_loadAuxiliaryMaterials(p: DEMLayerProperties) {
-		["sides", "edges", "wireframe"].forEach((a) => {
+		["sides"].forEach((a) => {
 			if (!p[a]) return;
 
 			const m = new Material();
@@ -235,21 +235,6 @@ class DEMBlockBase {
 
 			layer.sideVisible = true;
 		}
-/*
-		// TODO: addEdges
-		if (this.properties.edges) {
-			block.addEdges(this, mesh, this.auxiliaryMtl.edges.mtl, (this.properties.sides) ? this.properties.sides.bottom : undefined);
-		}
-
-		// TODO: addWireframe
-		if (this.properties.wireframe) {
-			block.addWireframe(this, mesh, this.auxiliaryMtl.wireframe.mtl);
-
-			mesh.material.polygonOffset = true;
-			mesh.material.polygonOffsetFactor = 1;
-			mesh.material.polygonOffsetUnits = 1;
-		}
-*/
 	}
 
 	getBoundaries(geometry: THREE.BufferGeometry): Vec3[][] {

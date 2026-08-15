@@ -51,10 +51,8 @@ class DEF_SETS:
     CONTROLS = "OrbitControls.js"    # last selected one has priority
 
     # dem
-    SIDE_COLOR = "#ccbbaa"
-    EDGE_COLOR = "#000000"
-    WIREFRAME_COLOR = "#000000"
     TEXTURE_SIZE = 1024
+    SIDE_COLOR = "#ccbbaa"
     Z_BOTTOM = 0
 
     # vector

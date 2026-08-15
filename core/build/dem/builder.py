@@ -84,18 +84,6 @@ class DEMLayerBuilder(LayerBuilderBase):
                 "bottom": parseFloat(self.properties.get("lineEdit_Bottom"), DEF_SETS.Z_BOTTOM)
             }
 
-        if self.properties.get("checkBox_Frame") and not self.properties.get("radioButton_ClipPolygon"):
-            mi = mtlMan.getLineIndex(color=hex_color(self.properties.get("colorButton_Edge", DEF_SETS.EDGE_COLOR), prefix="0x"), opacity=opacity)
-            p["edges"] = {
-                "mtl": mtlMan.build(mi)
-            }
-
-        if self.properties.get("checkBox_Wireframe"):
-            mi = mtlMan.getLineIndex(color=hex_color(self.properties.get("colorButton_Wireframe", DEF_SETS.WIREFRAME_COLOR), prefix="0x"), opacity=opacity)
-            p["wireframe"] = {
-                "mtl": mtlMan.build(mi)
-            }
-
         return p
 
     def buildTasks(self):
