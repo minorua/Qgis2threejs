@@ -4,23 +4,40 @@
 # begin: 2014-01-16
 
 import os
+from typing import NamedTuple
 
 from qgis.PyQt.QtCore import Qt, QBuffer, QByteArray, QIODevice, QRectF, QSize
 from qgis.PyQt.QtGui import QColor, QImage, QPainter
 from qgis.core import Qgis, QgsMapSettings
 
 from .base import DataManager
+from ...mapextent import MapExtent
 from ....utils.file import copyFile
 from ....utils.js import image2dataUri, imageFile2dataUri
 from ....utils.logging import logger
 from ....utils.qgis import getLayersByLayerIds
 
 
+class ImageSourceType:
+    MAP_IMAGE = 1
+    LAYER_IMAGE = 2
+    IMAGE_FILE = 3
+
+
+class ImageSource(NamedTuple):
+    type: int
+    src: list | str | None = None
+    width: int | None = None
+    height: int | None = None
+    extent: MapExtent | None = None
+    validExtent: MapExtent | None = None
+    transparent_bg: bool = False
+    format: str = "PNG"
+
+
 class ImageManager(DataManager):
 
-    IMG_MAP = 1
-    IMG_LAYER = 2
-    IMG_FILE = 3
+    _list: list[ImageSource]
 
     def __init__(self, baseMapSettings=None):
         super().__init__()
@@ -30,31 +47,22 @@ class ImageManager(DataManager):
     def setBaseMapSettings(self, mapSettings):
         self.baseMapSettings = QgsMapSettings(mapSettings) if mapSettings else QgsMapSettings()
 
-    def mapImageIndex(self, width, height, extent, validExtent, transparent_bg, format):
-        img = (self.IMG_MAP, (None, width, height, extent, validExtent, transparent_bg), format)
-        return self._index(img)
+    def getIndex(self, s: ImageSource):
+        return self._index(s)
 
-    def layerImageIndex(self, layerids, width, height, extent, validExtent, transparent_bg, format):
-        img = (self.IMG_LAYER, (layerids, width, height, extent, validExtent, transparent_bg), format)
-        return self._index(img)
-
-    def imageFileIndex(self, path):
-        img = (self.IMG_FILE, path, "")
-        return self._index(img)
-
-    def _renderImage(self, layerids, width, height, extent, validExtent, transparent_bg=False):
+    def _renderImage(self, s: ImageSource):
         from qgis.core import QgsMapRendererCustomPainterJob
         antialias = True
 
         settings = QgsMapSettings(self.baseMapSettings)
-        settings.setOutputSize(QSize(width, height))
-        settings.setExtent(extent.unrotatedRect())
-        # settings.setRotation(extent.rotation())
+        settings.setOutputSize(QSize(s.width, s.height))
+        settings.setExtent(s.extent.unrotatedRect())
+        # settings.setRotation(s.extent.rotation())
 
-        if layerids:
-            settings.setLayers(getLayersByLayerIds(layerids))
+        if s.src:
+            settings.setLayers(getLayersByLayerIds(s.src))
 
-        if transparent_bg:
+        if s.transparent_bg:
             settings.setBackgroundColor(QColor(Qt.GlobalColor.transparent))
 
         has_pluginlayer = False
@@ -63,7 +71,7 @@ class ImageManager(DataManager):
                 has_pluginlayer = True
                 break
 
-        image = QImage(width, height, QImage.Format.Format_ARGB32_Premultiplied)
+        image = QImage(s.width, s.height, QImage.Format.Format_ARGB32_Premultiplied)
         image.fill(Qt.GlobalColor.transparent)
 
         painter = QPainter()
@@ -71,11 +79,11 @@ class ImageManager(DataManager):
         if antialias:
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        if validExtent is not None:
+        if s.validExtent is not None:
             painter.setClipRect(
                 QRectF(0, 0,
-                       validExtent.width() / extent.width() * width,
-                       validExtent.height() / extent.height() * height)
+                       s.validExtent.width() / s.extent.width() * s.width,
+                       s.validExtent.height() / s.extent.height() * s.height)
             )
 
         job = QgsMapRendererCustomPainterJob(settings, painter)
@@ -89,19 +97,16 @@ class ImageManager(DataManager):
         return image
 
     def image(self, index):
-        imageType, args, fmt = self._list[index]
-
-        if imageType == self.IMG_FILE:
-            image_path = args
-            if os.path.isfile(image_path):
-                return QImage(image_path)
+        s = self._list[index]
+        if s.type == ImageSourceType.IMAGE_FILE:
+            if os.path.isfile(s.src):
+                return QImage(s.src)
             else:
-                logger.warning("Image file not found: {0}".format(image_path))
+                logger.warning(f"Image file not found: {s.src}")
+        else:
+            image = self._renderImage(s)
 
-        else:   # IMG_MAP or IMG_LAYER
-            image = self._renderImage(*args)
-
-            if fmt == "JPEG":
+            if s.format == "JPEG":
                 return jpegCompressedImage(image)
 
             return image
@@ -111,24 +116,21 @@ class ImageManager(DataManager):
         return image
 
     def dataUri(self, index):
-        imageType, args, fmt = self._list[index]
-
-        if imageType == self.IMG_FILE:
-            return imageFile2dataUri(args)
+        s = self._list[index]
+        if s.type == ImageSourceType.IMAGE_FILE:
+            return imageFile2dataUri(s.src)
 
         image = self.image(index)
         if image:
-            return image2dataUri(image, fmt=fmt)
+            return image2dataUri(image, fmt=s.format)
 
         return ""
 
     def write(self, index, path):
-        imageType, args, _fmt = self._list[index]
-
-        if imageType == self.IMG_FILE:
-            image_path = args
-            if os.path.isfile(image_path):
-                copyFile(image_path, path, overwrite=True)
+        s = self._list[index]
+        if s.type == ImageSourceType.IMAGE_FILE:
+            if os.path.isfile(s.src):
+                copyFile(s.src, path, overwrite=True)
                 return
 
         self.image(index).save(path)

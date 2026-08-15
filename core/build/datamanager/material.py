@@ -7,8 +7,7 @@ import os
 from typing import NamedTuple
 
 from .base import DataManager
-from .image import ImageManager
-from ...mapextent import MapExtent
+from .image import ImageManager, ImageSource, ImageSourceType
 from ....utils.logging import logger
 
 
@@ -27,34 +26,19 @@ class MaterialType:
     DEFAULT_MESH = 99
 
 
-class TextureType:
-    MAP_IMAGE = 1
-    LAYER_IMAGE = 2
-    IMAGE_FILE = 3
-
-
-class Texture(NamedTuple):
-    type: int
-    src: list | str | None = None
-    width: int | None = None
-    height: int | None = None
-    extent: MapExtent | None = None
-    validExtent: MapExtent | None = None
-    transparent_bg: bool = False
-    format: str = "PNG"
-
-
 class Material(NamedTuple):
     type: int
     color: str = ""
     opacity: float = 1.0
     flat: bool = False
     doubleSide: bool = False
-    options: tuple | Texture | None = None
+    options: tuple | ImageSource | None = None
 
 
 
 class MaterialManager(DataManager):
+
+    _list: list[Material]
 
     ERROR_COLOR = "0"
 
@@ -70,7 +54,7 @@ class MaterialManager(DataManager):
 
         return self._index(mtl)
 
-    def getMeshIndex(self, type=MaterialType.DEFAULT_MESH, color="", opacity=1.0, flat=False, doubleSide=False, options: tuple | Texture | None = None):
+    def getMeshIndex(self, type=MaterialType.DEFAULT_MESH, color="", opacity=1.0, flat=False, doubleSide=False, options: tuple | ImageSource | None = None):
         return self._indexCol(Material(type, color, opacity, flat, doubleSide, options))
 
     def getLineIndex(self, color, opacity=1, dashed=False):
@@ -84,19 +68,19 @@ class MaterialManager(DataManager):
         return self._index(m)
 
     def getMapImageIndex(self, width, height, extent, validExtent=None, opacity=1, transparent_bg=False, shading=True, flat=False, format="PNG"):
-        tex = Texture(TextureType.MAP_IMAGE, None, width, height, extent, validExtent, transparent_bg, format)
+        tex = ImageSource(ImageSourceType.MAP_IMAGE, None, width, height, extent, validExtent, transparent_bg, format)
         return self._indexTex(tex, opacity, shading, flat)
 
     def getLayerImageIndex(self, layerids, width, height, extent, validExtent=None, opacity=1, transparent_bg=False, shading=True, flat=False, format="PNG"):
-        tex = Texture(TextureType.LAYER_IMAGE, layerids, width, height, extent, validExtent, transparent_bg, format)
+        tex = ImageSource(ImageSourceType.LAYER_IMAGE, layerids, width, height, extent, validExtent, transparent_bg, format)
         return self._indexTex(tex, opacity, shading, flat)
 
     def getImageFileIndex(self, path, opacity=1, transparent_bg=False, shading=True, flat=False, doubleSide=False):
-        tex = Texture(TextureType.IMAGE_FILE, src=path, transparent_bg=transparent_bg)
+        tex = ImageSource(ImageSourceType.IMAGE_FILE, src=path, transparent_bg=transparent_bg)
         return self._indexTex(tex, opacity, shading, flat, doubleSide)
 
     def getSpriteImageIndex(self, path_url, opacity=1):
-        tex = Texture(TextureType.IMAGE_FILE, src=path_url, transparent_bg=True)
+        tex = ImageSource(ImageSourceType.IMAGE_FILE, src=path_url, transparent_bg=True)
         m = Material(MaterialType.SPRITE_IMAGE, opacity=opacity, options=tex)
         return self._index(m)
 
@@ -104,31 +88,19 @@ class MaterialManager(DataManager):
         """
         @return {MaterialData}
         """
-        mtl: Material = self._list[index]
+        mtl = self._list[index]
 
         m = {
             "type": self.defaultMaterialType if mtl.type == MaterialType.DEFAULT_MESH else mtl.type
         }
 
-        if isinstance(mtl.options, Texture):
+        if isinstance(mtl.options, ImageSource):
             tex = mtl.options
-            match tex.type:
-                case TextureType.MAP_IMAGE:
-                    imgIndex = self.imageManager.mapImageIndex(tex.width, tex.height, tex.extent, tex.validExtent, tex.transparent_bg, tex.format)
-
-                case TextureType.LAYER_IMAGE:
-                    imgIndex = self.imageManager.layerImageIndex(tex.src, tex.width, tex.height, tex.extent, tex.validExtent, tex.transparent_bg, tex.format)
-
-                case TextureType.IMAGE_FILE:
-                    if mtl.type == MaterialType.SPRITE_IMAGE:
-                        path_url = tex.src
-                        if path_url.startswith("http:") or path_url.startswith("https:"):
-                            url = path_url
-                            filepath = None
-                        else:
-                            imgIndex = self.imageManager.imageFileIndex(path_url)
-                    else:
-                        imgIndex = self.imageManager.imageFileIndex(tex.src)
+            if mtl.type == MaterialType.SPRITE_IMAGE and tex.src.startswith(("http:", "https:")):
+                url = tex.src
+                filepath = None
+            else:
+                imgIndex = self.imageManager.getIndex(tex)
 
             if url is None:
                 m["image"] = {
