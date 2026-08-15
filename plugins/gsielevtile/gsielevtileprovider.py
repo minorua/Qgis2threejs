@@ -10,7 +10,7 @@
 """
 
 import math
-import numpy
+import numpy as np
 import struct
 
 from osgeo import gdal
@@ -59,7 +59,10 @@ class GSIElevTileProvider:
         return "GSI Elevation Tile"
 
     def read(self, width, height, extent):
-        """read data into a byte array"""
+        """Read data as bytes."""
+        return self.readAsArray(width, height, extent).tobytes()
+
+    def readAsArray(self, width, height, extent):
         # calculate bounding box in EPSG:3857
         geometry = extent.geometry()
         geometry.transform(self.transform)
@@ -67,7 +70,7 @@ class GSIElevTileProvider:
 
         # if the bounding box doesn't intersect with the bounding box of this data, return a list filled with nodata value
         if not self.boundingbox.intersects(merc_rect):
-            return struct.pack("f", NODATA_VALUE) * width * height
+            return np.full((height, width), NODATA_VALUE, dtype=np.float32)
 
         # get tiles
         over_smpl = 1
@@ -75,12 +78,11 @@ class GSIElevTileProvider:
         res = extent.width() / segments_x / over_smpl
         ds = self.getDataset(merc_rect.xMinimum(), merc_rect.yMinimum(), merc_rect.xMaximum(), merc_rect.yMaximum(), res)
 
-        geotransform = extent.geotransform(width, height)
-        return self._read(ds, width, height, geotransform)
+        return self._read(ds, width, height, extent.geotransform(width, height))
 
     def readValues(self, width, height, extent):
-        """read data into a list"""
-        return struct.unpack("f" * width * height, self.read(width, height, extent))
+        """Read data as a list."""
+        return self.readAsArray(width, height, extent).flatten().tolist()
 
     def readAsGridGeometry(self, width, height, extent):
         return GridGeometry(extent,
@@ -101,24 +103,18 @@ class GSIElevTileProvider:
         ds = self.getDataset(pt.x() - hres, pt.y() - hres, pt.x() + hres, pt.y() + hres, res)
 
         geotransform = [x - hres, res, 0, y + hres, 0, -res]
-        return struct.unpack("f", self._read(ds, 1, 1, geotransform))[0]
-
-    def readValueOnTriangles(self, x, y, xmin, ymin, xres, yres):
-        #TODO: implement
-        return self.readValue(x, y)
+        return self._read(ds, 1, 1, geotransform)[0, 0]
 
     def _read(self, ds, width, height, geotransform):
-        # create a memory dataset
         warped_ds = self.driver.Create("", width, height, 1, gdal.GDT_Float32)
         warped_ds.SetProjection(self.dest_wkt)
         warped_ds.SetGeoTransform(geotransform)
 
-        # reproject image
         gdal.ReprojectImage(ds, warped_ds, None, None, self.resampleAlg)
 
-        # load values into an array
+        # read values as a numpy array
         band = warped_ds.GetRasterBand(1)
-        return band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32)
+        return band.ReadAsArray()
 
     def getDataset(self, xmin, ymin, xmax, ymax, mapUnitsPerPixel):
         # calculate zoom level
@@ -156,9 +152,6 @@ class GSIElevTileProvider:
         res = size / TILE_SIZE
         geotransform = [ulx * size - TSIZE1, res, 0, TSIZE1 - uly * size, 0, -res]
 
-        #mem_driver = gdal.GetDriverByName("GTiff")
-        #ds = mem_driver.Create("D:/fetched_tile.tif", width, height, 1, gdal.GDT_Float32, [])
-
         ds = self.driver.Create("", width, height, 1, gdal.GDT_Float32, [])
         ds.SetProjection(str(self.crs3857.toWkt()))
         ds.SetGeoTransform(geotransform)
@@ -187,10 +180,9 @@ class GSIElevTileProvider:
         for url in urls:
             data = files.get(url)
             if data:
-                array = numpy.fromstring(data.replace(b"e", NODATA_VALUE_BYTES).replace(b"\n", b","), dtype=numpy.float32, sep=",")
+                array = np.fromstring(data.replace(b"e", NODATA_VALUE_BYTES).replace(b"\n", b","), dtype=np.float32, sep=",")
             else:
-                array = numpy.empty(TILE_SIZE * TILE_SIZE, dtype=numpy.float32)
-                array.fill(NODATA_VALUE)
+                array = np.full(TILE_SIZE * TILE_SIZE, NODATA_VALUE, dtype=np.float32)
 
             yield array.tobytes()
 
