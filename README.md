@@ -12,12 +12,6 @@ Documentation
   Online documentation: https://minorua.github.io/Qgis2threejs/docs/
 
 
-Browser Support
----------------
-
-  See [plugin wiki page](https://github.com/minorua/Qgis2threejs/wiki/Browser-Support).
-
-
 Dependencies
 ------------
 
@@ -33,3 +27,13 @@ This plugin is powered by the following JavaScript libraries:
 
 JavaScript dependencies are listed in `package.json` to enable GitHub's dependency analysis.
 The plugin itself uses vendored copies of these libraries.
+
+
+Development version
+-------------------
+
+Node.js must be installed to use the development version. Build the JavaScript files with the following command:
+
+```sh
+node scripts/build.mjs
+```
