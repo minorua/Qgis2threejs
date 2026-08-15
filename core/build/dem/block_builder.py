@@ -5,7 +5,7 @@
 import numpy as np
 
 from qgis.PyQt.QtCore import QSize
-from qgis.core import QgsGeometry, QgsPoint, QgsPointXY
+from qgis.core import QgsPoint
 
 from ..jsonbinarywriter import BinaryContainer, JSONBinaryWriter
 from ...exportsettings import ExportSettings
@@ -309,12 +309,12 @@ class DEMBlockResampBuilder(DEMBlockBuilderBase):
 
 class DEMBlockRawBuilder(DEMBlockBuilderBase):
 
-    def setup(self, blockIndex: int, tileExtent: MapExtent, localOrigin: QgsPoint, segments: int, dataExtentLowerRight, clip_geometry=None):
+    def setup(self, blockIndex: int, tileExtent: MapExtent, localOrigin: QgsPoint, segments: int, validExtent=None, clip_geometry=None):
         super().setup(blockIndex, tileExtent, localOrigin)
 
         self.segments = segments
         self.tileSize = tileExtent.width()
-        self.dataExtentLowerRight = dataExtentLowerRight
+        self.validExtent = validExtent if validExtent else tileExtent
         self.clip_geometry = clip_geometry
 
     def build(self):
@@ -339,34 +339,19 @@ class DEMBlockRawBuilder(DEMBlockBuilderBase):
             pass
 
         else:
-            segment_size = self.tileSize / self.segments
-            half_segment_size = segment_size / 2
+            res = self.tileSize / self.segments
+            validExtent = self.validExtent
 
-            # Determine the valid extent
-            ulx, uly = self.extent.point(0, 1)              # A' (px is pt)
-            tile_lrx, tile_lry = self.extent.point(1, 0)    # B' (px is pt)
+            columns = int(validExtent.width() / res + 1)
+            rows = int(validExtent.height() / res + 1)
 
-            _lrx, _lry = self.dataExtentLowerRight              # C  (px is area)
-            layer_lrx, layer_lry = _lrx - half_segment_size, _lry + half_segment_size # C' (px is pt)
-
-            lrx, lry = min(layer_lrx, tile_lrx), max(layer_lry, tile_lry)
-
-            valid_width = lrx - ulx
-            valid_height = uly - lry
-            center = QgsPointXY(ulx + valid_width / 2, uly - valid_height / 2)
-
-            valid_extent = MapExtent(center, valid_width, valid_height)   # extent in the tile that contains actual data
-
-            columns = int(valid_width / segment_size + 1)
-            rows = int(valid_height / segment_size + 1)
-
-            arr = self.provider.readAsArray(columns, rows, valid_extent)
+            arr = self.provider.readAsArray(columns, rows, validExtent)
 
             if GRID_DEM_OUTPUT_MODE == "mesh":
-                b["mesh"] = self.buildMeshData(arr, valid_extent, self.localOrigin, self.provider.nodata, full_extent=self.extent)
+                b["mesh"] = self.buildMeshData(arr, validExtent, self.localOrigin, self.provider.nodata, full_extent=self.extent)
                 b["translate"] = [0, 0, 0]
             else:
-                b["grid"] = self.buildGridData(arr, valid_extent, self.localOrigin, self.provider.nodata)
+                b["grid"] = self.buildGridData(arr, validExtent, self.localOrigin, self.provider.nodata)
 
         return b
 

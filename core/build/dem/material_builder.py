@@ -21,9 +21,10 @@ class DEMMaterialBuilder:
 
         self.mtlId = None
 
-    def setup(self, blockIndex, extent, mtlId=None, asBlock=True, useNow=True):
+    def setup(self, blockIndex, extent, validExtent=None, mtlId=None, asBlock=True, useNow=True):
         self.blockIndex = blockIndex
         self.extent = extent
+        self.validExtent = validExtent
         self.mtlId = mtlId
         self.asBlock = asBlock
         self.useNow = useNow
@@ -61,24 +62,18 @@ class DEMMaterialBuilder:
         mtl_type = m.get("type", DEMMtlType.MAPCANVAS)
         match mtl_type:
             case DEMMtlType.MAPCANVAS:
-                mi = self.materialManager.getMapImageIndex(
-                    tex_size.width(), tex_size.height(), self.extent,
-                    opacity, transparent_bg, shading, flat, fmt
-                )
+                mi = self.materialManager.getMapImageIndex(tex_size.width(), tex_size.height(), self.extent, self.validExtent,
+                                                           opacity, transparent_bg, shading, flat, fmt)
 
             case DEMMtlType.LAYER:
                 layerids = p.get("layerIds", [])
-                mi = self.materialManager.getLayerImageIndex(
-                    layerids, tex_size.width(), tex_size.height(), self.extent,
-                    opacity, transparent_bg, shading, flat, fmt
-                )
+                mi = self.materialManager.getLayerImageIndex(layerids, tex_size.width(), tex_size.height(), self.extent, self.validExtent,
+                                                             opacity, transparent_bg, shading, flat, fmt)
 
             case DEMMtlType.FILE:
                 filepath = p.get("lineEdit_ImageFile", "")
-                mi = self.materialManager.getImageFileIndex(
-                    filepath,
-                    opacity, transparent_bg=True, shading=shading, flat=flat, doubleSide=True
-                )
+                mi = self.materialManager.getImageFileIndex(filepath,
+                                                            opacity, transparent_bg=True, shading=shading, flat=flat, doubleSide=True)
 
             case _:     # const.MTL_COLOR
                 mt = MaterialType.DEFAULT_MESH if shading else MaterialType.MESH_BASIC

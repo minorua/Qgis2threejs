@@ -5,7 +5,7 @@
 import math
 from osgeo import gdal
 from qgis.PyQt.QtCore import QSize
-from qgis.core import QgsPoint, QgsProject
+from qgis.core import QgsPoint, QgsPointXY, QgsProject
 
 from .block_builder import DEMBlockResampBuilder, DEMBlockRawBuilder
 from .material_builder import DEMMaterialBuilder
@@ -130,7 +130,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             tile_cols = math.ceil((self.provider.width - 1) / segments)
             tile_rows = math.ceil((self.provider.height - 1) / segments)
 
-            data_extent_lr = layer_extent.point(1, 0)
+            lrx, lry = layer_extent.point(1, 0)     # C  (px is area)
         else:
             # clip to base extent
             layer_grect = self.provider.gridRectangle()
@@ -144,7 +144,9 @@ class DEMLayerBuilder(LayerBuilderBase):
             tile_cols = math.ceil((grect.columns() - 1) / segments)
             tile_rows = math.ceil((grect.rows() - 1) / segments)
 
-            data_extent_lr = grect.rect.xMaximum(), grect.rect.yMinimum()
+            lrx, lry = grect.rect.xMaximum(), grect.rect.yMinimum()     # C  (px is area)
+
+        layer_lrx, layer_lry = lrx - xres / 2, lry + yres / 2  # C' (px is pt)
 
         if not math.isclose(xres, yres):
             logger.error(f"{self.layer.name}: DEM pixel size is different in X and Y directions.")
@@ -163,10 +165,20 @@ class DEMLayerBuilder(LayerBuilderBase):
                 tiles.append((-row, blockIndex, tileExtent))
 
         for i, (_r, blockIndex, tileExtent) in enumerate(sorted(tiles)):
+                # determine the valid extent - the extent of the tile that contains data
+                ulx, uly = tileExtent.point(0, 1)              # A' (px is pt)
+                tile_lrx, tile_lry = tileExtent.point(1, 0)    # B' (px is pt)
+
+                valid_width = min(layer_lrx, tile_lrx) - ulx
+                valid_height = uly - max(layer_lry, tile_lry)
+                center = QgsPointXY(ulx + valid_width / 2, uly - valid_height / 2)
+
+                validExtent = MapExtent(center, valid_width, valid_height)
+
                 # set up material builder for first/current material
                 if self.layer.opt.allMaterials and len(materials):
                     id = materials[0].get("id")
-                    self.mtlBuilder.setup(blockIndex, tileExtent, id, useNow=bool(id == currentMtlId))
+                    self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, useNow=bool(id == currentMtlId))
                 else:
                     self.mtlBuilder.setup(blockIndex, tileExtent, useNow=True)
                 yield self.mtlBuilder
@@ -174,15 +186,14 @@ class DEMLayerBuilder(LayerBuilderBase):
                 # set up grid builder
                 if not self.layer.opt.onlyMaterial:
                     # DEMBlockRawBuilder
-                    self.blockBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments,
-                                            dataExtentLowerRight=data_extent_lr)
+                    self.blockBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments, validExtent=validExtent)
                     yield self.blockBuilder
 
                 # set up material builder for remaininig materials
                 if self.layer.opt.allMaterials:
                     for idx in range(1, mtlCount):
                         id = materials[idx].get("id")
-                        self.mtlBuilder.setup(blockIndex, tileExtent, id, useNow=bool(id == currentMtlId))
+                        self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, useNow=bool(id == currentMtlId))
                         yield self.mtlBuilder
 
                 self.progress(i + 1, tile_cols * tile_rows)
@@ -238,7 +249,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             # set up material builder for first/current material
             if self.layer.opt.allMaterials and len(materials):
                 id = materials[0].get("id")
-                self.mtlBuilder.setup(blockIndex, extent, id, useNow=bool(id == currentMtlId))
+                self.mtlBuilder.setup(blockIndex, extent, mltId=id, useNow=bool(id == currentMtlId))
             else:
                 self.mtlBuilder.setup(blockIndex, extent, useNow=True)
             yield self.mtlBuilder
@@ -265,7 +276,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             if self.layer.opt.allMaterials:
                 for idx in range(1, mtlCount):
                     id = materials[idx].get("id")
-                    self.mtlBuilder.setup(blockIndex, extent, id, useNow=bool(id == currentMtlId))
+                    self.mtlBuilder.setup(blockIndex, extent, mtlId=id, useNow=bool(id == currentMtlId))
                     yield self.mtlBuilder
 
             self.progress(i + 1, size2)

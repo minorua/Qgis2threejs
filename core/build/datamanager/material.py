@@ -39,6 +39,7 @@ class Texture(NamedTuple):
     width: int | None = None
     height: int | None = None
     extent: MapExtent | None = None
+    validExtent: MapExtent | None = None
     transparent_bg: bool = False
     format: str = "PNG"
 
@@ -82,12 +83,12 @@ class MaterialManager(DataManager):
         m = Material(MaterialType.DEFAULT_MESH if shading else MaterialType.MESH_BASIC, opacity=opacity, flat=flat, doubleSide=doubleSide, options=texture)
         return self._index(m)
 
-    def getMapImageIndex(self, width, height, extent, opacity=1, transparent_bg=False, shading=True, flat=False, format="PNG"):
-        tex = Texture(TextureType.MAP_IMAGE, None, width, height, extent, transparent_bg, format)
+    def getMapImageIndex(self, width, height, extent, validExtent=None, opacity=1, transparent_bg=False, shading=True, flat=False, format="PNG"):
+        tex = Texture(TextureType.MAP_IMAGE, None, width, height, extent, validExtent, transparent_bg, format)
         return self._indexTex(tex, opacity, shading, flat)
 
-    def getLayerImageIndex(self, layerids, width, height, extent, opacity=1, transparent_bg=False, shading=True, flat=False, format="PNG"):
-        tex = Texture(TextureType.LAYER_IMAGE, layerids, width, height, extent, transparent_bg, format)
+    def getLayerImageIndex(self, layerids, width, height, extent, validExtent=None, opacity=1, transparent_bg=False, shading=True, flat=False, format="PNG"):
+        tex = Texture(TextureType.LAYER_IMAGE, layerids, width, height, extent, validExtent, transparent_bg, format)
         return self._indexTex(tex, opacity, shading, flat)
 
     def getImageFileIndex(self, path, opacity=1, transparent_bg=False, shading=True, flat=False, doubleSide=False):
@@ -113,10 +114,10 @@ class MaterialManager(DataManager):
             tex = mtl.options
             match tex.type:
                 case TextureType.MAP_IMAGE:
-                    imgIndex = self.imageManager.mapImageIndex(tex.width, tex.height, tex.extent, tex.transparent_bg, tex.format)
+                    imgIndex = self.imageManager.mapImageIndex(tex.width, tex.height, tex.extent, tex.validExtent, tex.transparent_bg, tex.format)
 
                 case TextureType.LAYER_IMAGE:
-                    imgIndex = self.imageManager.layerImageIndex(tex.src, tex.width, tex.height, tex.extent, tex.transparent_bg, tex.format)
+                    imgIndex = self.imageManager.layerImageIndex(tex.src, tex.width, tex.height, tex.extent, tex.validExtent, tex.transparent_bg, tex.format)
 
                 case TextureType.IMAGE_FILE:
                     if mtl.type == MaterialType.SPRITE_IMAGE:

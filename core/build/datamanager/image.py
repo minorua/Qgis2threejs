@@ -5,7 +5,7 @@
 
 import os
 
-from qgis.PyQt.QtCore import Qt, QBuffer, QByteArray, QIODevice, QSize
+from qgis.PyQt.QtCore import Qt, QBuffer, QByteArray, QIODevice, QRectF, QSize
 from qgis.PyQt.QtGui import QColor, QImage, QPainter
 from qgis.core import Qgis, QgsMapSettings
 
@@ -30,26 +30,26 @@ class ImageManager(DataManager):
     def setBaseMapSettings(self, mapSettings):
         self.baseMapSettings = QgsMapSettings(mapSettings) if mapSettings else QgsMapSettings()
 
-    def mapImageIndex(self, width, height, extent, transparent_bg, format):
-        img = (self.IMG_MAP, (None, width, height, extent, transparent_bg), format)
+    def mapImageIndex(self, width, height, extent, validExtent, transparent_bg, format):
+        img = (self.IMG_MAP, (None, width, height, extent, validExtent, transparent_bg), format)
         return self._index(img)
 
-    def layerImageIndex(self, layerids, width, height, extent, transparent_bg, format):
-        img = (self.IMG_LAYER, (layerids, width, height, extent, transparent_bg), format)
+    def layerImageIndex(self, layerids, width, height, extent, validExtent, transparent_bg, format):
+        img = (self.IMG_LAYER, (layerids, width, height, extent, validExtent, transparent_bg), format)
         return self._index(img)
 
     def imageFileIndex(self, path):
         img = (self.IMG_FILE, path, "")
         return self._index(img)
 
-    def _renderImage(self, layerids, width, height, extent, transparent_bg=False):
+    def _renderImage(self, layerids, width, height, extent, validExtent, transparent_bg=False):
         from qgis.core import QgsMapRendererCustomPainterJob
         antialias = True
 
         settings = QgsMapSettings(self.baseMapSettings)
         settings.setOutputSize(QSize(width, height))
         settings.setExtent(extent.unrotatedRect())
-        settings.setRotation(extent.rotation())
+        # settings.setRotation(extent.rotation())
 
         if layerids:
             settings.setLayers(getLayersByLayerIds(layerids))
@@ -64,10 +64,19 @@ class ImageManager(DataManager):
                 break
 
         image = QImage(width, height, QImage.Format.Format_ARGB32_Premultiplied)
+        image.fill(Qt.GlobalColor.transparent)
+
         painter = QPainter()
         painter.begin(image)
         if antialias:
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        if validExtent is not None:
+            painter.setClipRect(
+                QRectF(0, 0,
+                       validExtent.width() / extent.width() * width,
+                       validExtent.height() / extent.height() * height)
+            )
 
         job = QgsMapRendererCustomPainterJob(settings, painter)
         if has_pluginlayer:
