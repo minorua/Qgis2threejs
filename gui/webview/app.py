@@ -85,7 +85,12 @@ class WebPage(Q3DWebEnginePage):
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
         CML = Q3DWebEnginePage.JavaScriptConsoleMessageLevel
         if level in (CML.WarningMessageLevel, CML.ErrorMessageLevel):
-            self.socketClient.sendEvent(Event.JS_ERROR_WARNING, params={"is_error": bool(level == CML.ErrorMessageLevel)})
+            self.socketClient.sendEvent(Event.JS_ERROR_WARNING, params={
+                "isError": bool(level == CML.ErrorMessageLevel),
+                "message": message,
+                "lineNumber": lineNumber,
+                "sourceID": sourceID
+            })
 
 
 class WebView(Q3DWebEngineView):

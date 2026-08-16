@@ -29,7 +29,7 @@ class Q3DWebPageCommon:
     SendQueueClass = SendQueue
 
     # signals
-    jsErrorWarning = pyqtSignal(bool)       # is_error
+    jsErrorWarning = pyqtSignal(bool, str, int, str)       # isError, message, lineNumber, sourceID
 
     def __init__(self, _=None):
         self.loadedScripts = {}

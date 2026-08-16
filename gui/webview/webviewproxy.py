@@ -83,7 +83,7 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
                 self.loadFinished.emit(params.get("ok", False))
 
             case Event.JS_ERROR_WARNING:
-                self.jsErrorWarning.emit(params.get("is_error", False))
+                self.jsErrorWarning.emit(params.get("isError", False), params.get("message", ""), params.get("lineNumber", -1), params.get("sourceID", ""))
 
     def reload(self):
         self.showStatusMessage("Initializing preview in an external process...")

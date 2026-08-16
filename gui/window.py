@@ -148,7 +148,7 @@ class Q3DWindow(QMainWindow):
             self.controller.conn.teardown()
 
             if self.webViewType == WebViewType.WEBENGINE:
-                self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
+                self.webPage.jsErrorWarning.disconnect(self.onJSErrorWarning)
 
             # save export settings to a settings file
             self.settings.setAnimationData(self.ui.animationPanel.data())
@@ -278,7 +278,7 @@ class Q3DWindow(QMainWindow):
             ui.statusbar.addPermanentWidget(w)
 
             self.webPage.loadStarted.connect(ui.toolButtonConsoleStatus.hide)
-            self.webPage.jsErrorWarning.connect(self.showConsoleStatusIcon)
+            self.webPage.jsErrorWarning.connect(self.onJSErrorWarning)
 
     def restoreWindowState(self):
         # restore window geometry and dockwidget layout
@@ -308,14 +308,18 @@ class Q3DWindow(QMainWindow):
 
         settings.endGroup()
 
-    def showConsoleStatusIcon(self, is_error):
-        if self.ui.toolButtonConsoleStatus.isVisible() and not is_error:
-            # do not replace error icon with warning icon
-            return
-
-        if is_error:
+    def onJSErrorWarning(self, isError, message, lineNumber, sourceID):
+        msg = f"{sourceID.split('/')[-1]}:{lineNumber} {message}"
+        if isError:
+            logger.error(msg)
             icon = QgsApplication.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical)
         else:
+            logger.warning(msg)
+
+            # do not replace error icon with warning icon
+            if self.ui.toolButtonConsoleStatus.isVisible():
+                return
+
             if os.name == "nt":
                 icon = QgsApplication.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxWarning)
             else:

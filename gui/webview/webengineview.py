@@ -83,7 +83,7 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
         CML = QWebEnginePage.JavaScriptConsoleMessageLevel
         if level in (CML.WarningMessageLevel, CML.ErrorMessageLevel):
-            self.jsErrorWarning.emit(bool(level == CML.ErrorMessageLevel))
+            self.jsErrorWarning.emit(bool(level == CML.ErrorMessageLevel), message, lineNumber, sourceID)
 
         if DEBUG_MODE:
             logging_level = {

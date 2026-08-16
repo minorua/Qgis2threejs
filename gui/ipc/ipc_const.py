@@ -7,7 +7,7 @@ class Event:
     # <- web page
     PAGE_LOAD_STARTED = "pageloadstart" # page loading started
     PAGE_LOADED = "pageloaded"          # page loading finished
-    JS_ERROR_WARNING = "js_error"       # JavaScript error or warning: params={"is_error": bool}
+    JS_ERROR_WARNING = "js_error"       # JavaScript error or warning: params={"isError": bool, "message": str, "lineNumber": int, "sourceID": str}
 
     # <- web view
     DEV_TOOLS_CLOSED = "dev_closed"     # Developer tools closed

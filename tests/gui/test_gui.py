@@ -28,7 +28,7 @@ class JSTestException(Exception):
 
 class GUITestResult(unittest.TestResult):
 
-    DUMMY_TEST = unittest.TestCase()
+    UNKNOWN_TEST = unittest.TestCase()
     VERBOSE = True
 
     def __init__(self, stream=None, descriptions=None, verbosity=None):
@@ -36,28 +36,35 @@ class GUITestResult(unittest.TestResult):
 
         self.consoleMessages = {}
 
-    def addConsoleMessage(self, message, lineNumber, sourceID):
-        """Currently not used.
-            TODO: fetch console messages from web page."""
+    def addConsoleMessage(self, level, message, lineNumber, sourceID):
+        """Unused."""
 
         if ".py" in sourceID:
             return
 
-        source = "{} ({})".format(sourceID.split("/")[-1], lineNumber)
+        source = f"{sourceID.split("/")[-1]}:{lineNumber}"
 
         if "error" in message.lower():
             e = JSException(source, message)
-            self.addError(self.DUMMY_TEST, (type(e), e, e.__traceback__))
+            self.addError(self.UNKNOWN_TEST, (type(e), e, e.__traceback__))
 
-        key = "{}: {}".format(source, message)
+        key = f"{source} {message}"
         self.consoleMessages[key] = self.consoleMessages.get(key, 0) + 1
+
+    def addJSErrorWarning(self, isError, message, lineNumber, sourceID):
+        if not isError:
+            return
+
+        e = JSException(f"{sourceID}: {lineNumber}", message)
+        self.addError(self.UNKNOWN_TEST, (type(e), e, e.__traceback__))
 
     def addTestResult(self, testName, result, msg):
         if not result:
             e = JSTestException(testName, msg)
-            self.addFailure(self.DUMMY_TEST, (type(e), e, e.__traceback__))
+            self.addFailure(self.UNKNOWN_TEST, (type(e), e, e.__traceback__))
 
-        m = "'{}' ({}) {}".format(testName, "success" if result else "err/fail", msg)
+        res = "success" if result else "err/fail"
+        m = f"'{testName}' ({res}) {msg}"
         if result:
             logger.info(m)
         else:
@@ -83,12 +90,6 @@ class GUITestResult(unittest.TestResult):
             rows.append("# Failures")
             for _test, text in self.failures:
                 rows.append("* " + text.replace(to_remove, ""))
-
-        rows.append("### Console Messages ###")
-        # for msg, count in self.consoleMessages.items():
-        #    rows.append("* {} [x{}]".format(msg, count))
-
-        rows.append("See web inspector for details.")
 
         if self.errors or self.failures:
             logger.error("\n".join(rows))
@@ -187,6 +188,7 @@ def runTest(wnd):
         suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testClass))
 
     result = GUITestResult()
+    wnd.webPage.jsErrorWarning.connect(result.addJSErrorWarning)
     wnd.webPage.bridge.testResultReceived.connect(result.addTestResult)
 
     logger.info(f"Testing GUI using {filename}...")
