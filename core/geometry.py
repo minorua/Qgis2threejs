@@ -330,6 +330,9 @@ class TINGeometry(PolygonGeometry):
         self.centroids: list[Vector3] = []
 
     def toDict(self, flat=True):
+        """
+        @returns {MeshData} if flat is True
+        """
         tris = IndexedTriangles3D()
         for v0, v1, v2 in self.triangles:
             tris.addTriangle(v0, v1, v2)

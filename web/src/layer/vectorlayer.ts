@@ -28,7 +28,7 @@ export class VectorLayer extends MapLayer {
 			const BuilderClass = this.BuilderFactory[objType];
 			if (!BuilderClass) return;
 
-			this.builder = new BuilderClass(this, this.sceneData.zScale);
+			this.builder = new BuilderClass(this);
 		}
 
 		this.builder.build(features, startIndex);

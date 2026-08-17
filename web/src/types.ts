@@ -231,8 +231,11 @@ export interface FeatureBlockDataRef extends BlockData {
 }
 
 export interface FeatureData {
-    geom: GeomData;
-    mtl?: number;
+    geom: GeomData | MeshData;
+    mtl?: {
+        idx: number;
+        brdr?: number;
+    };
     model?: number;
     prop?: Record<string, string | number>;
     lbl?: string;
@@ -252,6 +255,12 @@ export interface GeomData {
     l?: number;
     dd?: number;
     url?: string;
+}
+
+export interface MeshData {
+    vertices: number[];
+    indices: number[];
+    centroids: (Vec3 | 0)[];
 }
 
 /* Animation */

@@ -5,6 +5,7 @@
 
 from ..datamanager.material import MaterialManager, MaterialType
 from ...const import LayerType, PropertyID as PID
+from ...geometry import PolygonGeometry, TINGeometry
 from ....gui.propwidget import PropertyWidget, WVT
 
 
@@ -456,7 +457,7 @@ class PolygonType(PolygonTypeBase):
             "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), flat=True, doubleSide=True)
         }
 
-    def geometry(self, feat, geom):
+    def geometry(self, feat, geom: TINGeometry):
         g = geom.toDict(flat=True)
         return g
 
@@ -490,7 +491,7 @@ class ExtrudedType(PolygonTypeBase):
             mtl["edge"] = self.mtlManager.getLineIndex(color=feat.prop(PID.C2), opacity=feat.prop(PID.OP))
         return mtl
 
-    def geometry(self, feat, geom):
+    def geometry(self, feat, geom: PolygonGeometry):
         return {
             "polygons": geom.toList2(),
             "centroids": geom.centroids,
@@ -526,8 +527,8 @@ class OverlayType(PolygonTypeBase):
             mtl["brdr"] = self.mtlManager.getLineIndex(color=feat.prop(PID.C2), opacity=feat.prop(PID.OP))
         return mtl
 
-    def geometry(self, feat, geom):
-        g = geom.toDict(flat=True)  # TINGeometry
+    def geometry(self, feat, geom: TINGeometry):
+        g = geom.toDict(flat=True)
 
         # border
         if feat.prop(PID.C2) is not None:

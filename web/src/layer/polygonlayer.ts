@@ -7,6 +7,8 @@ import { deg2rad, LayerType, UV } from "../core.js";
 import { BuilderBase, VectorLayer } from "./vectorlayer.js";
 import { arrayToVec2Array } from "../utils.js";
 
+import type { FeatureData, MeshData } from "../types.js";
+
 
 export class PolygonLayer extends VectorLayer {
 
@@ -52,11 +54,11 @@ export class PolygonLayer extends VectorLayer {
 
 class Builder extends BuilderBase {
 
-	createObjects(f) {
+	createObjects(f: FeatureData) {
 		return [this.createObject(f)];
 	}
 
-	createObject(f) { }
+	createObject(f: FeatureData) { }
 
 }
 
@@ -65,12 +67,12 @@ class PolygonBuilder extends Builder {
 
 	type = "Polygon";
 
-	createObject(f) {
-		const t = f.geom.triangles;
+	createObject(f: FeatureData) {
+		const m = f.geom as MeshData;
 
 		const geom = new THREE.BufferGeometry();
-		geom.setAttribute("position", new THREE.Float32BufferAttribute(t.v, 3));
-		geom.setIndex(t.f);
+		geom.setAttribute("position", new THREE.Float32BufferAttribute(m.vertices, 3));
+		geom.setIndex(m.indices);
 		return new THREE.Mesh(geom, this.materials.mtl(f.mtl.idx));
 	}
 
@@ -81,7 +83,7 @@ class ExtrudedBuilder extends Builder {
 
 	type = "Extruded";
 
-	createObject(f) {
+	createObject(f: FeatureData) {
 		const { polygons, centroids } = f.geom;
 
 		if (polygons.length === 1) {
@@ -153,23 +155,22 @@ class OverlayBuilder extends Builder {
 
 	type = "Overlay";
 
-	createObject(f) {
-		const { sceneData } = this.layer;
+	createObject(f: FeatureData) {
+		const m = f.geom as MeshData;
 
-		const t = f.geom.triangles;
 		const geom = new THREE.BufferGeometry();
-		geom.setIndex(t.f);
-		geom.setAttribute("position", new THREE.Float32BufferAttribute(t.v, 3));
+		geom.setAttribute("position", new THREE.Float32BufferAttribute(m.vertices, 3));
+		geom.setIndex(m.indices);
 		geom.computeVertexNormals();
 
 		const mesh = new THREE.Mesh(geom, this.materials.mtl(f.mtl.idx));
 
-		if (f.geom.brdr === undefined) return mesh;
+		if (m.brdr === undefined) return mesh;
 
 		// borders
 		const bMtl = this.materials.mtl(f.mtl.brdr);
 
-		for (const boundaries of f.geom.brdr) {
+		for (const boundaries of m.brdr) {
 			for (const vertices of boundaries) {
 				mesh.add(new THREE.Line(
 					new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3)),
