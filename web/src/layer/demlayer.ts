@@ -455,8 +455,6 @@ function createBlock(layer: DEMLayer) {
 */
 class GridGeometry extends THREE.BufferGeometry {
 
-	type = "GridGeometry";
-
 	/**
 	 * @param array     - DEM values
 	 * @param columns   - Number of columns of actual grid data
