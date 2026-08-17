@@ -9,18 +9,23 @@ from qgis.core import QgsPointXY, QgsRectangle, QgsGeometry
 
 class MapExtent:
 
-    def __init__(self, center, width, height, rotation=0):
-        """
-        args:
-          center        -- QgsPointXY
-          width, height -- float
-          rotation      -- int/float. in degrees counter-clockwise.
-        """
+    def __init__(self, center: QgsPointXY, width: float, height: float, rotation: float = 0):
         self._center = center
         self._width = width
         self._height = height
         self._rotation = rotation
         self._updateDerived()
+
+    def __eq__(self, other):
+        if not isinstance(other, MapExtent):
+            return NotImplemented
+
+        return (
+            self._center == other._center
+            and self._width == other._width
+            and self._height == other._height
+            and self._rotation == other._rotation
+        )
 
     def clone(self):
         return MapExtent(self._center, self._width, self._height, self._rotation)
