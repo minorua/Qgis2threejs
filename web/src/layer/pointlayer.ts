@@ -196,9 +196,7 @@ class ConeBuilder extends CBuilderBase {
 
 class PointBuilder extends Builder {
 
-    constructor(layer) {
-        super("Point", layer)
-    }
+    type = "Point";
 
     build(features, startIndex) {
         const { layer } = this;
@@ -220,9 +218,7 @@ class PointBuilder extends Builder {
 
 class BillboardBuilder extends Builder {
 
-    constructor(layer) {
-        super("Billboard", layer)
-    }
+    type = "Billboard";
 
     build(features, startIndex) {
         const { layer } = this;
@@ -271,9 +267,7 @@ class BillboardBuilder extends Builder {
 
 class ModelBuilder extends Builder {
 
-    constructor(layer) {
-        super("3D Model", layer)
-    }
+    type = "3D Model";
 
     build(features, startIndex) {
         const { layer } = this;
