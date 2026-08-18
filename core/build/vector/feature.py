@@ -61,11 +61,11 @@ class Feature:
         # Overlay
         if grid is None:
             # absolute z coordinate
-            return TINGeometry.fromQgsGeometry(self.geom, zf, transform_func, drop_z=True)
+            return TINGeometry.fromQgsGeometry(self.geom, zf, transform_func, drop_z=True, ccw2d=True)
 
         # relative to DEM
         polys = grid.splitPolygon(self.geom)
-        return TINGeometry.fromQgsGeometry(polys, zf, transform_func)
+        return TINGeometry.fromQgsGeometry(polys, zf, transform_func, ccw2d=True)
 
     def prop(self, pid, def_val=None):
         return self.props.get(pid, def_val)
