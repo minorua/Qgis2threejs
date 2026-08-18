@@ -3,9 +3,9 @@
 
 import { THREE } from "../three.js";
 
-import { deg2rad, LayerType, UV } from "../core.js";
+import { LayerType } from "../core.js";
 import { BuilderBase, VectorLayer } from "./vectorlayer.js";
-import { arrayToVec2Array } from "../utils.js";
+import { arrayToVec2Array, getBoundaryLines } from "../utils.js";
 
 import type { FeatureData, MeshData } from "../types.js";
 
@@ -165,17 +165,16 @@ class OverlayBuilder extends Builder {
 
 		const mesh = new THREE.Mesh(geom, this.materials.mtl(f.mtl.idx));
 
-		if (m.brdr === undefined) return mesh;
+		// boundaries
+		if (f.mtl.brdr !== undefined) {
+			const bMtl = this.materials.mtl(f.mtl.brdr);
 
-		// borders
-		const bMtl = this.materials.mtl(f.mtl.brdr);
-
-		for (const boundaries of m.brdr) {
-			for (const vertices of boundaries) {
-				mesh.add(new THREE.Line(
-					new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3)),
-					bMtl)
+			for (const boundary of getBoundaryLines(geom)) {
+				const line = new THREE.Line(
+					new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(boundary.flat(), 3)),
+					bMtl
 				);
+				mesh.add(line);
 			}
 		}
 		return mesh;

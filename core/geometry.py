@@ -580,57 +580,6 @@ class GridGeometry:
 
         return QgsGeometry.collectGeometry(geoms)
 
-    def segmentizeBoundaries(self, geom):
-        """geom: QgsGeometry (polygon or multi-polygon)"""
-
-        xmin, ymax = (self.xmin, self.ymax)
-        xres, yres = (self.xres, self.yres)
-        z_func = self.valueOnSurface
-
-        polys = []
-        for polygon in PolygonGeometry.nestedPointXYList(geom):
-            rings = QgsMultiLineString()
-            for i, bnd in enumerate(polygon):
-                if GeometryUtils.isClockwise(bnd) ^ (i > 0):   # xor
-                    bnd.reverse()       # outer boundary should be ccw. inner boundaries should be cw.
-
-                ring = QgsLineString()
-
-                v = bnd[0]     # QgsPointXY
-                x0, y0 = (v.x(), v.y())
-                nx0 = (x0 - xmin) / xres
-                ny0 = (ymax - y0) / yres
-                ns0 = abs(ny0 + nx0)
-
-                for v in bnd[1:]:
-                    x1, y1 = (v.x(), v.y())
-                    nx1 = (x1 - xmin) / xres
-                    ny1 = (ymax - y1) / yres
-                    ns1 = abs(ny1 + nx1)
-
-                    p = set([0])
-                    for v0, v1 in [[nx0, nx1], [ny0, ny1], [ns0, ns1]]:
-                        k = ceil(min(v0, v1))
-                        n = floor(max(v0, v1))
-                        for j in range(k, n + 1):
-                            p.add((j - v0) / (v1 - v0))
-
-                    if 1 in p:
-                        p.remove(1)
-
-                    for m in sorted(p):
-                        x = x0 + (x1 - x0) * m
-                        y = y0 + (y1 - y0) * m
-                        ring.addVertex(QgsPoint(x, y, z_func(x, y)))
-
-                    x0, y0 = (x1, y1)
-                    nx0, ny0, ns0 = (nx1, ny1, ns1)
-
-                ring.addVertex(QgsPoint(x0, y0, z_func(x0, y0)))    # last vertex
-                rings.addGeometry(ring)
-            polys.append(QgsGeometry(rings))
-        return polys
-
     def value(self, x, y):
         return self.values[x + y * (self.x_segments + 1)]
 

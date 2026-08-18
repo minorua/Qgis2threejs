@@ -234,7 +234,6 @@ export interface FeatureData {
     geom: GeomData | MeshData;
     mtl?: {
         idx: number;
-        brdr?: number;
     };
     model?: number;
     prop?: Record<string, string | number>;

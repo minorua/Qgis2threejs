@@ -59,24 +59,13 @@ class Feature:
                                                    centroidPerPolygon=True)
 
         # Overlay
-        border = bool(self.prop(PID.C2) is not None)
         if grid is None:
             # absolute z coordinate
-            g = TINGeometry.fromQgsGeometry(self.geom, zf, transform_func, drop_z=True)
-            if border:
-                g.bnds_list = PolygonGeometry.fromQgsGeometry(self.geom, zf, transform_func).toLineGeometryList()
-            return g
+            return TINGeometry.fromQgsGeometry(self.geom, zf, transform_func, drop_z=True)
 
         # relative to DEM
-        transform_func = mapTo3d.transform
-
         polys = grid.splitPolygon(self.geom)
-        g = TINGeometry.fromQgsGeometry(polys, zf, transform_func)
-
-        if border:
-            bnds = grid.segmentizeBoundaries(self.geom)
-            g.bnds_list = [LineGeometry.fromQgsGeometry(bnd, zf, transform_func) for bnd in bnds]
-        return g
+        return TINGeometry.fromQgsGeometry(polys, zf, transform_func)
 
     def prop(self, pid, def_val=None):
         return self.props.get(pid, def_val)

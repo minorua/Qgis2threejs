@@ -3,10 +3,10 @@
 
 import { THREE } from "../three.js";
 
-import { app, conf, deg2rad, LayerType } from "../core.js";
+import { app, conf, LayerType } from "../core.js";
 import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
-import { createWallGeometry, decodeBase64TypedArrayObject } from "../utils.js";
+import { createWallGeometry, decodeBase64TypedArrayObject, getBoundaryLines } from "../utils.js";
 
 import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, MapExtent, ParsedDEMGridData, ParsedDEMMeshData, Point3, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
@@ -228,74 +228,13 @@ class DEMBlockBase {
 
 	buildAuxiliaryObjects(layer, geom, parent) {
 		if (layer.properties.sides) {
-			const boundaries = this.getBoundaries(geom);
+			const boundaries = getBoundaryLines(geom);
 
 			parent.add(...this.buildSides(boundaries, layer.properties.sides.bottom, layer.auxiliaryMtl.sides.mtl));
 			parent.add(this.buildBottom(geom, layer.properties.sides.bottom, layer.auxiliaryMtl.sides.mtl));
 
 			layer.sideVisible = true;
 		}
-	}
-
-	getBoundaries(geometry: THREE.BufferGeometry): Vec3[][] {
-		const vertices = geometry.getAttribute("position").array;
-		const indices = geometry.getIndex().array;
-
-		const edgeKey = (a: number, b: number) => (a < b) ? `${a},${b}` : `${b},${a}`;
-
-		const unpairedHalfEdge = new Set<string>();
-		for (let i = 0; i < indices.length; i += 3) {
-			const tri = [indices[i], indices[i + 1], indices[i + 2]];
-
-			for (let j = 0; j < 3; j++) {
-				const key = edgeKey(tri[j], tri[(j + 1) % 3]);
-
-				if (unpairedHalfEdge.has(key))
-					unpairedHalfEdge.delete(key);
-				else
-					unpairedHalfEdge.add(key);
-			}
-		}
-
-		const adjacency = new Map<number, number[]>();
-		for (const key of unpairedHalfEdge) {
-			const [a, b] = key.split(",").map(Number);
-
-			if (!adjacency.has(a)) adjacency.set(a, []);
-			if (!adjacency.has(b)) adjacency.set(b, []);
-			adjacency.get(a).push(b);
-			adjacency.get(b).push(a);
-		}
-
-		const remaining = unpairedHalfEdge;
-		const boundaries: Vec3[][] = [];
-
-		while (remaining.size > 0) {
-			const [firstKey] = remaining;
-
-			const start = Number(firstKey.split(",")[0]);
-			let prev = -1;
-			let curr = start;
-
-			const line: number[] = [start];
-
-			while (true) {
-				const next = (adjacency.get(curr) || []).find(v => v !== prev);
-				if (next === undefined) break;
-
-				remaining.delete(edgeKey(curr, next));
-
-				line.push(next);
-				prev = curr;
-				curr = next;
-
-				if (curr === start) break;
-			}
-
-			boundaries.push(line.map((vi) => [vertices[vi * 3], vertices[vi * 3 + 1], vertices[vi * 3 + 2]]));
-		}
-
-		return boundaries;
 	}
 
 	buildSides(boundaries: Vec3[][], z0: number, material: THREE.Material): THREE.Mesh[] {

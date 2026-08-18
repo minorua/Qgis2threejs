@@ -528,13 +528,7 @@ class OverlayType(PolygonTypeBase):
         return mtl
 
     def geometry(self, feat, geom: TINGeometry):
-        g = geom.toDict(flat=True)
-
-        # border
-        if feat.prop(PID.C2) is not None:
-            g["brdr"] = [bnds.toList(flat=True) for bnds in geom.bnds_list]
-
-        return g
+        return geom.toDict(flat=True)
 
 
 # BillboardType
