@@ -4,7 +4,7 @@
 
 from math import ceil, floor
 from qgis.core import (
-    Qgis, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsSpatialIndex, QgsCoordinateTransform, QgsFeatureRequest,
+    Qgis, QgsGeometry, QgsPointXY, QgsRectangle, QgsCoordinateTransform, QgsFeatureRequest,
     QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsGeometryCollection,
     QgsProject, QgsTessellator, QgsVertexId, QgsWkbTypes
 )
@@ -492,7 +492,8 @@ class GeometryUtils:
 class GridGeometry:
 
     """
-    Geometry of a regular grid
+    Geometry of a regular grid with DEM values,
+    used to generate and clip terrain triangles.
     """
 
     def __init__(self, extent, x_segments, y_segments, values=None):
@@ -510,57 +511,41 @@ class GridGeometry:
         self.xres = self.width / x_segments
         self.yres = self.height / y_segments
 
-        self.vbands = self.hbands = None
+    def _vRect(self, x):
+        """rectangle of vertical band x (full height, one column wide)"""
+        return QgsRectangle(self.xmin + x * self.xres, self.ymin,
+                            self.xmin + (x + 1) * self.xres, self.ymax)
 
-    def setupBands(self):
-        xmin, ymin, xmax, ymax = (self.xmin, self.ymin, self.xmax, self.ymax)
-        xres, yres = (self.xres, self.yres)
+    def _hRect(self, y):
+        """rectangle of horizontal band y (full width, one row tall)"""
+        return QgsRectangle(self.xmin, self.ymax - (y + 1) * self.yres,
+                            self.xmax, self.ymax - y * self.yres)
 
-        vrects = []
-        hrects = []
-        vbands = []
-        hbands = []
+    def _xRange(self, bbox: QgsRectangle):
+        """column indices that may intersect bbox"""
+        c0 = max(floor((bbox.xMinimum() - self.xmin) / self.xres), 0)
+        c1 = min(floor((bbox.xMaximum() - self.xmin) / self.xres), self.x_segments - 1)
+        return range(c0, c1 + 1)
 
-        for x in range(self.x_segments):
-            f = QgsFeature(x)
-            r = QgsRectangle(xmin + x * xres, ymin,
-                             xmin + (x + 1) * xres, ymax)
-            f.setGeometry(QgsGeometry.fromRect(r))
-            vrects.append(r)
-            vbands.append(f)
-
-        for y in range(self.y_segments):
-            f = QgsFeature(y)
-            r = QgsRectangle(xmin, ymax - (y + 1) * yres,
-                             xmax, ymax - y * yres)
-            f.setGeometry(QgsGeometry.fromRect(r))
-            hrects.append(r)
-            hbands.append(f)
-
-        self.vrects = vrects
-        self.hrects = hrects
-        self.vbands = vbands
-        self.hbands = hbands
-
-        self.vidx = QgsSpatialIndex()
-        self.vidx.addFeatures(vbands)
-
-        self.hidx = QgsSpatialIndex()
-        self.hidx.addFeatures(hbands)
+    def _yRange(self, bbox: QgsRectangle):
+        """row indices that may intersect bbox"""
+        r0 = max(floor((self.ymax - bbox.yMaximum()) / self.yres), 0)
+        r1 = min(floor((self.ymax - bbox.yMinimum()) / self.yres), self.y_segments - 1)
+        return range(r0, r1 + 1)
 
     def _vSplit(self, geom):
         """split polygon vertically"""
-        for idx in self.vidx.intersects(geom.boundingBox()):
-            geometry = geom.clipped(self.vrects[idx])
+        for x in self._xRange(geom.boundingBox()):
+            geometry = geom.clipped(self._vRect(x))
             if geometry and not geometry.isEmpty():
-                yield idx, geometry
+                yield x, geometry
 
     def _hSplit(self, geom):
         """split polygon horizontally"""
-        for idx in self.hidx.intersects(geom.boundingBox()):
-            geometry = geom.clipped(self.hrects[idx])
+        for y in self._yRange(geom.boundingBox()):
+            geometry = geom.clipped(self._hRect(y))
             if geometry and not geometry.isEmpty():
-                yield idx, geometry
+                yield y, geometry
 
     def _cellTriangles(self, x, y):
         xres, yres = (self.xres, self.yres)
@@ -578,9 +563,6 @@ class GridGeometry:
         ]
 
     def splitPolygon(self, geom) -> QgsGeometry:
-        if self.vbands is None:
-            self.setupBands()
-
         cellArea = self.xres * self.yres
         tolerance = cellArea * 1e-9
 
