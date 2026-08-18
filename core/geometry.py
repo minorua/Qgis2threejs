@@ -562,14 +562,39 @@ class GridGeometry:
             if geometry and not geometry.isEmpty():
                 yield idx, geometry
 
+    def _cellTriangles(self, x, y):
+        xres, yres = (self.xres, self.yres)
+        x0 = self.xmin + x * xres
+        y0 = self.ymax - y * yres
+
+        a = QgsPointXY(x0, y0)
+        b = QgsPointXY(x0, y0 - yres)
+        c = QgsPointXY(x0 + xres, y0 - yres)
+        d = QgsPointXY(x0 + xres, y0)
+
+        return [
+            QgsGeometry.fromPolygonXY([[a, b, d, a]]),
+            QgsGeometry.fromPolygonXY([[b, c, d, b]])
+        ]
+
     def splitPolygon(self, geom) -> QgsGeometry:
         if self.vbands is None:
             self.setupBands()
 
+        cellArea = self.xres * self.yres
+        tolerance = cellArea * 1e-9
+
         geoms = []
         for x, vc in self._vSplit(geom):
             for y, c in self._hSplit(vc):
-                geoms.append(c)
+                if abs(c.area() - cellArea) < tolerance:
+                    geoms.extend(self._cellTriangles(x, y))
+                    continue
+
+                for tri in self._cellTriangles(x, y):
+                    part = tri.intersection(c)
+                    if part and not part.isEmpty():
+                        geoms.append(part)
 
         return QgsGeometry.collectGeometry(geoms)
 
