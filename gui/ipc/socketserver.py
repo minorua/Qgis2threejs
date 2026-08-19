@@ -5,46 +5,48 @@
 
 from PyQt6.QtNetwork import QLocalServer
 
-from .socketinterface import SocketInterface
+from .localsocketinterface import LocalSocketInterface
 from ...utils.logging import logger
 
 
-class SocketServer(SocketInterface):
+class SocketServer(LocalSocketInterface):
 
     def __init__(self, parent, serverName):
-        SocketInterface.__init__(self, parent, serverName)
+        LocalSocketInterface.__init__(self, parent, serverName)
 
         self.server = QLocalServer(parent)
-        self.server.newConnection.connect(self.onNewConnection)
-        self.server.listen(serverName)
+        self.server.newConnection.connect(self._onNewConnection)
+        if not self.server.listen(serverName):
+            logger.error("Failed to start local socket server.")
+            return
 
         logger.debug(f'Server is listening on "{serverName}".')
 
     def teardown(self):
         self.server.close()
 
-    def onNewConnection(self):
+    def _onNewConnection(self):
         logger.debug("New connection.")
 
-        conn = self.server.nextPendingConnection()
-        if not conn:
+        sock = self.server.nextPendingConnection()
+        if not sock:
             return
 
-        conn.disconnected.connect(conn.deleteLater)
-        conn.waitForReadyRead()
-        data = conn.readAll().data()
+        sock.disconnected.connect(sock.deleteLater)
+        sock.waitForReadyRead()
+        data = sock.readAll().data()
 
         if data.startswith(f"Hello {self.serverName}!".encode("utf-8")):
-            self.conn = conn
-            self.conn.readyRead.connect(self.handleIncomingMessage)
-            self.conn.disconnected.connect(self.connDisconnected)
+            self.sock = sock
+            self.sock.readyRead.connect(self.handleIncomingMessage)
+            self.sock.disconnected.connect(self._onDisconnected)
             self.connected.emit()
             logger.debug("Connection established.")
         else:
-            conn.disconnectFromServer()
+            sock.disconnectFromServer()
             logger.error("Connection refused.")
 
-    def connDisconnected(self):
+    def _onDisconnected(self):
         logger.debug("Disconnected.")
-        self.conn = None
+        self.sock = None
         self.disconnected.emit()

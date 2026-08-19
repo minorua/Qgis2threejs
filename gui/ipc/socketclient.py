@@ -7,30 +7,30 @@ import logging
 
 from PyQt6.QtNetwork import QLocalSocket
 
-from .socketinterface import SocketInterface
+from .localsocketinterface import LocalSocketInterface
 from ...conf import PLUGIN_NAME
 
 logger = logging.getLogger(PLUGIN_NAME)
 
 
-class SocketClient(SocketInterface):
+class SocketClient(LocalSocketInterface):
 
     def __init__(self, parent, serverName):
-        SocketInterface.__init__(self, parent, serverName)
+        LocalSocketInterface.__init__(self, parent, serverName)
 
-        self.conn = QLocalSocket(parent)
-        self.conn.readyRead.connect(self.handleIncomingMessage)
-        self.conn.disconnected.connect(self.disconnected)
+        self.sock = QLocalSocket(parent)
+        self.sock.readyRead.connect(self.handleIncomingMessage)
+        self.sock.disconnected.connect(self.disconnected)
 
     def connect(self):
-        self.conn.connectToServer(self.serverName)
+        self.sock.connectToServer(self.serverName)
 
         logger.info(f"Connecting to {self.serverName}...")
-        if self.conn.waitForConnected(1000):
+        if self.sock.waitForConnected(1000):
             logger.info("Connected.")
-            self.conn.write(f"Hello {self.serverName}!".encode("utf-8"))
-            self.conn.flush()
-            self.conn.waitForBytesWritten(1000)
+            self.sock.write(f"Hello {self.serverName}!".encode("utf-8"))
+            self.sock.flush()
+            self.sock.waitForBytesWritten(1000)
             self.connected.emit()
             return True
 

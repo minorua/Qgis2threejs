@@ -10,9 +10,9 @@ import os
 import struct
 import urllib.parse
 
-from PyQt6.QtCore import QObject
 from PyQt6.QtNetwork import QHostAddress, QTcpServer
 
+from .socketinterface import SocketInterface
 from ...utils.logging import logger
 
 # RFC 6455 — The WebSocket Protocol
@@ -36,16 +36,15 @@ class Connection:
         self.fragmentsOpcode = None
 
 
-class WebSocketServer(QObject):
+class WebSocketServer(SocketInterface):
     """A minimal HTTP + WebSocket server"""
 
     def __init__(self, parent, rootDir, port=0):
-        QObject.__init__(self, parent)
+        SocketInterface.__init__(self, parent)
 
         self.rootDir = os.path.realpath(rootDir)
 
         self._connections = {}
-        self.sock = None
 
         self.server = QTcpServer(parent)
         self.server.newConnection.connect(self._onNewConnection)

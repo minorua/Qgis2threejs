@@ -3,11 +3,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2016-02-10
 
-import ctypes
 import json
 import logging
 
-from PyQt6.QtCore import QBuffer, QByteArray, QDataStream, QIODevice, QObject, QSharedMemory, QUuid, pyqtSignal, qDebug
+from PyQt6.QtCore import QObject, pyqtSignal, qDebug
 
 from ...conf import DEBUG_MODE, PLUGIN_NAME
 
@@ -34,56 +33,25 @@ class SocketInterface(QObject):
     requestReceived = pyqtSignal(int, str, dict, bytes)     # id, method, params, payload
     responseReceived = pyqtSignal(int, str, dict, bytes)    # id, reqMethod, params, payload
 
-    def __init__(self, parent, serverName):
+    def __init__(self, parent):
         QObject.__init__(self, parent)
 
-        self.conn = None
-        self.serverName = serverName
+        self.sock = None
 
         self._id_counter = 0
-        self._mem = {}
-
-        self._buffer = QByteArray()
-        self._target_size = 0
-
         self._callbacks = {}
 
     def _next_id(self):
         self._id_counter += 1
         return self._id_counter
 
-    def createMessageBytes(self, msg_dict):
-        json_bytes = json.dumps(msg_dict).encode("utf-8")
+    def createMessageBytes(self, msg_dict: dict) -> bytes:
+        return json.dumps(msg_dict).encode("utf-8")
 
-        buffer = QByteArray()
-        stream = QDataStream(buffer, QIODevice.OpenModeFlag.WriteOnly)
-        stream.writeInt32(len(json_bytes))
-        stream.writeRawData(json_bytes)
-        return buffer
-
-    def handleIncomingMessage(self):
-        self._buffer.append(self.conn.readAll())
-
-        while True:
-            if self._target_size == 0:
-                if self._buffer.size() < 4:
-                    break
-
-                self._target_size = QDataStream(self._buffer.left(4)).readInt32()
-                self._buffer.remove(0, 4)
-
-            if self._buffer.size() < self._target_size:
-                break
-
-            raw_data = self._buffer.left(self._target_size)
-            self._buffer.remove(0, self._target_size)
-
-            self.processJsonData(raw_data)
-
-            self._target_size = 0
-
-            if self._buffer.isEmpty():
-                break
+    def writeToSocket(self, data: bytes):
+        if self.sock:
+            self.sock.write(data)
+            self.sock.flush()
 
     def processJsonData(self, raw_data):
         try:
@@ -141,50 +109,8 @@ class SocketInterface(QObject):
         except Exception as e:
             print(f"Unexpected error: {e}")
 
-    def createSharedMemory(self, data: bytes):
-        key = QUuid.createUuid().toString(QUuid.StringFormat.WithoutBraces)[:8]
-        mem = QSharedMemory(key)
-
-        if not mem.create(len(data)):
-            logger.error("Error creating shared memory: " + mem.errorString())
-            return False
-
-        mem.lock()
-        try:
-            ctypes.memmove(int(mem.data()), data, len(data))
-        finally:
-            mem.unlock()
-
-        self._mem[key] = mem
-
-        logger.debug("Shared memory created: key=" + key)
-        return key
-
-    def destroySharedMemory(self, key):
-        self._mem[key].detach()
-        logger.debug("Shared memory detached: key=" + key)
-        del self._mem[key]
-
-    def readSharedMemory(self, key):
-        mem = QSharedMemory(key)
-        if not mem.attach(QSharedMemory.AccessMode.ReadOnly):
-            logger.error("Cannot attach this process to the shared memory segment: " + mem.errorString())
-            return
-
-        size = mem.size()
-        logger.debug(f"Payload size: {size:,}")
-
-        ba = QByteArray()
-        buffer = QBuffer(ba)
-
-        mem.lock()
-        buffer.setData(mem.constData())
-        mem.unlock()
-        mem.detach()
-        return ba.data()
-
     def _send(self, msg_type, id, method, params: dict | None = None, payload: bytes | dict | None = None) -> bool:
-        if not self.conn:
+        if not self.sock:
             logger.debug(f"No connection. Failed to send {method} {msg_type}.")
             return False
 
@@ -215,8 +141,7 @@ class SocketInterface(QObject):
                 "size": len(data)
             }
 
-        self.conn.write(self.createMessageBytes(msg))
-        self.conn.flush()
+        self.writeToSocket(self.createMessageBytes(msg))
         return True
 
     def sendCommand(self, method, params=None, payload=None):
