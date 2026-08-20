@@ -20,7 +20,7 @@ from .webengineview import Q3DWebEnginePage, Q3DWebEngineView
 from ..ipc.ipc_const import Command, Event, Request
 from ..ipc.socketclient import SocketClient
 from ...conf import DEBUG_MODE, PLUGIN_NAME
-from ...utils.basic import pluginDir
+from ...utils.basic import pluginIconPath
 
 
 logger = logging.getLogger(PLUGIN_NAME)
@@ -250,7 +250,7 @@ def main():
     # os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-logging --v=1"
 
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
+    app.setWindowIcon(QIcon(pluginIconPath()))
 
     window = Window(serverName=args.server, embedMode=not args.floating, pid=args.pid)
     if args.x is not None and args.y is not None and args.width and args.height:

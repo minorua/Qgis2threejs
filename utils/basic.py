@@ -10,7 +10,7 @@ from PyQt6.QtCore import QDir, QUuid
 from ..conf import PLUGIN_NAME
 
 
-### directory path ###
+### file / directory path ###
 def pluginDir(*subdirs):
     p = os.path.dirname(os.path.dirname(__file__))
     if subdirs:
@@ -23,6 +23,10 @@ def temporaryOutputDir(*subdirs):
     if subdirs:
         return os.path.join(temp_dir, *subdirs)
     return temp_dir
+
+
+def pluginIconPath():
+    return pluginDir("web", "Qgis2threejs.png")
 
 
 ### conversion ###

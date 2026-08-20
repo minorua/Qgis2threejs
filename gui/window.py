@@ -26,8 +26,8 @@ from ..core.const import LayerType
 from ..core.controller.controller import Q3DController
 from ..core.exportsettings import Layer
 from ..core.plugin.pluginmanager import pluginManager
-from ..utils.basic import createUid, pluginDir
-from ..utils.gui import openHelp
+from ..utils.basic import createUid
+from ..utils.gui import openHelp, pluginIcon
 from ..utils.js import hex_color, js_bool
 from ..utils.logging import logger
 
@@ -58,7 +58,7 @@ class Q3DWindow(QMainWindow):
 
         self.lastDir = None
         self.loadIcons()
-        self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
+        self.setWindowIcon(pluginIcon())
 
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)

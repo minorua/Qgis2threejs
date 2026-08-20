@@ -8,7 +8,7 @@ from qgis.PyQt.QtWidgets import QLabel, QPushButton, QStackedWidget, QVBoxLayout
 
 from .const import PreviewState
 from .utils import logger
-from ...utils.basic import pluginDir
+from ...utils.basic import pluginIconPath
 
 
 class WebViewContainer(QStackedWidget):
@@ -100,7 +100,7 @@ class PreviewStateWidget(QWidget):
         self.buttonRestart.hide()
 
         self.icon = QLabel(self)
-        self.icon.setPixmap(QPixmap(pluginDir("Qgis2threejs.png")))
+        self.icon.setPixmap(QPixmap(pluginIconPath()))
         self.icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.icon.setDisabled(True)
         self.icon.hide()

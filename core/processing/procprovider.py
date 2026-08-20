@@ -9,7 +9,7 @@ from qgis.core import QgsProcessingProvider
 from processing.core.ProcessingConfig import ProcessingConfig, Setting
 
 from ...conf import PLUGIN_NAME
-from ...utils.basic import pluginDir
+from ...utils.gui import pluginIcon
 
 QTO3_ACTIVE = "QGIS2THREEJS_ACTIVE"
 
@@ -27,7 +27,7 @@ class Qgis2threejsProvider(QgsProcessingProvider):
         return PLUGIN_NAME
 
     def icon(self):
-        return QIcon(pluginDir("Qgis2threejs.png"))
+        return pluginIcon()
 
     def load(self):
         ProcessingConfig.settingIcons[self.name()] = self.icon()

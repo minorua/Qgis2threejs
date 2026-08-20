@@ -19,7 +19,7 @@ from .core.processing.procprovider import Qgis2threejsProvider
 from .gui.webview.const import WebViewType, WebViewMode
 from .gui.webview.webview import WEBENGINE_AVAILABLE
 from .gui.window import Q3DWindow
-from .utils.basic import pluginDir
+from .utils.gui import pluginIcon
 from .utils.file import removeTemporaryOutputDir
 from .utils.logging import logger
 from .utils.qgis import settingsFilePath
@@ -40,7 +40,7 @@ class Qgis2threejs:
 
     def initGui(self):
         # add a toolbar button
-        icon = QIcon(pluginDir("Qgis2threejs.png"))
+        icon = pluginIcon()
         title = "Qgis2threejs Exporter"
         wnd = self.iface.mainWindow()
         objName = "Qgis2threejsExporter"

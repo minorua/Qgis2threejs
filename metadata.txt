@@ -46,7 +46,7 @@ category=Web
 homepage=https://github.com/minorua/Qgis2threejs
 tracker=https://github.com/minorua/Qgis2threejs/issues
 repository=https://github.com/minorua/Qgis2threejs
-icon=Qgis2threejs.png
+icon=web/Qgis2threejs.png
 experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version

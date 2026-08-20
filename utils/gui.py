@@ -3,10 +3,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from qgis.PyQt.QtCore import QDir, QUrl
-from qgis.PyQt.QtGui import QDesktopServices
+from qgis.PyQt.QtGui import QDesktopServices, QIcon
 from qgis.PyQt.QtWidgets import QFileDialog
 
-from .logging import logger
+from .basic import pluginIconPath
 from ..conf import HELP_URL_BASE, PLUGIN_VERSION
 
 
@@ -35,6 +35,10 @@ def openHelp(queryString=""):
         url += "&" + queryString
 
     return openUrl(QUrl(url))
+
+
+def pluginIcon():
+    return QIcon(pluginIconPath())
 
 
 def selectImageFile(parent=None, directory=None):

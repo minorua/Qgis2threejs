@@ -492,7 +492,7 @@ export function setPreviewEnabled(enabled: boolean) {
 	}
 	else {
 		app.pause();
-		e.innerHTML = '<img src="../../Qgis2threejs.png">';
+		e.innerHTML = '<img src="../Qgis2threejs.png">';
 	}
 	e.style.display = (enabled) ? "none" : "block";
 }
