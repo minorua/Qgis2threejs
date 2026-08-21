@@ -23,6 +23,9 @@ def getWebViewClass(webViewType, webViewMode):
         else:
             from .webviewproxy import Q3DWebViewProxy
             return Q3DWebViewProxy
+    elif webViewType == WebViewType.BROWSER:
+        from .webbrowserproxy import Q3DWebBrowserProxy
+        return Q3DWebBrowserProxy
     from .dummyview import Q3DDummyView
     return Q3DDummyView
 
@@ -35,5 +38,8 @@ def getWebPageClass(webViewType=WebViewType.WEBENGINE, webViewMode=WebViewMode.I
         else:
             from .webviewproxy import Q3DWebPageProxy
             return Q3DWebPageProxy
+    elif webViewType == WebViewType.BROWSER:
+        from .webviewproxy import Q3DWebPageProxy
+        return Q3DWebPageProxy
     from .dummyview import Q3DDummyPage
     return Q3DDummyPage

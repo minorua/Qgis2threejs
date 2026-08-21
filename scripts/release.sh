@@ -8,7 +8,8 @@ PLUGINNAME=Qgis2threejs
 JS_FILES="\
 web/js/dist/Qgis2threejs.js
 web/js/dist/gui_dat.js
-web/js/dist/preview.js"
+web/js/dist/preview.js
+web/js/dist/browserbridge.js"
 
 echo "============================================================"
 echo " Release process started: ${PLUGINNAME}"

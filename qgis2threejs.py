@@ -70,6 +70,10 @@ class Qgis2threejs:
             action.setObjectName(objName + "Sep")
             action.triggered.connect(lambda c, a=action: self.openExporerSeparate(a))
 
+        action = QAction(icon, title + " (Browser Preview)", self.actionGroup)
+        action.setObjectName(objName + "Brw")
+        action.triggered.connect(lambda c, a=action: self.openExporterBrowser(a))
+
         action = QAction(icon, title + " (No Preview)", self.actionGroup)
         action.setObjectName(objName + "WoP")
         action.triggered.connect(lambda c, a=action: self.openExporerWithoutPreview(a))
@@ -107,7 +111,7 @@ class Qgis2threejs:
         # temporary output directory
         removeTemporaryOutputDir()
 
-    def openExporter(self, _=False, webViewType=WebViewType.WEBENGINE, webViewMode=WebViewMode.INPROCESS):
+    def openExporter(self, _=False, webViewType=WebViewType.WEBENGINE, webViewMode=None):
         if self.liveExporter:
             logger.info("Qgis2threejs Exporter is already open.")
             self.liveExporter.activateWindow()
@@ -166,6 +170,10 @@ class Qgis2threejs:
 
     def openExporerSeparate(self, action):
         self.openExporter(webViewMode=WebViewMode.SEPARATE)
+        self.saveLastAction(action)
+
+    def openExporterBrowser(self, action):
+        self.openExporter(webViewType=WebViewType.BROWSER)
         self.saveLastAction(action)
 
     def openExporerWithoutPreview(self, action):

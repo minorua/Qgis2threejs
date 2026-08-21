@@ -47,8 +47,7 @@ export function init(off_screen: boolean, debug_mode: number, qgis_version: numb
 	conf.debugMode = debug_mode;
 	conf.qgisVersion = qgis_version;
 
-	new QWebChannel(qt.webChannelTransport, (channel) => {
-		window.pyObj = channel.objects.bridge;
+	const setup = () => {
 		pyObj.sendData.connect((data, viaQueue) => {
 			const result = loadData(data, viaQueue);
 
@@ -59,7 +58,16 @@ export function init(off_screen: boolean, debug_mode: number, qgis_version: numb
 		});
 
 		_init(off_screen);
+	};
 
+	if (window.pyObj) {
+		setup();
+		return;
+	}
+
+	new QWebChannel(qt.webChannelTransport, (channel) => {
+		window.pyObj = channel.objects.bridge;
+		setup();
 	});
 }
 

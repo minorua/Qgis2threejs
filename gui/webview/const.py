@@ -5,12 +5,14 @@
 class WebViewType:
     NONE = 0
     WEBENGINE = 2
+    BROWSER = 3
 
 
 class WebViewMode:
     INPROCESS = 0       # In-process preview mode (native)
     EMBEDDED = 1        # Embedded external-process preview mode
     SEPARATE = 2        # Separate external-process preview mode
+    BROWSER = 3         # External web browser preview mode
 
 
 class PreviewState:

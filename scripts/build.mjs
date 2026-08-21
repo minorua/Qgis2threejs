@@ -8,7 +8,8 @@ const ctx = await esbuild.context({
     entryPoints: [
         "./web/src/Qgis2threejs.ts",
         "./web/src/gui_dat.ts",
-        "./web/src/preview.ts"
+        "./web/src/preview.ts",
+        "./web/src/browserbridge.ts"
     ],
     bundle: true,
     format: "esm",

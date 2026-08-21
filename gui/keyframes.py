@@ -59,7 +59,7 @@ class AnimationPanel(QWidget):
 
         self.setData(settings.animationData())
 
-        if wnd.webViewType == WebViewType.WEBENGINE:
+        if wnd.webViewType != WebViewType.NONE:
             self.tree.currentItemChanged.connect(self.currentItemChanged)
             self.currentItemChanged(None, None)
 

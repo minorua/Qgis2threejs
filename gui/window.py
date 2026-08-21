@@ -37,16 +37,18 @@ class Q3DWindow(QMainWindow):
     previewEnabledChanged = pyqtSignal(bool)
 
     def __init__(self, qgisIface, settings, webViewType=WebViewType.WEBENGINE, webViewMode=None, previewEnabled=True):
-        if webViewMode is None:
-            if webViewType == WebViewType.WEBENGINE:
-                webViewMode = WebViewMode.EMBEDDED if os.name == "nt" else WebViewMode.SEPARATE
-            else:
-                webViewMode = WebViewMode.INPROCESS
-
         if webViewType == WebViewType.NONE:
             previewEnabled = False
 
-        super().__init__(parent=qgisIface.mainWindow() if webViewMode != WebViewMode.SEPARATE else None)
+        elif webViewMode is None:
+            if webViewType == WebViewType.WEBENGINE:
+                webViewMode = WebViewMode.EMBEDDED if os.name == "nt" else WebViewMode.SEPARATE
+            elif webViewType == WebViewType.BROWSER:
+                webViewMode = WebViewMode.BROWSER
+            else:
+                webViewMode = WebViewMode.INPROCESS
+
+        super().__init__(parent=None if webViewMode in (WebViewMode.SEPARATE, WebViewMode.BROWSER) else qgisIface.mainWindow())
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.qgisIface = qgisIface
@@ -62,7 +64,7 @@ class Q3DWindow(QMainWindow):
         self.ui.setupUi(self)
 
         Q3DView = getWebViewClass(webViewType, webViewMode)
-        if webViewType == WebViewType.NONE or webViewMode == WebViewMode.SEPARATE:
+        if webViewType in (WebViewType.NONE, WebViewType.BROWSER) or webViewMode == WebViewMode.SEPARATE:
             self.ui.webViewContainer = None
 
             webView = Q3DView(parent=self)
@@ -77,10 +79,10 @@ class Q3DWindow(QMainWindow):
 
             self.ui.webViewContainer.setWebView(webView)
 
-        if webViewMode in (WebViewMode.EMBEDDED, WebViewMode.SEPARATE):
+        if webViewMode in (WebViewMode.EMBEDDED, WebViewMode.SEPARATE, WebViewMode.BROWSER):
             webView.socketServer.commandReceived.connect(self.commandReceived)
 
-            if webViewMode == WebViewMode.SEPARATE:
+            if webViewMode in (WebViewMode.SEPARATE, WebViewMode.BROWSER):
                 webView.socketServer.disconnected.connect(self.previewClosed)
 
         self.ui.webView = webView
@@ -95,20 +97,28 @@ class Q3DWindow(QMainWindow):
         self.controller.taskManager.allTasksFinalized.connect(self.hideProgress)
 
         self._setupMenu(self.ui)
-        self._setupStatusBar(self.ui, previewEnabled, "WebEngine" if webViewType == WebViewType.WEBENGINE else "")
+
+        viewName = ""
+        if webViewType == WebViewType.WEBENGINE:
+            viewName = "WebEngine"
+        elif webViewType == WebViewType.BROWSER:
+            viewName = "Browser"
+        self._setupStatusBar(self.ui, previewEnabled, viewName)
         self.restoreWindowState()
 
         self.ui.webView.setup(webViewMode=webViewMode, enabledAtStart=previewEnabled)
         self.ui.treeView.setup(self, self.icons, settings.layers())
 
-        if webViewType == WebViewType.WEBENGINE:
+        if webViewType != WebViewType.NONE:
             self.controller.conn.setup()
 
             self.webPage.bridge.modelDataReady.connect(self.saveModelData)
             self.webPage.bridge.imageReady.connect(self.saveImage)
             self.webPage.bridge.statusMessage.connect(self.showStatusMessage)
 
-            webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
+            if webViewType == WebViewType.WEBENGINE:
+                webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
+
             self.previewEnabledChanged.connect(self.setPreviewEnabled)
         else:
             self.ui.checkBoxPreview.setEnabled(False)
@@ -147,7 +157,7 @@ class Q3DWindow(QMainWindow):
             self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
             self.controller.conn.teardown()
 
-            if self.webViewType == WebViewType.WEBENGINE:
+            if self.webViewType != WebViewType.NONE:
                 self.webPage.jsErrorWarning.disconnect(self.onJSErrorWarning)
 
             # save export settings to a settings file
@@ -228,31 +238,38 @@ class Q3DWindow(QMainWindow):
         ui.actionSendFeedback.triggered.connect(self.sendFeedback)
         ui.actionVersion.triggered.connect(self.about)
 
-        if self.webViewType == WebViewType.WEBENGINE:
+        if self.webViewType != WebViewType.NONE:
             ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
             ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
             ui.actionSaveAsJSON.triggered.connect(self.saveAsJSON)
             ui.actionReload.triggered.connect(self.reloadPage)
             ui.actionResetCameraPosition.triggered.connect(self.controller.resetCameraState)
+
+        if self.webViewType == WebViewType.WEBENGINE:
             ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
             ui.actionGraphicsInfo.triggered.connect(ui.webView.showGPUInfo)
+        else:
+            ui.actionDevTools.setEnabled(False)
+            ui.actionGraphicsInfo.setEnabled(False)
 
         self.alwaysOnTopToggled(False)
 
-        if ENABLE_TESTING and self.webViewType == WebViewType.WEBENGINE:
+        if DEBUG_MODE or ENABLE_TESTING:
             ui.menuTestDebug = QMenu(ui.menubar)
             ui.menuTestDebug.setTitle("Test&&&Debug")
             ui.menubar.addAction(ui.menuTestDebug.menuAction())
 
-            ui.actionTest = QAction(self)
-            ui.actionTest.setText("Run Test")
-            ui.menuTestDebug.addAction(ui.actionTest)
-            ui.actionTest.triggered.connect(self.runTest)
+            if ENABLE_TESTING:
+                ui.actionTest = QAction(self)
+                ui.actionTest.setText("Run Test")
+                ui.menuTestDebug.addAction(ui.actionTest)
+                ui.actionTest.triggered.connect(self.runTest)
 
-            ui.actionJSInfo = QAction(self)
-            ui.actionJSInfo.setText("three.js Info...")
-            ui.menuTestDebug.addAction(ui.actionJSInfo)
-            ui.actionJSInfo.triggered.connect(self.showJSInfo)
+            if self.webViewType != WebViewType.NONE:
+                ui.actionJSInfo = QAction(self)
+                ui.actionJSInfo.setText("three.js Info...")
+                ui.menuTestDebug.addAction(ui.actionJSInfo)
+                ui.actionJSInfo.triggered.connect(self.showJSInfo)
 
     def _setupStatusBar(self, ui, previewEnabled=True, viewName=""):
         w = ui.progressBar = QProgressBar(ui.statusbar)
@@ -269,7 +286,7 @@ class Q3DWindow(QMainWindow):
         w.toggled.connect(self.previewEnabledChanged)
         ui.statusbar.addPermanentWidget(w)
 
-        if self.webViewType == WebViewType.WEBENGINE:
+        if self.webViewType != WebViewType.NONE:
             w = ui.toolButtonConsoleStatus = QToolButton(ui.statusbar)
             w.setObjectName("toolButtonConsoleStatus")
             w.setToolTip("Click this button to open the developer tools.")
@@ -331,14 +348,19 @@ class Q3DWindow(QMainWindow):
     def setPreviewEnabled(self, enabled):
         if not enabled:
             self.controller.abort()
+
         self.controller.enabled = enabled
 
         self.ui.webView.setPreviewEnabled(enabled)
 
         ui = self.ui
-        for obj in [ui.menuSaveAs, ui.actionReload, ui.actionResetCameraPosition,
-                    ui.actionDevTools, ui.actionUsage, ui.actionGraphicsInfo]:
-            obj.setEnabled(enabled)
+        items = [ui.menuSaveAs, ui.actionReload, ui.actionResetCameraPosition, ui.actionUsage]
+
+        if self.webViewType == WebViewType.WEBENGINE:
+            items += [ui.actionDevTools, ui.actionGraphicsInfo]
+
+        for item in items:
+            item.setEnabled(enabled)
 
     def previewClosed(self):
         self.ui.checkBoxPreview.setChecked(False)
