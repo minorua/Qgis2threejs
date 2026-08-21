@@ -156,14 +156,14 @@ class Q3DWebPageCommon:
 
         return result
 
-    def showMessageBar(self, msg, timeout_ms=0, warning=False):
+    def showMessageBar(self, msg, className="warning", timeout_ms=0):
         """Show a message bar at the top of the web page.
         Args:
             msg: Message text or HTML string to display.
+            className: Class name to apply to the message bar.
             timeout_ms: Time in milliseconds before the message bar is hidden.
-            warning: If True, display the message bar in warning style.
         """
-        self.runScript(f"showMessageBar({json.dumps(msg)}, {timeout_ms}, {js_bool(warning)})")
+        self.runScript(f'showMessageBar({json.dumps(msg)}, "{className}", {timeout_ms})')
 
     def showStatusMessage(self, message, timeout_ms=0):
         self.bridge.statusMessage.emit(message, timeout_ms)

@@ -41,34 +41,50 @@
 
 #msgbar {
   display: none;
-  position: absolute;
-  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 8px;
   background-color: #f0f8ff;
-  border: 1px solid #8e998a;
+  font: 14px sans-serif;
+  text-align: center;
+  z-index: 9999;
+}
+
+#msgbar.success {
+  background-color: #2e7d32;
+  color: #fff;
 }
 
 #msgbar.warning {
-  background-color: #ffc800;
+  background-color: #fc0;
+  color: #222;
+}
+
+#msgbar.error {
+  background-color: #c0392b;
+  color: #fff;
+}
+
+#msgbar.closed {
+  background-color: #555;
+  color: #fff;
 }
 
 #closemsgbar {
   float: right;
   color: #8e998a;
-  margin: 4px 10px;
-  line-height: 32px;
-  font-size: 32px;
-  width: 32px;
-  height: 32px;
+  line-height: 16px;
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
   text-align: center;
   cursor: pointer;
 }
 
-#closemsgbar:hover {
-  background-color: #ffdd33;
-}
-
 #msgcontent {
-  padding: 8px;
+  padding: 0;
 }
 
 #msgcontent ul {

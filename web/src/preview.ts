@@ -265,11 +265,11 @@ export function loadModel(url: string) {
 		console.log("scale: " + scale + " (obj: " + objScale + " x scene: " + sceneScale + ")");
 		console.log("To clear the added object, use scene reload (F5).");
 
-		showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', 3000);
+		showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', "success", 3000);
 	};
 	const onError = (e) => {
 		console.warn(e.message);
-		showMessageBar('Model preview: Failed to load "' + url.split("/").pop() + '". See console for details.', 5000, true);
+		showMessageBar('Model preview: Failed to load "' + url.split("/").pop() + '". See console for details.', "warning", 5000);
 	};
 
 	const ext = url.split(".").pop();
@@ -449,7 +449,7 @@ export function requestRendering() {
 }
 
 let barTimerId: number | null = null;
-export function showMessageBar(message: string, timeout_ms: number = 0, warning = false) {
+export function showMessageBar(message: string, className = "warning", timeout_ms: number = 0) {
 	if (barTimerId !== null) {
 		clearTimeout(barTimerId);
 		barTimerId = null;
@@ -462,12 +462,8 @@ export function showMessageBar(message: string, timeout_ms: number = 0, warning 
 
 	const e = E("msgbar");
 	e.style.display = "block";
-	if (warning) {
-		e.classList.add("warning");
-	}
-	else {
-		e.classList.remove("warning");
-	}
+	e.classList.remove(...e.classList);
+	e.classList.add(className);
 }
 
 function closeMessageBar() {

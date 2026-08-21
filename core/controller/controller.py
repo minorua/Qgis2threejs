@@ -231,7 +231,7 @@ class Q3DController(QObject):
             })
         # crs check
         if QgsProject.instance().crs().isGeographic():
-            self.webPage.showMessageBar("Current CRS is a geographic coordinate system. Please change it to a projected coordinate system.", warning=True)
+            self.webPage.showMessageBar("Please use a projected CRS instead of a geographic CRS to view the 3D scene.")
 
         self.clearStatusMessage()
 

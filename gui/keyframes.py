@@ -156,7 +156,7 @@ class AnimationPanel(QWidget):
             self.ui.toolButtonPlay.setChecked(False)
 
         if msg:
-            self.webPage.showMessageBar(msg, timeout_ms, warning=True)
+            self.webPage.showMessageBar(msg, timeout_ms)
 
     def _updateLayer(self, layer, trackType):
         if trackType in (ATConst.ITEM_TRK_TEXTURE, ATConst.ITEM_TEXTURE):
