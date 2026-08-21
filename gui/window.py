@@ -79,11 +79,15 @@ class Q3DWindow(QMainWindow):
 
             self.ui.webViewContainer.setWebView(webView)
 
-        if webViewMode in (WebViewMode.EMBEDDED, WebViewMode.SEPARATE, WebViewMode.BROWSER):
+        if webViewMode == WebViewMode.EMBEDDED:
             webView.socketServer.commandReceived.connect(self.commandReceived)
 
-            if webViewMode in (WebViewMode.SEPARATE, WebViewMode.BROWSER):
-                webView.socketServer.disconnected.connect(self.previewClosed)
+        elif webViewMode in (WebViewMode.SEPARATE, WebViewMode.BROWSER):
+            webView.closed.connect(self._previewClosed)
+
+            if webViewMode == WebViewMode.BROWSER:
+                webView.socketServer.connected.connect(lambda: self.ui.checkBoxPreview.setEnabled(True))
+                webView.socketServer.disconnected.connect(lambda: self.ui.checkBoxPreview.setEnabled(False))
 
         self.ui.webView = webView
         self.ui.webView.setObjectName("webView")
@@ -160,7 +164,7 @@ class Q3DWindow(QMainWindow):
             if self.webViewType != WebViewType.NONE:
                 self.webPage.jsErrorWarning.disconnect(self.onJSErrorWarning)
 
-            # save export settings to a settings file
+                        # save export settings to a settings file
             self.settings.setAnimationData(self.ui.animationPanel.data())
             self.settings.saveSettings()
 
@@ -362,8 +366,9 @@ class Q3DWindow(QMainWindow):
         for item in items:
             item.setEnabled(enabled)
 
-    def previewClosed(self):
+    def _previewClosed(self):
         self.ui.checkBoxPreview.setChecked(False)
+        self.ui.checkBoxPreview.setEnabled(True)
 
     def runScript(self, string, message="", sourceID="Q3DWindow.py", callback=None, wait=False):
         return self.webPage.runScript(string, message, sourceID, callback, wait)

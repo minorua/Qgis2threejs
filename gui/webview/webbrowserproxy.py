@@ -2,7 +2,7 @@
 # (C) 2026 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from qgis.PyQt.QtCore import QObject, QSize, QUrl
+from qgis.PyQt.QtCore import QObject, QSize, QTimer, QUrl, pyqtSignal
 
 from .const import PreviewState
 from .utils import logger
@@ -14,6 +14,10 @@ from ...utils.basic import pluginDir
 from ...utils.gui import openUrl
 
 
+# grace period to wait for a reconnection (e.g. browser page reload) before treating the preview as closed
+RECONNECT_GRACE_MS = 3000
+
+
 class Q3DWebBrowserProxy(Q3DWebViewCommon, QObject):
     """External web browser preview"""
 
@@ -23,8 +27,13 @@ class Q3DWebBrowserProxy(Q3DWebViewCommon, QObject):
 
         self.previewEnabled = True
 
+        self._reconnectTimer = QTimer(self)
+        self._reconnectTimer.setSingleShot(True)
+        self._reconnectTimer.timeout.connect(self.closed)
+
         self.socketServer = WebSocketServer(self, pluginDir("web"))
-        self.socketServer.disconnected.connect(self.disconnected)
+        self.socketServer.connected.connect(self._reconnectTimer.stop)
+        self.socketServer.disconnected.connect(self._disconnected)
 
         self._page = Q3DWebPageProxy(self)
         self._page.setObjectName("WebPageProxy")
@@ -39,6 +48,7 @@ class Q3DWebBrowserProxy(Q3DWebViewCommon, QObject):
 
     def teardown(self):
         logger.debug("Preview HTTP/WebSocket server is going to shut down.")
+        self._reconnectTimer.stop()
         self.stopPreview()
         self.socketServer.teardown()
 
@@ -73,5 +83,6 @@ class Q3DWebBrowserProxy(Q3DWebViewCommon, QObject):
     def triggerTestClick(self, pos):
         self.socketServer.sendCommand(Command.CLICK, params={"x": pos.x(), "y": pos.y()})
 
-    def disconnected(self):
+    def _disconnected(self):
         logger.debug("Preview browser disconnected.")
+        self._reconnectTimer.start(RECONNECT_GRACE_MS)

@@ -143,7 +143,7 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
         self.serverName = "Q3D" + createUid()
         self.socketServer = SocketServer(self, self.serverName)
         self.socketServer.eventReceived.connect(self.eventReceived)
-        self.socketServer.disconnected.connect(self.disconnected)
+        self.socketServer.disconnected.connect(self._disconnected)
 
         self._page = Q3DWebPageProxy(self)
         self._page.setObjectName("WebPageProxy")
@@ -296,8 +296,10 @@ Exit status: {exitStatus}
             case Event.DEV_TOOLS_CLOSED:
                 self.devToolsClosed.emit()
 
-    def disconnected(self):
+    def _disconnected(self):
         logger.debug("Disconnected from preview process.")
         if self.embeddedMode and self.previewEnabled:
             self.previewStateChanged.emit(PreviewState.Error)
             self.terminateViewProcess()
+
+        self.closed.emit()
