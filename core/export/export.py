@@ -440,7 +440,6 @@ class BridgeExporterBase:
         self.view.show()
 
         self.controller = Q3DController(parent=None, settings=self.settings, webPage=self.page, offScreen=True)
-        self.controller.conn.setup()
         self.controller.statusMessage.connect(self.logStatusMessage)
 
     def logStatusMessage(self, msg, _timeout):

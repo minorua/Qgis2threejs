@@ -56,6 +56,8 @@ class Q3DWindow(QMainWindow):
         self.webViewType = webViewType
         self.webViewMode = webViewMode
 
+        self._conns = []
+
         self.lastDir = None
         self.loadIcons()
         self.setWindowIcon(pluginIcon())
@@ -75,31 +77,36 @@ class Q3DWindow(QMainWindow):
             self.ui.verticalLayout.addWidget(self.ui.webViewContainer)
 
             webView = Q3DView(parent=self.ui.webViewContainer)
-            webView.previewStateChanged.connect(self.ui.webViewContainer.previewStateChanged)
+            self._connect(webView.previewStateChanged, self.ui.webViewContainer.previewStateChanged)
 
             self.ui.webViewContainer.setWebView(webView)
 
-        if webViewMode == WebViewMode.EMBEDDED:
-            webView.socketServer.commandReceived.connect(self.commandReceived)
-
-        elif webViewMode in (WebViewMode.SEPARATE, WebViewMode.BROWSER):
-            webView.closed.connect(self._previewClosed)
-
-            if webViewMode == WebViewMode.BROWSER:
-                webView.socketServer.connected.connect(lambda: self.ui.checkBoxPreview.setEnabled(True))
-                webView.socketServer.disconnected.connect(lambda: self.ui.checkBoxPreview.setEnabled(False))
-
         self.webView = webView
         self.webView.setObjectName("webView")
-        self.webView.fileDropped.connect(self.fileDropped)
+
+        if webViewMode == WebViewMode.EMBEDDED:
+            self._connect(webView.socketServer.commandReceived, self.commandReceived)
+
+        elif webViewMode in (WebViewMode.SEPARATE, WebViewMode.BROWSER):
+            self._connect(webView.closed, self._previewClosed)
+
+            if webViewMode == WebViewMode.BROWSER:
+                self._connect([
+                    (webView.socketServer.connected, lambda: self.ui.checkBoxPreview.setEnabled(True)),
+                    (webView.socketServer.disconnected, lambda: self.ui.checkBoxPreview.setEnabled(False))
+                ])
+
+        webView.fileDropped.connect(self.fileDropped)
 
         self.webPage = webView.page()
 
         self.controller = Q3DController(self, settings, self.webPage, useThread=RUN_BLDR_IN_BKGND, enabledAtStart=previewEnabled)
         self.controller.setObjectName("controller")
-        self.controller.statusMessage.connect(self.ui.statusbar.showMessage)
-        self.controller.progressUpdated.connect(self.progress)
-        self.controller.taskManager.allTasksFinalized.connect(self.hideProgress)
+        self._connect([
+            (self.controller.statusMessage, self.ui.statusbar.showMessage),
+            (self.controller.progressUpdated, self.progress),
+            (self.controller.taskManager.allTasksFinalized, self.hideProgress)
+        ])
 
         self._setupMenu(self.ui)
 
@@ -115,16 +122,15 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.setup(self, self.icons, settings.layers())
 
         if webViewType != WebViewType.NONE:
-            self.controller.conn.setup()
-
-            self.webPage.bridge.modelDataReady.connect(self.saveModelData)
-            self.webPage.bridge.imageReady.connect(self.saveImage)
-            self.webPage.bridge.statusMessage.connect(self.showStatusMessage)
+            self._connect([
+                (self.webPage.bridge.modelDataReady, self.saveModelData),
+                (self.webPage.bridge.imageReady, self.saveImage),
+                (self.webPage.bridge.statusMessage, self.showStatusMessage),
+                (self.previewEnabledChanged, self.setPreviewEnabled)
+            ])
 
             if webViewType == WebViewType.WEBENGINE:
-                webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
-
-            self.previewEnabledChanged.connect(self.setPreviewEnabled)
+                self._connect(webView.devToolsClosed, self.ui.toolButtonConsoleStatus.hide)
         else:
             self.ui.checkBoxPreview.setEnabled(False)
 
@@ -136,11 +142,11 @@ class Q3DWindow(QMainWindow):
         self.isDirty = False        # flag to indicate whether map canvas extent or project has been changed
 
         canvas = qgisIface.mapCanvas()
-        canvas.renderComplete.connect(self.mapCanvasRendered)
-        canvas.extentsChanged.connect(self.setDirty)
-
-        project = QgsProject.instance()
-        project.dirtySet.connect(self.setDirty)
+        self._connect([
+            (canvas.renderComplete, self.mapCanvasRendered),
+            (canvas.extentsChanged, self.setDirty),
+            (QgsProject.instance().dirtySet, self.setDirty)
+        ])
 
         if DEBUG_MODE:
             from ..utils.debug import setupDestructionLogging
@@ -150,6 +156,13 @@ class Q3DWindow(QMainWindow):
         self._saveModelState = None
         self._dialogs = {}
 
+    def _connect(self, signal, slot=None):
+        if isinstance(signal, (list, tuple)):
+            for sig, slo in signal:
+                self._conns.append(sig.connect(slo))
+        else:
+            self._conns.append(signal.connect(slot))
+
     def commandReceived(self, method, params, payload):
         if method == Command.EMBED_WND:
             self.ui.webViewContainer.embedWnd(int(params["winId"]))
@@ -158,12 +171,11 @@ class Q3DWindow(QMainWindow):
         try:
             self.controller.close()
 
-            # disconnect signals
-            self.qgisIface.mapCanvas().renderComplete.disconnect(self.mapCanvasRendered)
-            self.controller.conn.teardown()
+            # disconnect signal-slot connections
+            for conn in self._conns:
+                self.disconnect(conn)
 
-            if self.webViewType != WebViewType.NONE:
-                self.webPage.jsErrorWarning.disconnect(self.onJSErrorWarning)
+            self.controller.teardownConnections()
 
             # save export settings to a settings file
             self.settings.setAnimationData(self.ui.animationPanel.data())
@@ -299,8 +311,10 @@ class Q3DWindow(QMainWindow):
             w.clicked.connect(self.webView.showDevTools)
             ui.statusbar.addPermanentWidget(w)
 
-            self.webPage.loadStarted.connect(ui.toolButtonConsoleStatus.hide)
-            self.webPage.jsErrorWarning.connect(self.onJSErrorWarning)
+            self._connect([
+                (self.webPage.loadStarted, ui.toolButtonConsoleStatus.hide),
+                (self.webPage.jsErrorWarning, self.onJSErrorWarning)
+            ])
 
     def restoreWindowState(self):
         # restore window geometry and dockwidget layout

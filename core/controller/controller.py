@@ -27,65 +27,6 @@ def requires_enabled(func):
     return wrapper
 
 
-class ConnectionManager:
-
-    def __init__(self, controller, webPage):
-        self.controller = controller
-        self.builder = controller.builder
-        self.webPage = webPage
-        self._isConnected = False
-
-    def setup(self):
-        """Setup signal-slot connections between controller interface, builder, and 3D view interface."""
-        # web page -> controller
-        self.webPage.loadFinished.connect(self.controller.pageLoaded)
-
-        # web bridge -> controller
-        self.webPage.bridge.initialized.connect(self.controller.viewerInitialized)
-
-        # controller -> builder
-        self.controller.buildSceneRequest.connect(self.builder.buildSceneSlot)
-        self.controller.buildLayerRequest.connect(self.builder.buildLayerSlot)
-
-        # task manager -> controller
-        self.controller.taskManager.executeTask.connect(self.controller.executeTask)
-        self.controller.taskManager.abortCurrentTask.connect(self.controller.abortCurrentTask)
-        self.controller.taskManager.allTasksFinalized.connect(self.controller.allTasksFinalized)
-
-        # builder -> controller
-        self.builder.dataReady.connect(self.controller.appendDataToSendQueue)
-        self.builder.progressUpdated.connect(self.controller.builderProgressUpdated)
-
-        # builder -> task manager
-        self.builder.taskCompleted.connect(self.controller.taskManager.taskCompleted)
-        self.builder.taskFailed.connect(self.controller.taskManager.taskFailed)
-        self.builder.taskAborted.connect(self.controller.taskManager.taskAborted)
-
-        self._isConnected = True
-
-    def teardown(self):
-        if self._isConnected:
-            signals = [
-                self.webPage.loadFinished,
-                self.webPage.bridge.initialized,
-                self.controller.buildSceneRequest,
-                self.controller.buildLayerRequest,
-                self.controller.taskManager.executeTask,
-                self.controller.taskManager.abortCurrentTask,
-                self.controller.taskManager.allTasksFinalized,
-                self.builder.dataReady,
-                self.builder.progressUpdated,
-                self.builder.taskCompleted,
-                self.builder.taskFailed,
-                self.builder.taskAborted
-            ]
-
-            for signal in signals:
-                signal.disconnect()
-
-        self.controller = None
-
-
 class Q3DController(QObject):
 
     # signals
@@ -103,6 +44,7 @@ class Q3DController(QObject):
         self.webPage = webPage
         self.offScreen = offScreen
         self._enabled = enabledAtStart
+        self._conns = []
 
         # settings
         if settings is None:
@@ -135,12 +77,12 @@ class Q3DController(QObject):
             self.builder.moveToThread(self.thread)
             self.thread.start()
 
-        # connections
-        self.conn = ConnectionManager(self, webPage)
-
         # task management
         self.taskManager = TaskManager(self, settings)
         self.taskManager.setObjectName("taskManager")
+
+        # connections
+        self.setupConnections()
 
         # progress
         self.currentProgress = -1
@@ -165,6 +107,43 @@ class Q3DController(QObject):
             self.thread.wait()
 
             self.builder.deleteLater()
+
+    def setupConnections(self):
+        """Setup signal-slot connections between controller, builder, and 3D view interface."""
+        conns = ([
+            # web page -> controller
+            (self.webPage.loadFinished, self.pageLoaded),
+
+            # web bridge -> controller
+            (self.webPage.bridge.initialized, self.viewerInitialized),
+
+            # controller -> builder
+            (self.buildSceneRequest, self.builder.buildSceneSlot),
+            (self.buildLayerRequest, self.builder.buildLayerSlot),
+
+            # task manager -> controller
+            (self.taskManager.executeTask, self.executeTask),
+            (self.taskManager.abortCurrentTask, self.abortCurrentTask),
+            (self.taskManager.allTasksFinalized, self.allTasksFinalized),
+
+            # builder -> controller
+            (self.builder.dataReady, self.appendDataToSendQueue),
+            (self.builder.progressUpdated, self.builderProgressUpdated),
+
+            # builder -> task manager
+            (self.builder.taskCompleted, self.taskManager.taskCompleted),
+            (self.builder.taskFailed, self.taskManager.taskFailed),
+            (self.builder.taskAborted, self.taskManager.taskAborted)
+        ])
+
+        for sig, slo in conns:
+            self._conns.append(sig.connect(slo))
+
+    def teardownConnections(self):
+        for conn in self._conns:
+            self.disconnect(conn)
+
+        self._conns.clear()
 
     @property
     def enabled(self):
