@@ -62,13 +62,9 @@ class Qgis2threejs:
                 action.triggered.connect(lambda c, a=action: self.openExporterInProc(a))
 
             if os.name == "nt":
-                action = QAction(icon, title + " (Embedded External)", self.actionGroup)
+                action = QAction(icon, title, self.actionGroup)
                 action.setObjectName(objName + "Emb")
                 action.triggered.connect(lambda c, a=action: self.openExporterEmbedded(a))
-
-            action = QAction(icon, title + " (Separate External)", self.actionGroup)
-            action.setObjectName(objName + "Sep")
-            action.triggered.connect(lambda c, a=action: self.openExporerSeparate(a))
 
         action = QAction(icon, title + " (Browser Preview)", self.actionGroup)
         action.setObjectName(objName + "Brw")
@@ -152,13 +148,10 @@ class Qgis2threejs:
                 action.triggered.emit()
                 return
 
-        if WEBENGINE_AVAILABLE:
-            if os.name == "nt":
-                self.openExporter(webViewMode=WebViewMode.EMBEDDED)
-            else:
-                self.openExporter(webViewMode=WebViewMode.SEPARATE)
+        if WEBENGINE_AVAILABLE and os.name == "nt":
+            self.openExporter(webViewMode=WebViewMode.EMBEDDED)
         else:
-            self.openExporter(webViewType=WebViewType.NONE)
+            self.openExporter(webViewType=WebViewType.BROWSER)
 
     def openExporterInProc(self, action):
         self.openExporter(webViewMode=WebViewMode.INPROCESS)
