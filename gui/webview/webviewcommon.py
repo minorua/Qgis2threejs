@@ -43,7 +43,7 @@ class Q3DWebPageCommon:
         self.sendQueue = self.SendQueueClass(self.bridge)
         self.bridge.dataLoaded.connect(self.sendQueue.dataLoaded)
 
-        self.previewUrl = QUrl.fromLocalFile(pluginDir("web/viewer/webengine.html").replace("\\", "/"))
+        self.previewUrl = QUrl.fromLocalFile(pluginDir("web/webengine.html").replace("\\", "/"))
 
     def setup(self):
         self.reload()

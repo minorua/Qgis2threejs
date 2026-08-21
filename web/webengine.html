@@ -2,21 +2,22 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>3D Viewer</title>
+<!--Qgis2threejs 3D scene preview page for web engine view-->
+<title>WebEngine viewer</title>
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-<link rel="stylesheet" type="text/css" href="../css/Qgis2threejs.css">
-<link rel="stylesheet" type="text/css" href="viewer.css">
+<link rel="stylesheet" type="text/css" href="./css/Qgis2threejs.css">
+<link rel="stylesheet" type="text/css" href="./css/preview.css">
 <script type="importmap">
 {
   "imports": {
-    "three": "../js/lib/three/three.module.js",
-    "three/addons/": "../js/lib/three/",
-    "lib/": "../js/lib/"
+    "three": "./js/lib/three/three.module.js",
+    "three/addons/": "./js/lib/three/",
+    "lib/": "./js/lib/"
   }
 }
 </script>
 <script type="module">
-  import * as exports from "../js/dist/preview.js";
+  import * as exports from "./js/dist/preview.js";
   Object.assign(window, exports);
 </script>
 <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
