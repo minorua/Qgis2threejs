@@ -7,9 +7,6 @@ import json
 
 # This module may be used in an external process rather than within the QGIS process.
 from PyQt6.QtCore import QEventLoop, QTimer, QUrl, pyqtSignal
-from PyQt6.QtGui import QDesktopServices
-from PyQt6.QtWidgets import QMessageBox
-from PyQt6.QtWebEngineCore import QWebEnginePage
 
 from .conf import DEBUG_MODE
 from .webbridge import WebBridge
@@ -170,12 +167,6 @@ class Q3DWebPageCommon:
 
     def showStatusMessage(self, message, timeout_ms=0):
         self.bridge.statusMessage.emit(message, timeout_ms)
-
-    def acceptNavigationRequest(self, url, type, isMainFrame):
-        if type == QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
-            QDesktopServices.openUrl(url)
-            return False
-        return True
 
     def requestRendering(self, waitUntilFinished=False):
         def render():
