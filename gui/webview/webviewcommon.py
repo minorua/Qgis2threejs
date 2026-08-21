@@ -217,6 +217,12 @@ class Q3DWebViewCommon:
         self._page.teardown()
         self._page = None
 
+    def startPreview(self):
+        pass
+
+    def stopPreview(self):
+        pass
+
     def runScript(self, string, message="", sourceID="webviewcommon.py", callback=None, wait=False):
         return self._page.runScript(string, message, sourceID, callback, wait)
 

@@ -64,11 +64,10 @@ class Q3DWindow(QMainWindow):
 
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)
+        self.ui.webViewContainer = None
 
         Q3DView = getWebViewClass(webViewType, webViewMode)
         if webViewType in (WebViewType.NONE, WebViewType.BROWSER) or webViewMode == WebViewMode.SEPARATE:
-            self.ui.webViewContainer = None
-
             webView = Q3DView(parent=self)
             self.setCentralWidget(None)
         else:       # webViewMode: INPROCESS or EMBEDDED
@@ -77,7 +76,7 @@ class Q3DWindow(QMainWindow):
             self.ui.verticalLayout.addWidget(self.ui.webViewContainer)
 
             webView = Q3DView(parent=self.ui.webViewContainer)
-            self._connect(webView.previewStateChanged, self.ui.webViewContainer.previewStateChanged)
+            self._connect(webView.previewStateChanged, self.ui.webViewContainer.setPreviewState)
 
             self.ui.webViewContainer.setWebView(webView)
 
@@ -171,6 +170,9 @@ class Q3DWindow(QMainWindow):
         try:
             self.controller.close()
 
+            if self.ui.webViewContainer:
+                self.ui.webViewContainer.setPreviewState(PreviewState.Disabled)
+
             # disconnect signal-slot connections
             for conn in self._conns:
                 self.disconnect(conn)
@@ -185,6 +187,9 @@ class Q3DWindow(QMainWindow):
 
             # safely stop worker thread
             self.controller.teardown()
+
+            # close preview
+            self.webView.stopPreview()
 
             # close dialogs
             for dlg in self.findChildren(QDialog):

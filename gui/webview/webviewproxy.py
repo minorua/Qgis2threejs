@@ -157,12 +157,6 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
         if enabledAtStart:
             self.startPreview()
 
-    def teardown(self):
-        logger.debug("Socket server is going to shut down.")
-        self.stopPreview()
-
-        Q3DWebViewCommon.teardown(self)
-
     def size(self):
         return self.parent().size() if self.embeddedMode else QSize()
 

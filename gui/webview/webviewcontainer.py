@@ -36,15 +36,14 @@ class WebViewContainer(QStackedWidget):
 
         self.webView = webView
 
-    def previewStateChanged(self, state):
-        logger.debug(f"previewStateChanged: {state}")
+    def setPreviewState(self, state):
         if state == PreviewState.Active:
             self.showPreview()
         else:
             self.showPreviewState(state)
 
             if state == PreviewState.Disabled:
-                self.removeEmbeddedWnd()
+                self.releaseEmbeddedWnd()
 
     def showPreview(self):
         if self.count() != 2:
@@ -72,9 +71,9 @@ class WebViewContainer(QStackedWidget):
 
         logger.debug(f"External window ({winId}) embedded.")
 
-        self.previewStateChanged(PreviewState.Active)
+        self.showPreview()
 
-    def removeEmbeddedWnd(self):
+    def releaseEmbeddedWnd(self):
         if self.embeddedWnd:
             self.embeddedWnd.hide()
             self.embeddedWnd.setParent(None)
