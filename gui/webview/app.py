@@ -166,7 +166,6 @@ class Window(QWidget):
 
         self.webView = WebView(self, serverName)
         self.webView.socketClient.connected.connect(self.connected)
-        self.webView.socketClient.eventReceived.connect(self.eventReceived)
         self.webView.socketClient.commandReceived.connect(self.commandReceived)
         self.webView.setup()
         layout.addWidget(self.webView)
@@ -189,14 +188,13 @@ class Window(QWidget):
         if self.embedMode:
             self.webView.socketClient.sendCommand(Command.EMBED_WND, {"winId": int(self.winId())})
 
-    def eventReceived(self, method, params, payload):
-        if method == Event.QUIT:
-            logger.info("Closing...")
-            self.close()
-
     def commandReceived(self, method, params, payload):
         if method == Command.RESIZE:
             self.resize(params["width"], params["height"])
+
+        elif method == Command.QUIT:
+            logger.info("Closing...")
+            self.close()
 
 
 class ConditionalPrefixFilter(logging.Filter):

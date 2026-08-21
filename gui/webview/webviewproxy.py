@@ -244,8 +244,7 @@ Exit status: {exitStatus}
             return
 
         self.previewStateChanged.emit(PreviewState.Disabled)
-
-        self.socketServer.sendEvent(Event.QUIT)
+        self.socketServer.sendCommand(Command.QUIT)
 
         self.terminateViewProcess()
 

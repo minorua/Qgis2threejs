@@ -19,9 +19,6 @@ class Event:
     # <- window
     WND_GEOM_CHANGED = "wnd_geom_changed"     # window resized or moved
 
-    # view proxy ->
-    QUIT = "quit"                       # window is closing
-
 
 class Command:
 
@@ -38,6 +35,7 @@ class Command:
     # view proxy ->
     DEV_TOOLS = "devtools"              # show developer tools
     GPU_INFO = "gpuinfo"                # show GPU info
+    QUIT = "quit"                       # close window
 
     CLICK = "click"                     # simulate a click for testing
 
