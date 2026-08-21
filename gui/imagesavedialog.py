@@ -22,7 +22,7 @@ class ImageSaveDialog(QDialog):
         self.ui.pushButton_Copy.clicked.connect(self.copyToClipboard)
         self.ui.buttonBox.helpRequested.connect(self.helpClicked)
 
-        webView = self.wnd.ui.webView
+        webView = self.wnd.webView
         size = webView.size()
         if size:
            self.setSizeFields(size.width(), size.height())

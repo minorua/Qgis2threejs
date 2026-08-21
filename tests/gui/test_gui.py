@@ -128,11 +128,11 @@ def runTest(wnd):
     initOutputDir()
 
     # set view size
-    webView = wnd.ui.webView
+    webView = wnd.webView
     if wnd.webViewMode == WebViewMode.SEPARATE:
         webView.socketServer.sendCommand(Command.RESIZE, {"width": WIDTH, "height": HEIGHT})
     else:
-        viewSize = wnd.ui.webView.size()
+        viewSize = wnd.webView.size()
         wnd.resize(wnd.width() + WIDTH - viewSize.width(),
                    wnd.height() + HEIGHT - viewSize.height())
 

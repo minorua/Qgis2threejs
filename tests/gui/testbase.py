@@ -113,14 +113,14 @@ class GUITestBase(unittest.TestCase):
         self.runScript(f"showMarker({x}, {y}, 400)")
         self.sleep(500)
 
-        w = self.WND.ui.webView
+        w = self.WND.webView
         pos = QPointF(x, y)
         w.triggerTestClick(pos)
 
         self.sleep(100)
 
     def keyPress(self, key):
-        w = self.WND.ui.webView
+        w = self.WND.webView
 
         w = w.findChild(QWidget)
         press = QKeyEvent(QEvent.Type.KeyPress, key, Qt.KeyboardModifier.NoModifier)

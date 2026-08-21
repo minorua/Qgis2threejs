@@ -28,8 +28,8 @@ def objectsOfInterest(wnd):
         ("controller", wnd.controller),
         ("builder", wnd.controller.builder),
         ("thread", wnd.controller.thread),
-        ("web view", wnd.ui.webView),
-        ("web page", wnd.ui.webView.page()),
+        ("web view", wnd.webView),
+        ("web page", wnd.webPage),
         ("tree view", wnd.ui.treeView),
         ("animation panel", wnd.ui.animationPanel)
     ]

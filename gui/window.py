@@ -89,9 +89,10 @@ class Q3DWindow(QMainWindow):
                 webView.socketServer.connected.connect(lambda: self.ui.checkBoxPreview.setEnabled(True))
                 webView.socketServer.disconnected.connect(lambda: self.ui.checkBoxPreview.setEnabled(False))
 
-        self.ui.webView = webView
-        self.ui.webView.setObjectName("webView")
-        self.ui.webView.fileDropped.connect(self.fileDropped)
+        self.webView = webView
+        self.webView.setObjectName("webView")
+        self.webView.fileDropped.connect(self.fileDropped)
+
         self.webPage = webView.page()
 
         self.controller = Q3DController(self, settings, self.webPage, useThread=RUN_BLDR_IN_BKGND, enabledAtStart=previewEnabled)
@@ -110,7 +111,7 @@ class Q3DWindow(QMainWindow):
         self._setupStatusBar(self.ui, previewEnabled, viewName)
         self.restoreWindowState()
 
-        self.ui.webView.setup(webViewMode=webViewMode, enabledAtStart=previewEnabled)
+        self.webView.setup(webViewMode=webViewMode, enabledAtStart=previewEnabled)
         self.ui.treeView.setup(self, self.icons, settings.layers())
 
         if webViewType != WebViewType.NONE:
@@ -164,7 +165,7 @@ class Q3DWindow(QMainWindow):
             if self.webViewType != WebViewType.NONE:
                 self.webPage.jsErrorWarning.disconnect(self.onJSErrorWarning)
 
-                        # save export settings to a settings file
+            # save export settings to a settings file
             self.settings.setAnimationData(self.ui.animationPanel.data())
             self.settings.saveSettings()
 
@@ -180,7 +181,7 @@ class Q3DWindow(QMainWindow):
             # break circular references
             self.ui.animationPanel.teardown()
             self.ui.treeView.teardown()
-            self.ui.webView.teardown()
+            self.webView.teardown()
 
         except Exception as e:
             import traceback
@@ -250,8 +251,8 @@ class Q3DWindow(QMainWindow):
             ui.actionResetCameraPosition.triggered.connect(self.controller.resetCameraState)
 
         if self.webViewType == WebViewType.WEBENGINE:
-            ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
-            ui.actionGraphicsInfo.triggered.connect(ui.webView.showGPUInfo)
+            ui.actionDevTools.triggered.connect(self.webView.showDevTools)
+            ui.actionGraphicsInfo.triggered.connect(self.webView.showGPUInfo)
         else:
             ui.actionDevTools.setEnabled(False)
             ui.actionGraphicsInfo.setEnabled(False)
@@ -295,7 +296,7 @@ class Q3DWindow(QMainWindow):
             w.setObjectName("toolButtonConsoleStatus")
             w.setToolTip("Click this button to open the developer tools.")
             w.hide()
-            w.clicked.connect(self.ui.webView.showDevTools)
+            w.clicked.connect(self.webView.showDevTools)
             ui.statusbar.addPermanentWidget(w)
 
             self.webPage.loadStarted.connect(ui.toolButtonConsoleStatus.hide)
@@ -311,7 +312,7 @@ class Q3DWindow(QMainWindow):
         self.restoreState(settings.value(f"state{suffix}", b""))
 
         if self.webViewMode == WebViewMode.SEPARATE:
-            self.ui.webView.previewWndGeometry = settings.value(f"preview{suffix}", {})
+            self.webView.previewWndGeometry = settings.value(f"preview{suffix}", {})
 
         settings.endGroup()
 
@@ -324,8 +325,8 @@ class Q3DWindow(QMainWindow):
         settings.setValue(f"geometry{suffix}", self.saveGeometry())
         settings.setValue(f"state{suffix}", self.saveState())
 
-        if self.webViewMode == WebViewMode.SEPARATE and self.ui.webView.previewWndGeometry:
-            settings.setValue(f"preview{suffix}", self.ui.webView.previewWndGeometry)
+        if self.webViewMode == WebViewMode.SEPARATE and self.webView.previewWndGeometry:
+            settings.setValue(f"preview{suffix}", self.webView.previewWndGeometry)
 
         settings.endGroup()
 
@@ -355,7 +356,7 @@ class Q3DWindow(QMainWindow):
 
         self.controller.enabled = enabled
 
-        self.ui.webView.setPreviewEnabled(enabled)
+        self.webView.setPreviewEnabled(enabled)
 
         ui = self.ui
         items = [ui.menuSaveAs, ui.actionReload, ui.actionResetCameraPosition, ui.actionUsage]
