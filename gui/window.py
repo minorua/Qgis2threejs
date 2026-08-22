@@ -5,8 +5,8 @@
 
 import os
 
-from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QSettings, QTimer, QUrl, pyqtSignal, pyqtSlot
-from qgis.PyQt.QtGui import QColor, QDesktopServices, QIcon
+from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QSettings, QSignalBlocker, QTimer, QUrl, pyqtSignal, pyqtSlot
+from qgis.PyQt.QtGui import QColor, QDesktopServices
 from qgis.PyQt.QtWidgets import (
     QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog,
     QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton
@@ -61,6 +61,11 @@ class Q3DWindow(QMainWindow):
         self._conns = []
 
         self.lastDir = None
+        self._dialogs = {}
+        self._isDirty = False        # flag to indicate whether map canvas extent or project has been changed
+        self._modelFile = None
+        self._saveModelState = None
+
         self.loadIcons()
         self.setWindowIcon(pluginIcon())
 
@@ -73,29 +78,32 @@ class Q3DWindow(QMainWindow):
             webView = Q3DView(parent=self)
             self.setCentralWidget(None)
         else:       # webViewMode: INPROCESS or EMBEDDED
-            self.ui.webViewContainer = WebViewContainer(self.ui.centralwidget)
-            self.ui.webViewContainer.showPreviewState(PreviewState.Loading if previewEnabled else PreviewState.Disabled)
-            self.ui.verticalLayout.addWidget(self.ui.webViewContainer)
+            container = WebViewContainer(self.ui.centralwidget)
+            container.showPreviewState(PreviewState.Loading if previewEnabled else PreviewState.Disabled)
+            self.ui.verticalLayout.addWidget(container)
+            self.ui.webViewContainer = container
 
-            webView = Q3DView(parent=self.ui.webViewContainer)
-            self._connect(webView.previewStateChanged, self.ui.webViewContainer.setPreviewState)
+            webView = Q3DView(parent=container)
+            self._connect(webView.previewStateChanged, container.setPreviewState)
 
-            self.ui.webViewContainer.setWebView(webView)
+            container.setWebView(webView)
+
+            if webViewMode == WebViewMode.EMBEDDED:
+                container.previewStateWidget.buttonRestart.clicked.connect(lambda: self.ui.checkBoxPreview.setChecked(True))
 
         self.webView = webView
         self.webView.setObjectName("webView")
 
+        self._connect(webView.closed, self._uncheckPreview)
+
         if webViewMode == WebViewMode.EMBEDDED:
             self._connect(webView.socketServer.commandReceived, self.commandReceived)
 
-        elif webViewMode in (WebViewMode.SEPARATE, WebViewMode.BROWSER):
-            self._connect(webView.closed, self._previewClosed)
-
-            if webViewMode == WebViewMode.BROWSER:
-                self._connect([
-                    (webView.socketServer.connected, lambda: self.ui.checkBoxPreview.setEnabled(True)),
-                    (webView.socketServer.disconnected, lambda: self.ui.checkBoxPreview.setEnabled(False))
-                ])
+        elif webViewMode == WebViewMode.BROWSER:
+            self._connect([
+                (webView.socketServer.connected, lambda: self.ui.checkBoxPreview.setEnabled(True)),
+                (webView.socketServer.disconnected, lambda: self.ui.checkBoxPreview.setEnabled(False))
+            ])
 
         webView.fileDropped.connect(self.fileDropped)
 
@@ -119,8 +127,9 @@ class Q3DWindow(QMainWindow):
         self._setupStatusBar(self.ui, previewEnabled, viewName)
         self.restoreWindowState()
 
-        self.webView.setup(webViewMode=webViewMode, enabledAtStart=previewEnabled)
+        self.webView.setup(webViewMode)
         self.ui.treeView.setup(self, self.icons, settings.layers())
+        self.ui.animationPanel.setup(self, settings)
 
         if webViewType != WebViewType.NONE:
             self._connect([
@@ -135,12 +144,10 @@ class Q3DWindow(QMainWindow):
         else:
             self.ui.checkBoxPreview.setEnabled(False)
 
-        if not previewEnabled:
+        if previewEnabled:
+            self.webView.startPreview()
+        else:
             self.setPreviewEnabled(False)
-
-        self.ui.animationPanel.setup(self, settings)
-
-        self.isDirty = False        # flag to indicate whether map canvas extent or project has been changed
 
         canvas = qgisIface.mapCanvas()
         self._connect([
@@ -152,10 +159,6 @@ class Q3DWindow(QMainWindow):
         if DEBUG_MODE:
             from ..utils.debug import setupDestructionLogging
             setupDestructionLogging(self)
-
-        self._modelFile = None
-        self._saveModelState = None
-        self._dialogs = {}
 
     def _connect(self, signal, slot=None):
         if isinstance(signal, (list, tuple)):
@@ -172,8 +175,7 @@ class Q3DWindow(QMainWindow):
         try:
             self.controller.close()
 
-            if self.ui.webViewContainer:
-                self.ui.webViewContainer.setPreviewState(PreviewState.Disabled)
+            self.webView.stopPreview()
 
             # disconnect signal-slot connections
             for conn in self._conns:
@@ -189,9 +191,6 @@ class Q3DWindow(QMainWindow):
 
             # safely stop worker thread
             self.controller.teardown()
-
-            # close preview
-            self.webView.stopPreview()
 
             # close dialogs
             for dlg in self.findChildren(QDialog):
@@ -388,9 +387,10 @@ class Q3DWindow(QMainWindow):
         for item in items:
             item.setEnabled(enabled)
 
-    def _previewClosed(self):
-        self.ui.checkBoxPreview.setChecked(False)
-        self.ui.checkBoxPreview.setEnabled(True)
+    def _uncheckPreview(self):
+        with QSignalBlocker(self.ui.checkBoxPreview):
+            self.ui.checkBoxPreview.setChecked(False)
+            self.ui.checkBoxPreview.setEnabled(True)
 
     def runScript(self, string, message="", sourceID="Q3DWindow.py", callback=None, wait=False):
         return self.webPage.runScript(string, message, sourceID, callback, wait)
@@ -413,14 +413,14 @@ class Q3DWindow(QMainWindow):
     # map canvas and project events
     @pyqtSlot()
     def mapCanvasRendered(self):
-        if self.isDirty:
+        if self._isDirty:
             self.settings.setMapSettings(self.qgisIface.mapCanvas().mapSettings())
             self.controller.taskManager.addBuildSceneTask()
-            self.isDirty = False
+            self._isDirty = False
 
     @pyqtSlot()
     def setDirty(self):
-        self.isDirty = True
+        self._isDirty = True
 
     def _getManagedDialog(self, key):
         return self._dialogs.get(key)

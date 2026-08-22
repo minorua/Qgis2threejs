@@ -131,31 +131,28 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
 
 class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
 
+    previewStateChanged = pyqtSignal(int)       # PreviewState
+
     def __init__(self, parent):
         QObject.__init__(self, parent)
         Q3DWebViewCommon.__init__(self, parent)
 
         self.embeddedMode = True
-        self.previewEnabled = True
         self.viewProcess = None
         self.previewWndGeometry = {}
 
         self.serverName = "Q3D" + createUid()
         self.socketServer = SocketServer(self, self.serverName)
         self.socketServer.eventReceived.connect(self.eventReceived)
-        self.socketServer.disconnected.connect(self._disconnected)
 
         self._page = Q3DWebPageProxy(self)
         self._page.setObjectName("WebPageProxy")
         self._page.setSocketServer(self.socketServer)
 
-    def setup(self, webViewMode=None, enabledAtStart=True):
-        Q3DWebViewCommon.setup(self, webViewMode, enabledAtStart)
-
+    def setup(self, webViewMode=None):
         self.embeddedMode = (webViewMode == WebViewMode.EMBEDDED)
-        self.previewEnabled = enabledAtStart
-        if enabledAtStart:
-            self.startPreview()
+
+        Q3DWebViewCommon.setup(self, webViewMode)
 
     def size(self):
         return self.parent().size() if self.embeddedMode else QSize()
@@ -225,7 +222,9 @@ class Q3DWebViewProxy(Q3DWebViewCommon, QObject):
         self.viewProcess = subprocess.Popen(args, cwd=cwd, startupinfo=startupinfo)     # nosec B603 - start preview process
 
     def viewProcessFinished(self, exitCode, exitStatus):
-        if exitCode not in (0, 15):
+        if self.viewProcess and exitCode not in (0, 15):
+            self.previewStateChanged.emit(PreviewState.Error)
+
             msg = f"""Exit code: {exitCode}
 Exit status: {exitStatus}
 
@@ -233,14 +232,15 @@ Exit status: {exitStatus}
             msg += bytes(self.viewProcess.readAllStandardError()).decode("utf-8", "replace")
             QMessageBox.critical(None, f"{PLUGIN_NAME} Preview Error", msg)
 
+        self.viewProcess = None
+        self.closed.emit()
+
     def stopPreview(self):
-        if not self.viewProcess:
-            return
-
         self.previewStateChanged.emit(PreviewState.Disabled)
-        self.socketServer.sendCommand(Command.QUIT)
 
-        self.terminateViewProcess()
+        if self.viewProcess:
+            self.socketServer.sendCommand(Command.QUIT)
+            self.terminateViewProcess()
 
     def terminateViewProcess(self):
         if not self.viewProcess:
@@ -250,23 +250,14 @@ Exit status: {exitStatus}
             if USE_QPROCESS:
                 self.viewProcess.terminate()
                 self.viewProcess.waitForFinished(3000)
-
-                self.viewProcess.finished.disconnect()
             else:
                 self.viewProcess.terminate()
                 self.viewProcess.wait(timeout=3)
 
         # except ProcessLookupError:
         # except subprocess.TimeoutExpired:
-        finally:
-            self.viewProcess = None
-
-    def setPreviewEnabled(self, enabled):
-        self.previewEnabled = enabled
-        if enabled:
-            self.startPreview()
-        else:
-            self.stopPreview()
+        except Exception as e:
+            logger.warning("Error in terminating view process: " + str(e))
 
     def showDevTools(self):
         self.socketServer.sendCommand(Command.DEV_TOOLS)
@@ -288,11 +279,3 @@ Exit status: {exitStatus}
 
             case Event.DEV_TOOLS_CLOSED:
                 self.devToolsClosed.emit()
-
-    def _disconnected(self):
-        logger.debug("Disconnected from preview process.")
-        if self.embeddedMode and self.previewEnabled:
-            self.previewStateChanged.emit(PreviewState.Error)
-            self.terminateViewProcess()
-
-        self.closed.emit()

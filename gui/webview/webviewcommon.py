@@ -9,6 +9,7 @@ import json
 from PyQt6.QtCore import QEventLoop, QTimer, QUrl, pyqtSignal
 
 from .conf import DEBUG_MODE
+from .const import PreviewState
 from .webbridge import WebBridge
 from .sendqueue import SendQueue
 from .utils import logger
@@ -43,7 +44,7 @@ class Q3DWebPageCommon:
         self.previewUrl = QUrl.fromLocalFile(pluginDir("web/webengine.html").replace("\\", "/"))
 
     def setup(self):
-        self.reload()
+        self.setUrl(self.previewUrl)
 
     def teardown(self):
         pass
@@ -193,7 +194,6 @@ class Q3DWebViewCommon:
     closed = pyqtSignal()
     devToolsClosed = pyqtSignal()
     fileDropped = pyqtSignal(list)
-    previewStateChanged = pyqtSignal(int)       # PreviewState
 
     def __init__(self, _=None):
         self._page = None
@@ -201,12 +201,18 @@ class Q3DWebViewCommon:
     def page(self):
         return self._page
 
-    def setup(self, webViewMode=None, enabledAtStart=True):
+    def setup(self, webViewMode=None):
         self._page.setup()
 
     def teardown(self):
         self._page.teardown()
         self._page = None
+
+    def setPreviewEnabled(self, enabled):
+        if enabled:
+            self.startPreview()
+        else:
+            self.stopPreview()
 
     def startPreview(self):
         pass
@@ -219,9 +225,6 @@ class Q3DWebViewCommon:
 
     def showGPUInfo(self):
         self._page.setUrl(QUrl("chrome://gpu"))
-
-    def setPreviewEnabled(self, enabled):
-        pass
 
     def showDevTools(self):
         pass

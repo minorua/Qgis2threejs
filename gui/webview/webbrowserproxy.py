@@ -4,7 +4,6 @@
 
 from qgis.PyQt.QtCore import QObject, QSize, QTimer, QUrl, pyqtSignal
 
-from .const import PreviewState
 from .utils import logger
 from .webviewcommon import Q3DWebViewCommon
 from .webviewproxy import Q3DWebPageProxy
@@ -25,8 +24,6 @@ class Q3DWebBrowserProxy(Q3DWebViewCommon, QObject):
         QObject.__init__(self, parent)
         Q3DWebViewCommon.__init__(self, parent)
 
-        self.previewEnabled = True
-
         self._reconnectTimer = QTimer(self)
         self._reconnectTimer.setSingleShot(True)
         self._reconnectTimer.timeout.connect(self.closed)
@@ -38,13 +35,6 @@ class Q3DWebBrowserProxy(Q3DWebViewCommon, QObject):
         self._page = Q3DWebPageProxy(self)
         self._page.setObjectName("WebPageProxy")
         self._page.setSocketServer(self.socketServer)
-
-    def setup(self, webViewMode=None, enabledAtStart=True):
-        Q3DWebViewCommon.setup(self, webViewMode, enabledAtStart)
-
-        self.previewEnabled = enabledAtStart
-        if enabledAtStart:
-            self.startPreview()
 
     def teardown(self):
         logger.debug("Preview HTTP/WebSocket server is going to shut down.")
@@ -61,8 +51,6 @@ class Q3DWebBrowserProxy(Q3DWebViewCommon, QObject):
         self.socketServer.sendRequest(Request.SIZE, callback=callback)
 
     def startPreview(self):
-        self.previewStateChanged.emit(PreviewState.Loading)
-
         url = self.socketServer.url("/preview.html")
         logger.info(f"Opening preview in web browser: {url}")
 
@@ -70,15 +58,7 @@ class Q3DWebBrowserProxy(Q3DWebViewCommon, QObject):
             logger.error("Failed to open a web browser for the preview.")
 
     def stopPreview(self):
-        self.previewStateChanged.emit(PreviewState.Disabled)
         self.socketServer.closeActiveWebSocket()
-
-    def setPreviewEnabled(self, enabled):
-        self.previewEnabled = enabled
-        if enabled:
-            self.startPreview()
-        else:
-            self.stopPreview()
 
     def triggerTestClick(self, pos):
         self.socketServer.sendCommand(Command.CLICK, params={"x": pos.x(), "y": pos.y()})

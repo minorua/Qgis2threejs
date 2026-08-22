@@ -7,7 +7,7 @@ import os
 import logging
 
 # This module may be used in an external process rather than within the QGIS process.
-from PyQt6.QtCore import Qt, QEvent, QUrl
+from PyQt6.QtCore import Qt, QEvent, pyqtSignal
 from PyQt6.QtGui import QDesktopServices, QMouseEvent
 from PyQt6.QtWidgets import QApplication, QDialog, QVBoxLayout, QWidget
 from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings
@@ -18,7 +18,6 @@ from .conf import DEBUG_MODE
 from .const import PreviewState
 from .utils import logger, web_logger
 from .webviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
-from ...utils.basic import pluginDir
 
 
 _original_chromium_flags = None
@@ -107,6 +106,8 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
 class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
 
+    previewStateChanged = pyqtSignal(int)       # PreviewState
+
     WebPageClass = Q3DWebEnginePage
 
     def __init__(self, parent):
@@ -132,11 +133,12 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
         self.fileDropped.emit(event.mimeData().urls())
         event.acceptProposedAction()
 
-    def setPreviewEnabled(self, enabled):
-        if enabled:
-            self._page.reload()
-        else:
-            self.runScript("setPreviewEnabled(false)")
+    def startPreview(self):
+        self.previewStateChanged.emit(PreviewState.Loading)
+        self._page.reload()
+
+    def stopPreview(self):
+        self.previewStateChanged.emit(PreviewState.Disabled)
 
     def showDevTools(self):
         if self._page.devToolsPage():

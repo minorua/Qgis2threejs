@@ -480,19 +480,6 @@ function clearStatusMessage() {
 	showStatusMessage("");
 }
 
-export function setPreviewEnabled(enabled: boolean) {
-	const e = E("cover");
-
-	if (enabled) {
-		app.resume();
-	}
-	else {
-		app.pause();
-		e.innerHTML = '<img src="../Qgis2threejs.png">';
-	}
-	e.style.display = (enabled) ? "none" : "block";
-}
-
 export function setOutlineEffectEnabled(enabled: boolean) {
 	if (enabled) {
 		import("three/addons/effects/OutlineEffect.js").then(({ OutlineEffect }) => {

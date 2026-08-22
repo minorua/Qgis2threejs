@@ -110,8 +110,8 @@ class WebView(Q3DWebEngineView):
 
         self.devToolsClosed.connect(self.notifyDevToolsClosed)
 
-    def setup(self, webViewMode=None, enabledAtStart=True):
-        super().setup(enabledAtStart=enabledAtStart)
+    def setup(self, webViewMode=None):
+        super().setup(webViewMode)
         self.socketClient.connect()
 
         self.activator = WindowActivator(self)
@@ -167,8 +167,10 @@ class Window(QWidget):
         self.webView = WebView(self, serverName)
         self.webView.socketClient.connected.connect(self.connected)
         self.webView.socketClient.commandReceived.connect(self.commandReceived)
-        self.webView.setup()
         layout.addWidget(self.webView)
+
+        self.webView.setup()
+        self.webView.startPreview()
 
     def moveEvent(self, event):
         if self.timer:

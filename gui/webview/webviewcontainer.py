@@ -30,9 +30,6 @@ class WebViewContainer(QStackedWidget):
         if isinstance(webView, QWidget):
             # INPROCESS
             self.addWidget(webView)
-        else:
-            # EMBEDDED
-            self.previewStateWidget.buttonRestart.clicked.connect(webView.startPreview)
 
         self.webView = webView
 

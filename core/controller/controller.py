@@ -193,7 +193,6 @@ class Q3DController(QObject):
             return
 
         if not self.enabled:
-            self.runScript("setPreviewEnabled(false)")
             self.clearStatusMessage()
             return
 
