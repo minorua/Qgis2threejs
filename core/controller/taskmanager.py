@@ -40,8 +40,8 @@ class TaskManager(QObject):
     def __init__(self, controller, settings):
         super().__init__(controller)
         self.controller = controller
-        self._enabled = controller._enabled
         self.settings = settings
+        self.enabled = True
 
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
@@ -161,7 +161,7 @@ class TaskManager(QObject):
 
     # task processing
     def processNextTask(self):
-        if not self._enabled or self.isTaskRunning:
+        if not self.enabled or self.isTaskRunning:
             return
 
         self.timer.stop()
@@ -170,7 +170,7 @@ class TaskManager(QObject):
             self.timer.start()
 
     def _processNextTask(self):
-        if not self._enabled or self.isTaskRunning or not self.taskQueue:
+        if not self.enabled or self.isTaskRunning or not self.taskQueue:
             return
 
         if DEBUG_MODE:

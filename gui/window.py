@@ -109,8 +109,9 @@ class Q3DWindow(QMainWindow):
 
         self.webPage = webView.page()
 
-        self.controller = Q3DController(self, settings, self.webPage, useThread=RUN_BLDR_IN_BKGND, enabledAtStart=previewEnabled)
+        self.controller = Q3DController(self, settings, self.webPage, useThread=RUN_BLDR_IN_BKGND)
         self.controller.setObjectName("controller")
+        self.controller.enabled = previewEnabled
         self._connect([
             (self.controller.statusMessage, self.ui.statusbar.showMessage),
             (self.controller.progressUpdated, self.progress),

@@ -38,12 +38,12 @@ class Q3DController(QObject):
     buildLayerRequest = pyqtSignal(Layer, ExportSettings)
     quitRequest = pyqtSignal()                   # request the builder to move back to the main thread
 
-    def __init__(self, parent, settings, webPage, offScreen=False, useThread=False, enabledAtStart=True):
+    def __init__(self, parent, settings, webPage, offScreen=False, useThread=False):
         super().__init__(parent)
 
         self.webPage = webPage
         self.offScreen = offScreen
-        self._enabled = enabledAtStart
+        self._enabled = True
         self._conns = []
 
         # settings
@@ -155,7 +155,7 @@ class Q3DController(QObject):
             return
 
         self._enabled = value
-        self.taskManager._enabled = value
+        self.taskManager.enabled = value
 
     @property
     def aborted(self):
