@@ -40,11 +40,13 @@ class Q3DWindow(QMainWindow):
         if webViewType == WebViewType.NONE:
             previewEnabled = False
 
+        elif webViewType == WebViewType.BROWSER:
+            previewEnabled = True
+            webViewMode = WebViewMode.BROWSER
+
         elif webViewMode is None:
             if webViewType == WebViewType.WEBENGINE:
                 webViewMode = WebViewMode.EMBEDDED if os.name == "nt" else WebViewMode.SEPARATE
-            elif webViewType == WebViewType.BROWSER:
-                webViewMode = WebViewMode.BROWSER
             else:
                 webViewMode = WebViewMode.INPROCESS
 
