@@ -80,7 +80,7 @@ export const getBoundaryLines = (geometry: THREE.BufferGeometry): Vec3[][] => {
 		const line: number[] = [start];
 
 		while (true) {
-			const next = (adjacency.get(curr) || []).find(v => v !== prev);
+			const next = (adjacency.get(curr) || []).find(v => v !== prev && remaining.has(edgeKey(curr, v)));
 			if (next === undefined) break;
 
 			remaining.delete(edgeKey(curr, next));
