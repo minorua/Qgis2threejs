@@ -504,7 +504,7 @@ class OverlayType(PolygonTypeBase):
     """3d polygon support: no"""
 
     name = "Overlay"
-    pids = [PID.C, PID.C2, PID.OP]
+    pids = [PID.C, PID.C2, PID.OP, PID.M0]
 
     def setupWidgets(self, ppage):
         ppage.setupWidgets(
@@ -514,12 +514,15 @@ class OverlayType(PolygonTypeBase):
                     None: "No border"
                 },
                 "defVal": None
-            }
+            },
+            mtlItems=[
+                {"name": "Flat shading", "type": PropertyWidget.CHECKBOX}
+            ]
         )
 
     def material(self, feat):
         mtl = {
-            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), doubleSide=True)
+            "idx": self.mtlManager.getMeshIndex(color=feat.prop(PID.C), opacity=feat.prop(PID.OP), flat=feat.prop(PID.M0), doubleSide=True)
         }
 
         # border
