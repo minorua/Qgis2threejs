@@ -237,7 +237,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             # set up material builder for first/current material
             if self.layer.opt.allMaterials and len(materials):
                 id = materials[0].get("id")
-                self.mtlBuilder.setup(blockIndex, extent, mltId=id, useNow=bool(id == currentMtlId))
+                self.mtlBuilder.setup(blockIndex, extent, mtlId=id, useNow=bool(id == currentMtlId))
             else:
                 self.mtlBuilder.setup(blockIndex, extent, useNow=True)
             yield self.mtlBuilder
