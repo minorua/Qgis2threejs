@@ -24,8 +24,6 @@ export class Scene extends THREE.Scene {
 	constructor() {
 		super();
 
-		this.autoUpdate = false;			// TODO: remove
-
 		this.lightGroup = new Group();
 		this.lightGroup.name = "light";
 		this.add(this.lightGroup);
