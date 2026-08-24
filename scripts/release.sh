@@ -29,10 +29,32 @@ rm -f $JS_FILES
 
 echo
 echo "== Version check =="
-echo "Please confirm:"
-echo "  - web/src/Qgis2threejs.ts version is updated"
-echo "  - PLUGIN_VERSION and PLUGIN_VERSION_INT in conf.py are updated"
-echo "  - metadata.txt version is updated"
+
+metadata_version=$(sed -nE 's/^version=(.+)$/\1/p' metadata.txt)
+web_version=$(sed -nE 's/^export const VERSION = "([^"]+)";$/\1/p' web/src/Qgis2threejs.ts)
+conf_version=$(sed -nE 's/^PLUGIN_VERSION = "([^"]+)"$/\1/p' conf.py)
+conf_version_int=$(sed -nE 's/^PLUGIN_VERSION_INT = ([0-9]+)$/\1/p' conf.py)
+
+if [ -z "$web_version" ] || [ -z "$conf_version" ] || [ -z "$metadata_version" ]; then
+  echo "ERROR: Failed to read a version from a release file."
+  exit 1
+fi
+
+if [ "$web_version" != "$conf_version" ] || [ "$web_version" != "$metadata_version" ]; then
+  echo "ERROR: Version mismatch detected:"
+  echo "  web/src/Qgis2threejs.ts: $web_version"
+  echo "  conf.py: $conf_version"
+  echo "  metadata.txt: $metadata_version"
+  exit 1
+fi
+
+expected_version_int=$(printf '%s' "$conf_version" | awk -F. '{ printf "%d%02d%02d", $1, $2, $3 }')
+if [ "$conf_version_int" != "$expected_version_int" ]; then
+  echo "ERROR: conf.py PLUGIN_VERSION_INT is $conf_version_int; expected $expected_version_int."
+  exit 1
+fi
+
+echo "Version $web_version is consistent across release files."
 
 printf "Continue? [y/N] "
 read ret
