@@ -186,7 +186,7 @@ class DEMBlockResampBuilder(DEMBlockBuilderBase):
         polys = grid.splitPolygon(clip_geometry)
         z_func = lambda x, y: grid.valueOnSurface(x, y) or 0
 
-        tin = TINGeometry.fromQgsGeometry(polys, z_func, transform_func, centroid=False)
+        tin = TINGeometry.fromQgsGeometry(polys, z_func, transform_func, centroid=False, ccw2d=True)
         d = tin.toDict(flat=True)
 
         return self.buildJSONBinary({
