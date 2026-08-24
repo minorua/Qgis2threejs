@@ -130,11 +130,19 @@ export class DEMLayer extends MapLayer {
 			let mtl;
 			const m = block.obj.material;
 			if (m) {
-				if (m.isMeshToonMaterial) {
+				if (m instanceof THREE.MeshToonMaterial) {
 					mtl = new THREE.MeshToonMaterial(opt);
 				}
-				else if (m.isMeshPhongMaterial) {
+				else if (m instanceof THREE.MeshPhongMaterial) {
 					mtl = new THREE.MeshPhongMaterial(opt);
+				}
+				else if (m instanceof THREE.MeshStandardMaterial) {
+					opt.metalness = m.metalness;
+					opt.roughness = m.roughness;
+					mtl = new THREE.MeshStandardMaterial(opt);
+				}
+				else if (m instanceof THREE.MeshBasicMaterial) {
+					mtl = new THREE.MeshBasicMaterial(opt);
 				}
 			}
 			if (mtl === undefined) {

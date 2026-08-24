@@ -248,14 +248,16 @@ class ScenePropertyPage(PropertyPage, Ui_ScenePropertiesWidget):
             self.initMapTool(canvas)
 
         mtl_types = [
-            ["Basic Material", MaterialType.MESH_BASIC],
-            ["Lambert Material", MaterialType.MESH_LAMBERT],
-            ["Phong Material", MaterialType.MESH_PHONG],
-            ["Toon Material", MaterialType.MESH_TOON],
-            ["Standard Material", MaterialType.MESH_STANDARD],
+            ["Simple", MaterialType.MESH_BASIC, "(Basic) Displays colors without lighting."],
+            ["Matte", MaterialType.MESH_LAMBERT, "(Lambert) A matte material with soft lighting."],
+            ["Glossy", MaterialType.MESH_PHONG, "(Phong) A shiny material with bright highlights."],
+            ["Toon", MaterialType.MESH_TOON, "(Toon) Uses cartoon-style stepped shading."],
+            ["Metal", MaterialType.MESH_METAL, "(Standard) A reflective metal-like material."],
+            ["Clay", MaterialType.MESH_CLAY, "(Standard) A rough, clay-like material."]
         ]
-        for text, data in mtl_types:
+        for i, (text, data, tooltip) in enumerate(mtl_types):
             self.comboBox_MaterialType.addItem(text, data)
+            self.comboBox_MaterialType.setItemData(i, tooltip, Qt.ItemDataRole.ToolTipRole)
 
         # restore properties
         if properties:

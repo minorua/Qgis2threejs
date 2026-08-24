@@ -12,11 +12,15 @@ from ....utils.logging import logger
 
 
 class MaterialType:
+    MESH_BASIC = 8
     MESH_LAMBERT = 0
     MESH_PHONG = 1
     MESH_TOON = 2
-    MESH_BASIC = 8
     MESH_STANDARD = 7
+
+    # Presets based on MESH_STANDARD
+    MESH_METAL = 71
+    MESH_CLAY = 72
 
     LINE = 3
     LINE_MESH = 4
@@ -90,9 +94,13 @@ class MaterialManager(DataManager):
         """
         mtl = self._list[index]
 
-        m = {
-            "type": self.defaultMaterialType if mtl.type == MaterialType.DEFAULT_MESH else mtl.type
-        }
+        mtl_type = self.defaultMaterialType if mtl.type == MaterialType.DEFAULT_MESH else mtl.type
+        m = {"type": mtl_type}
+
+        if mtl_type in (MaterialType.MESH_METAL, MaterialType.MESH_CLAY):
+            m["type"] = MaterialType.MESH_STANDARD
+            m["metalness"] = 0.65 if mtl_type == MaterialType.MESH_METAL else 0
+            m["roughness"] = 0.3 if mtl_type == MaterialType.MESH_METAL else 0.9
 
         if isinstance(mtl.options, ImageSource):
             tex = mtl.options
