@@ -31,8 +31,9 @@ class TestScene(GUITestBase):
 
 class LayerDialogTestBase(LayerTestBase):
 
-    def showDialog(self):
-        return self.WND.showLayerPropertiesDialog(self.LAYER)
+    @classmethod
+    def showDialog(cls):
+        return cls.WND.showLayerPropertiesDialog(cls.LAYER)
 
 
 class TestDEMLayer(LayerDialogTestBase):
@@ -217,9 +218,6 @@ class DialogLayoutCheck(GUITestBase):
             self.saveSnapshot(dlg)
             self.sleep(1000)
 
-    def captureSnapshot(self, dlg):
-        return dlg.grab().toImage()
-
     def saveSnapshot(self, dlg, filepath=None):
         if not filepath:
             if not SNAPSHOT_DIR:
@@ -230,3 +228,7 @@ class DialogLayoutCheck(GUITestBase):
 
         img = self.captureSnapshot(dlg)
         img.save(filepath)
+
+    @staticmethod
+    def captureSnapshot(dlg):
+        return dlg.grab().toImage()

@@ -44,22 +44,63 @@ class GUITestBase(unittest.TestCase):
         super().tearDownClass()
 
     @classmethod
-    def runScript(self, script):
-        self.WND.runScript(script)
+    def runScript(cls, script):
+        cls.WND.runScript(script)
 
     @classmethod
-    def playAnimation(self):
-        self.WND.ui.animationPanel.playAnimation()
+    def playAnimation(cls):
+        cls.WND.ui.animationPanel.playAnimation()
 
     @classmethod
-    def sleep(cls, msec=500):
+    def assertBox3(cls, testName, box1, box2=UNDEF, precision=UNDEF):
+        cls.runScript(f'assertBox3("{testName}", {box1}, {box2}, {precision})')
+
+    @classmethod
+    def assertZRange(cls, testName, obj="app.scene", min=UNDEF, max=UNDEF, precision=UNDEF):
+        cls.runScript(f'assertZRange("{testName}", {obj}, {min}, {max}, {precision})')
+
+    @classmethod
+    def assertText(cls, testName, text, startingElemId=None, partialMatch=False):
+        startingElemId = f'"{startingElemId}"' if startingElemId else UNDEF
+        cls.runScript(f'assertText("{testName}", "{text}", {startingElemId}, {js_bool(partialMatch)})')
+
+    @classmethod
+    def assertVisibility(cls, testName, elemId, expected=True):
+        cls.runScript(f'assertVisibility("{testName}", "{elemId}", {js_bool(expected)})')
+
+    @classmethod
+    def mouseClick(cls, x, y):
+        cls.runScript(f"showMarker({x}, {y}, 400)")
+        cls.sleep(500)
+
+        w = cls.WND.webView
+        pos = QPointF(x, y)
+        w.triggerTestClick(pos)
+
+        cls.sleep(100)
+
+    @classmethod
+    def keyPress(cls, key):
+        w = cls.WND.webView
+
+        w = w.findChild(QWidget)
+        press = QKeyEvent(QEvent.Type.KeyPress, key, Qt.KeyboardModifier.NoModifier)
+        release = QKeyEvent(QEvent.Type.KeyRelease, key, Qt.KeyboardModifier.NoModifier)
+
+        QgsApplication.postEvent(w, press)
+        QgsApplication.postEvent(w, release)
+
+        cls.sleep(100)
+
+    @staticmethod
+    def sleep(msec=500):
         loop = QEventLoop()
         QTimer.singleShot(msec, loop.quit)
         loop.exec()
 
-    @classmethod
-    def doEvents(cls):
-        cls.sleep(1)
+    @staticmethod
+    def doEvents():
+        GUITestBase.sleep(1)
 
     def setUp(self):
         self.updateTestLabels()
@@ -78,19 +119,6 @@ class GUITestBase(unittest.TestCase):
             "Footer": desc
         })
 
-    def assertBox3(self, testName, box1, box2=UNDEF, precision=UNDEF):
-        self.runScript(f'assertBox3("{testName}", {box1}, {box2}, {precision})')
-
-    def assertZRange(self, testName, obj="app.scene", min=UNDEF, max=UNDEF, precision=UNDEF):
-        self.runScript(f'assertZRange("{testName}", {obj}, {min}, {max}, {precision})')
-
-    def assertText(self, testName, text, startingElemId=None, partialMatch=False):
-        startingElemId = f'"{startingElemId}"' if startingElemId else UNDEF
-        self.runScript(f'assertText("{testName}", "{text}", {startingElemId}, {js_bool(partialMatch)})')
-
-    def assertVisibility(self, testName, elemId, expected=True):
-        self.runScript(f'assertVisibility("{testName}", "{elemId}", {js_bool(expected)})')
-
     def loadSettings(self, testDir, filename, useTestLabels=True):
         loop = QEventLoop()
         self.WND.webPage.bridge.sceneLoaded.connect(loop.quit)
@@ -108,28 +136,6 @@ class GUITestBase(unittest.TestCase):
 
         # load test script after page is loaded
         self.WND.webPage.loadScriptFile(ScriptFile.TEST, wait=True)
-
-    def mouseClick(self, x, y):
-        self.runScript(f"showMarker({x}, {y}, 400)")
-        self.sleep(500)
-
-        w = self.WND.webView
-        pos = QPointF(x, y)
-        w.triggerTestClick(pos)
-
-        self.sleep(100)
-
-    def keyPress(self, key):
-        w = self.WND.webView
-
-        w = w.findChild(QWidget)
-        press = QKeyEvent(QEvent.Type.KeyPress, key, Qt.KeyboardModifier.NoModifier)
-        release = QKeyEvent(QEvent.Type.KeyRelease, key, Qt.KeyboardModifier.NoModifier)
-
-        QgsApplication.postEvent(w, press)
-        QgsApplication.postEvent(w, release)
-
-        self.sleep(100)
 
 
 class LayerTestBase(GUITestBase):
@@ -153,6 +159,7 @@ class LayerTestBase(GUITestBase):
         """wait for build to complete"""
         cls.sleep(400)
 
-    def setVisible(self, visible, layerId=None):
-        self.TREE.itemFromLayerId(layerId if layerId else self.LAYER_ID).setCheckState(Qt.CheckState.Checked if visible else Qt.CheckState.Unchecked)
-        self.waitBC()
+    @classmethod
+    def setVisible(cls, visible, layerId=None):
+        cls.TREE.itemFromLayerId(layerId if layerId else cls.LAYER_ID).setCheckState(Qt.CheckState.Checked if visible else Qt.CheckState.Unchecked)
+        cls.waitBC()
