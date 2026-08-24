@@ -134,13 +134,13 @@ export type ModelObject = Collada | GLTF;
 /* Layer and Block */
 export interface LayerData extends BaseData {
     type: "layer";
-    id: string | number;
+    id: number;
     properties: LayerProperties;
 }
 
 export interface BlockData extends BaseData {
     type: "block";
-    layer: number | string;     // TODO: numeric jsLayerId
+    layer: number;
     block: number;
     progress?: number;
 }

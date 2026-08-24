@@ -363,7 +363,7 @@ class Q3DController(QObject):
 
         self.webPage.sendQueue.removeLayer(layer.jsLayerId)   # remove data related to layer from send queue
 
-        self.runScript(f'hideLayer("{layer.jsLayerId}", true)', callback=callback)
+        self.runScript(f"hideLayer({layer.jsLayerId}, true)", callback=callback)
 
     # send queue management
     @pyqtSlot(dict)
