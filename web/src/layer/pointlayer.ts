@@ -7,7 +7,7 @@ import { deg2rad, Group, LayerType, UV } from "../core.js";
 import { BuilderBase, VectorLayer } from "./vectorlayer.js";
 import { Models } from "../model.js";
 
-import type { GeomData, Vec3, VectorLayerData, FeatureBlockData } from "../types.js";
+import type { GeomData, Vec3, VectorLayerData, FeatureBlockData, ModelObject, FeatureData } from "../types.js";
 import type { Scene } from "../scene.js";
 
 
@@ -27,6 +27,8 @@ export class PointLayer extends VectorLayer {
         "Billboard": BillboardBuilder,
         "3D Model": ModelBuilder
     }
+
+    declare models: Models;
 
     constructor() {
         super();
@@ -61,14 +63,15 @@ class Builder extends BuilderBase {
 
     geometry = null;
 
-    createObjects(f) {
+    createObjects(f: FeatureData) {
         const { geometry, layer } = this;
         const material = layer.materials.mtl(f.mtl.idx);
+        const geom = f.geom as GeomData;
 
         const meshes = [];
-        for (const pt of f.geom.pts) {
+        for (const pt of geom.pts as Vec3[]) {
             const mesh = new THREE.Mesh(geometry, material);
-            this.transform(mesh, f.geom, pt);
+            this.transform(mesh, geom, pt);
 
             meshes.push(mesh);
         }
@@ -198,13 +201,14 @@ class PointBuilder extends Builder {
 
     type = "Point";
 
-    build(features, startIndex) {
+    build(features: FeatureData[], startIndex: number) {
         const { layer } = this;
         for (let fidx = 0; fidx < features.length; fidx++) {
             const f = features[fidx];
+            const { pts } = f.geom as GeomData;
 
             const obj = new THREE.Points(
-                new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(f.geom.pts, 3)),
+                new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(pts as number[], 3)),
                 layer.materials.mtl(f.mtl.idx)
             );
             obj.userData.properties = f.prop;
@@ -220,7 +224,7 @@ class BillboardBuilder extends Builder {
 
     type = "Billboard";
 
-    build(features, startIndex) {
+    build(features: FeatureData[], startIndex: number) {
         const { layer } = this;
         const { materials } = layer;
 
@@ -231,29 +235,30 @@ class BillboardBuilder extends Builder {
 
         features.forEach((f, fidx) => {
             const material = (f.mtl) ? materials.get(f.mtl.idx) : errMtl;
+            const mtl = material.mtl as THREE.SpriteMaterial;
 
             if (!f.mtl) {
                 console.warn("[" + layer.properties.name + "] Billboard: There is a missing material.");
             }
 
-            const gs = f.geom.size;
+            const { size, pts } = f.geom as GeomData;
             const sprites = [];
-            for (const pt of f.geom.pts) {
-                const sprite = new THREE.Sprite(material.mtl);
+            for (const pt of pts as Vec3[]) {
+                const sprite = new THREE.Sprite(mtl);
 
                 sprite.position.fromArray(pt);
-                sprite.scale.set(gs, gs, 1);
+                sprite.scale.set(size, size, 1);
                 sprite.userData.properties = f.prop;
 
                 sprites.push(sprite);
             }
 
             material.callbackOnLoad(() => {
-                const { image } = material.mtl.map;
-                const scaleY = gs * image.height / image.width;
+                const { image } = mtl.map;
+                const scaleY = size * image.height / image.width;
 
                 for (const sprite of sprites) {
-                    sprite.scale.set(gs, scaleY, 1);
+                    sprite.scale.set(size, scaleY, 1);
                     sprite.updateMatrixWorld();
                 }
             });
@@ -269,8 +274,8 @@ class ModelBuilder extends Builder {
 
     type = "3D Model";
 
-    build(features, startIndex) {
-        const { layer } = this;
+    build(features: FeatureData[], startIndex: number) {
+        const layer = this.layer as PointLayer;
 
         const q = new THREE.Quaternion();
         const e = new THREE.Euler();
@@ -283,9 +288,16 @@ class ModelBuilder extends Builder {
                 return;
             }
 
-            const groups = [];
+            const {
+                pts, scale,
+                rotateX,
+                rotateY,
+                rotateZ,
+                rotateO = "XYZ"
+            } = f.geom as GeomData;
 
-            for (const pt of f.geom.pts) {
+            const groups = [];
+            for (const pt of pts as Vec3[]) {
                 const group = new Group();
 
                 group.position.fromArray(pt);
@@ -295,15 +307,7 @@ class ModelBuilder extends Builder {
                 groups.push(group);
             }
 
-            model.callbackOnLoad((loadedModel) => {
-                const {
-                    scale,
-                    rotateX,
-                    rotateY,
-                    rotateZ,
-                    rotateO = "XYZ"
-                } = f.geom;
-
+            model.callbackOnLoad((loadedModel: ModelObject) => {
                 for (const group of groups) {
                     const obj = loadedModel.scene.clone();
 

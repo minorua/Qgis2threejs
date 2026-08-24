@@ -8,7 +8,7 @@ import { BuilderBase, VectorLayer } from "./vectorlayer.js";
 import { Materials } from "../material.js";
 import { createWallGeometry } from "../utils.js";
 
-import type { FeatureData } from "../types.js";
+import type { FeatureData, GeomData, Vec3 } from "../types.js";
 
 
 export class LineLayer extends VectorLayer {
@@ -65,11 +65,11 @@ export class LineLayer extends VectorLayer {
                 const m = f.objs[0].material;
                 let mtl;
 
-                if (m.isLineDashedMaterial) {
+                if (m instanceof THREE.LineDashedMaterial) {
                     mtl = m.clone();
                     mtl.gapSize = 1;
                 }
-                else if (m.isLineBasicMaterial) {
+                else if (m instanceof THREE.LineBasicMaterial) {
                     mtl = new THREE.LineDashedMaterial({
                         color: m.color,
                         opacity: m.opacity,
@@ -97,10 +97,10 @@ export class LineLayer extends VectorLayer {
             for (const origMtl of this.origMtls.array) {
                 let mtl = origMtl.mtl;
 
-                if (mtl.isLineDashedMaterial) {
+                if (mtl instanceof THREE.LineDashedMaterial) {
                     mtl.gapSize = 1;
                 }
-                else if (mtl.isLineBasicMaterial) {
+                else if (mtl instanceof THREE.LineBasicMaterial) {
                     mtl = new THREE.LineDashedMaterial({
                         color: mtl.color,
                         opacity: mtl.opacity
@@ -115,7 +115,7 @@ export class LineLayer extends VectorLayer {
             }
 
             this.objectGroup.traverse((obj) => {
-                if (obj.userData.mtl === undefined) return;
+                if (obj.userData.mtl === undefined || !("material" in obj)) return;
 
                 obj.material = this.materials.mtl(obj.userData.mtl.idx);
                 computeLineDistances(obj);
@@ -151,8 +151,10 @@ export class LineLayer extends VectorLayer {
 class Builder extends BuilderBase {
 
     createObjects(f: FeatureData): THREE.Mesh[] | THREE.Line[] | Group[] {
+        const { lines } = f.geom as GeomData;
+
         const objs = [];
-        for (const line of f.geom.lines) {
+        for (const line of lines) {
             const obj = this.createObject(f, line);
             obj.userData.mtl = f.mtl;
 
@@ -161,7 +163,9 @@ class Builder extends BuilderBase {
         return objs;
     }
 
-    createObject(f: FeatureData, vertices): THREE.Mesh | THREE.Line | Group | void { }
+    createObject(f: FeatureData, vertices: number[] | Vec3[]): THREE.Mesh | THREE.Line | Group {
+        return new Group();
+    }
 
 }
 
@@ -170,7 +174,7 @@ class LineBuilder extends Builder {
 
     type = "Line";
 
-    createObject(f: FeatureData, vertices): THREE.Line {
+    createObject(f: FeatureData, vertices: number[]): THREE.Line {
         const obj = new THREE.Line(
             new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3)),
             this.materials.mtl(f.mtl.idx)
@@ -186,7 +190,7 @@ class ThickLineBuilder extends Builder {
 
     type = "Thick Line";
 
-    createObject(f: FeatureData, vertices) {
+    createObject(f: FeatureData, vertices: number[]) {
         const geom = new modules.meshline.MeshLineGeometry();
         geom.setPoints(vertices);
 
@@ -207,8 +211,9 @@ class CylinderBuilderBase extends Builder {
     pt1 = new THREE.Vector3();
     sub = new THREE.Vector3();
 
-    createObject(f: FeatureData, vertices) {
+    createObject(f: FeatureData, vertices: Vec3[]) {
         const { cylinGeom, jointGeom, pt0, pt1, sub, materials } = this;
+        const { r } = f.geom as GeomData;
         const axis = UV.j;
 
         const group = new Group();
@@ -219,7 +224,7 @@ class CylinderBuilderBase extends Builder {
             pt1.fromArray(vertices[i]);
 
             const cylinder = new THREE.Mesh(cylinGeom, material);
-            cylinder.scale.set(f.geom.r, pt0.distanceTo(pt1), f.geom.r);
+            cylinder.scale.set(r, pt0.distanceTo(pt1), r);
             cylinder.position.set(
                 (pt0.x + pt1.x) / 2,
                 (pt0.y + pt1.y) / 2,
@@ -231,7 +236,7 @@ class CylinderBuilderBase extends Builder {
 
             if (jointGeom && i < vertices.length - 1) {
                 const joint = new THREE.Mesh(jointGeom, material);
-                joint.scale.setScalar(f.geom.r);
+                joint.scale.setScalar(r);
                 joint.position.copy(pt1);
 
                 group.add(joint);
@@ -296,9 +301,9 @@ class BoxBuilder extends Builder {
         2, 7, 6, 6, 7, 3
     ];
 
-    createObject(f: FeatureData, vertices) {
+    createObject(f: FeatureData, vertices: Vec3[]) {
         const { jnt_idx, pt0, pt1, sub, pt, ptM, scale1, matrix, quat } = this;
-        const { w, h } = f.geom;
+        const { w, h } = f.geom as GeomData;
 
         const geometries = [];
 
@@ -381,9 +386,10 @@ class WallBuilder extends Builder {
 
     type = "Wall";
 
-    createObject(f: FeatureData, vertices) {
+    createObject(f: FeatureData, vertices: number[]) {
+        const { bh } = f.geom as GeomData;
         return new THREE.Mesh(
-            createWallGeometry(vertices, () => f.geom.bh),
+            createWallGeometry(vertices, () => bh),
             this.materials.mtl(f.mtl.idx)
         );
     }

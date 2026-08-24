@@ -3,7 +3,7 @@
 
 import { THREE } from "./three.js";
 
-import type { Base64Data, Vec3 } from "./types.js";
+import type { Base64Data, Vec2, Vec3 } from "./types.js";
 
 export const E = (id) => document.getElementById(id);
 
@@ -125,7 +125,7 @@ export const createWallGeometry = (vert, bzFunc) => {
 	return geom;
 };
 
-export const arrayToVec2Array = (points) => {
+export const arrayToVec2Array = (points: Vec2[]): THREE.Vector2[] => {
 	return points.map(([x, y]) => new THREE.Vector2(x, y));
 };
 

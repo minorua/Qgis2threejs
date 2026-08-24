@@ -6,14 +6,14 @@ import { THREE } from "../three.js";
 import { app, conf, Group } from "../core.js";
 import { MapLayer } from "./layer.js";
 
-import type { FeatureBlockData, FeatureData, VectorLayerData, VectorLayerProperties } from "../types.js";
+import type { Feature, FeatureBlockData, FeatureData, RenderableObject, VectorLayerData, VectorLayerProperties } from "../types.js";
 import type { Scene } from "../scene.js";
 import type { Materials } from "../material.js";
 
 export class VectorLayer extends MapLayer {
 
 	builder: BuilderBase | null = null;
-	features: FeatureData[] = [];
+	features: Feature[] = [];
 	labels: THREE.Sprite[] = [];
 	labelGroup: Group;
 	labelConnectorGroup: Group;
@@ -34,12 +34,14 @@ export class VectorLayer extends MapLayer {
 		this.builder.build(features, startIndex);
 	}
 
-	addFeature(featureIdx, f, objs) {
+	addFeature(featureIdx: number, feature: FeatureData, objs: RenderableObject[]) {
 		super.addObjects(objs);
 
 		for (const obj of objs) {
 			obj.userData.featureIdx = featureIdx;
 		}
+
+		const f: Feature = feature;
 		f.objs = objs;
 
 		this.features[featureIdx] = f;
@@ -52,7 +54,7 @@ export class VectorLayer extends MapLayer {
 		if (this.labelConnectorGroup) this.labelConnectorGroup.clear();
 	}
 
-	buildLabels(features, getPointsFunc) {
+	buildLabels(features, getPointsFunc = undefined) {
 		if (this.properties.label === undefined || getPointsFunc === undefined) return;
 
 		const label = this.properties.label;
@@ -191,7 +193,7 @@ export class VectorLayer extends MapLayer {
 
 		super.loadLayerData(data, scene);
 
-		this.features = [];
+		this.features.length = 0;
 
 		if (this.properties.label !== undefined) {
 			if (this.labelGroup === undefined) {
@@ -261,7 +263,7 @@ export class BuilderBase {
 		this.zScale = layer.sceneData.zScale;
 	}
 
-	build(features, startIndex) {
+	build(features: FeatureData[], startIndex: number) {
 		const { layer } = this;
 
 		for (let fidx = 0; fidx < features.length; fidx++) {

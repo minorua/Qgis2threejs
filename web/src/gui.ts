@@ -184,7 +184,7 @@ gui.popup = {
 
 gui.showInfo = () => {
     const e = E("urlbox");
-    if (e) e.value = app.currentViewUrl();
+    if (e instanceof HTMLInputElement) e.value = app.currentViewUrl();
     gui.popup.show("pageinfo");
 };
 

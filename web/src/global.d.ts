@@ -28,5 +28,7 @@ declare global {
     }
 
     // JavaScript dependencies
+    const dat: typeof import("dat.gui");
+    const proj4: typeof import("proj4");
     const TWEEN: typeof import("@tweenjs/tween.js");
 }

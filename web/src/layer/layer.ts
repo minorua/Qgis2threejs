@@ -6,7 +6,7 @@ import { THREE } from "../three.js";
 import { conf, Group } from "../core.js";
 import { Materials } from "../material.js";
 
-import type { BlockData, LayerData, LayerType, LayerProperties, SceneProperties } from "../types.js";
+import type { BlockData, LayerData, LayerType, LayerProperties, ObjectEventMap, SceneProperties } from "../types.js";
 import type { Scene } from "../scene.js";
 
 
@@ -20,6 +20,8 @@ export class MapLayer extends THREE.EventDispatcher {
 	declare materials: Materials;
 	declare objectGroup: Group;
 	declare sceneData: SceneProperties;
+	declare addEventListener: THREE.EventDispatcher<ObjectEventMap>["addEventListener"];
+	declare dispatchEvent: THREE.EventDispatcher<ObjectEventMap>["dispatchEvent"];
 
 	constructor() {
 		super();
@@ -30,7 +32,7 @@ export class MapLayer extends THREE.EventDispatcher {
 		this.objectGroup = new Group();
 	}
 
-	addObject(object) {
+	addObject(object: THREE.Object3D) {
 		object.userData.layerId = this.id;
 		this.objectGroup.add(object);
 
@@ -40,7 +42,7 @@ export class MapLayer extends THREE.EventDispatcher {
 		return this.objectGroup.children.length - 1;
 	}
 
-	addObjects(objects) {
+	addObjects(objects: THREE.Object3D[]) {
 		for (const obj of objects) {
 			this.addObject(obj);
 		}

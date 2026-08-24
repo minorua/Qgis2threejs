@@ -8,6 +8,7 @@ export { app, conf, gui, modules, THREE }
 import { ViewHelper } from "three/addons/helpers/ViewHelper.js";
 modules.ViewHelper = ViewHelper;
 
+import type { Mesh, MeshLambertMaterial } from "three";
 import type { CameraState, PreviewData, SceneProperties } from "./types.js";
 
 conf.preview = {
@@ -245,24 +246,18 @@ export function loadScriptFile(path: string, callback?: () => void, isModule = f
 }
 
 export function loadModel(url: string) {
+	/**Load a 3D model file dropped to the view.*/
 
 	const loadToScene = (res) => {
-		const boxsize = new THREE.Box3().setFromObject(res.scene).getSize();
-		const scale = 50 / Math.max(boxsize.x, boxsize.y, boxsize.z);
-
 		const parent = new THREE.Group();
-		parent.scale.set(scale, scale, scale);
 		parent.rotation.x = Math.PI / 2;
 		parent.add(res.scene);
 		app.scene.add(parent);
 
 		app.render();
 
-		const sceneScale = app.scene.userData.scale;		// TODO: FIXME
-		const objScale = scale / sceneScale;
 
 		console.log("Model " + url + " loaded.");
-		console.log("scale: " + scale + " (obj: " + objScale + " x scene: " + sceneScale + ")");
 		console.log("To clear the added object, use scene reload (F5).");
 
 		showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', "success", 3000);
@@ -595,7 +590,9 @@ export function setNorthArrowColor(color: number) {
 		conf.northArrow.color = color;
 	}
 	else {
-		app.scene2.children[app.scene2.children.length - 1].material.color = new THREE.Color(color);
+		const arrow = app.scene2.children[app.scene2.children.length - 1] as Mesh;
+		const material = arrow.material as MeshLambertMaterial;
+		material.color.set(color);
 		app.render();
 	}
 }

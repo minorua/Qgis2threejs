@@ -7,7 +7,7 @@ import { LayerType } from "../core.js";
 import { BuilderBase, VectorLayer } from "./vectorlayer.js";
 import { arrayToVec2Array, getBoundaryLines } from "../utils.js";
 
-import type { FeatureData, MeshData } from "../types.js";
+import type { FeatureData, GeomData, MeshData, Vec2 } from "../types.js";
 
 
 export class PolygonLayer extends VectorLayer {
@@ -84,7 +84,7 @@ class ExtrudedBuilder extends Builder {
 	type = "Extruded";
 
 	createObject(f: FeatureData) {
-		const { polygons, centroids } = f.geom;
+		const { polygons, centroids } = f.geom as GeomData;
 
 		if (polygons.length === 1) {
 			return this.createSubObject(f, polygons[0], centroids[0][2]);
@@ -99,14 +99,14 @@ class ExtrudedBuilder extends Builder {
 		return group;
 	}
 
-	createSubObject(f, polygon, z) {
+	createSubObject(f: FeatureData, polygon: Vec2[][], z: number) {
 		const shape = new THREE.Shape(arrayToVec2Array(polygon[0]));
 
 		for (let i = 1; i < polygon.length; i++) {
 			shape.holes.push(new THREE.Path(arrayToVec2Array(polygon[i])));
 		}
 
-		const { h } = f.geom;
+		const { h } = f.geom as GeomData;
 
 		const mesh = new THREE.Mesh(
 			new THREE.ExtrudeGeometry(shape, {

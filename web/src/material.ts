@@ -4,7 +4,7 @@
 import { THREE } from "./three.js";
 
 import { app, conf, modules, MaterialType } from "./core.js";
-import { MaterialData } from "./types.js";
+import type { MaterialData, ObjectEventMap } from "./types.js";
 
 
 export class Material {
@@ -155,6 +155,8 @@ export class Material {
 export class Materials extends THREE.EventDispatcher {
 
 	array: Material[] = [];
+	declare addEventListener: THREE.EventDispatcher<ObjectEventMap>["addEventListener"];
+	declare dispatchEvent: THREE.EventDispatcher<ObjectEventMap>["dispatchEvent"];
 
 	add(material: Material | THREE.Material) {
 		if (material instanceof Material) {
@@ -196,7 +198,7 @@ export class Materials extends THREE.EventDispatcher {
 	}
 
 	addFromObject3D(object: THREE.Object3D) {
-		const materials = new Set();
+		const materials: Set<THREE.Material> = new Set();
 
 		object.traverse((obj) => {
 			if ("material" in obj === false) return;
@@ -235,7 +237,7 @@ export class Materials extends THREE.EventDispatcher {
 
 	setWireframeMode(wireframe: boolean) {
 		for (const m of this.array) {
-			if (m.origProp.wireframe || m.mtl instanceof THREE.LineBasicMaterial) continue;
+			if (m.mtl instanceof THREE.LineBasicMaterial) continue;
 			m.mtl.wireframe = wireframe;
 		}
 	}

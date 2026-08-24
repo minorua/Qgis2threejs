@@ -162,7 +162,7 @@ function connect() {
 	ws.addEventListener("close", () => {
 		console.warn("Connection to QGIS was closed.");
 		document.title = "[DISCONNECTED] " + document.title;
-		showMessageBar("Connection to Qgis2threejs was lost. Reopen the preview from Qgis2threejs if needed.", "closed");
+		(window as any).showMessageBar("Connection to Qgis2threejs was lost. Reopen the preview from Qgis2threejs if needed.", "closed");
 	});
 
 	ws.addEventListener("error", () => {

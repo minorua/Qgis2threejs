@@ -1,7 +1,7 @@
 // (C) 2014 Minoru Akagi
 // SPDX-License-Identifier: MIT
 
-import { CameraState } from "./types.js";
+import type { CameraState } from "./types.js";
 
 export const conf = {
     renderer: {

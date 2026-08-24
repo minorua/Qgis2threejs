@@ -209,7 +209,7 @@ class DEMBlockBase {
 	materials: Material[] = [];
 	currentMtlIndex: number = 0;
 
-	obj!: THREE.Mesh;
+	obj!: THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
 	data!: DEMBlockData;
 
 	loadData(data: DEMBlockData, layer: DEMLayer) {

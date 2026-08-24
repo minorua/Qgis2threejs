@@ -9,7 +9,7 @@ import { PointLayer } from "./layer/pointlayer.js";
 import { LineLayer } from "./layer/linelayer.js";
 import { PolygonLayer } from "./layer/polygonlayer.js";
 
-import type { AppData, BlockData, LayerData, SceneData, SceneProperties } from "./types.js";
+import type { AppData, BlockData, LayerData, SceneData, SceneEventMap, SceneProperties } from "./types.js";
 import type { MapLayer } from "./layer/layer.js";
 
 export class Scene extends THREE.Scene {
@@ -20,6 +20,8 @@ export class Scene extends THREE.Scene {
 	declare labelGroup: Group;
 	declare labelConnectorGroup: Group;
 	declare userData: SceneProperties;
+	declare addEventListener: THREE.EventDispatcher<SceneEventMap>["addEventListener"];
+	declare dispatchEvent: THREE.EventDispatcher<SceneEventMap>["dispatchEvent"];
 
 	constructor() {
 		super();
@@ -80,10 +82,8 @@ export class Scene extends THREE.Scene {
 				this.dispatchEvent({ type: "lightChanged", light: p.light });
 			}
 
-			const be = p.baseExtent;
-			p.pivot = new THREE.Vector3(be.cx, be.cy, p.origin.z).sub(p.origin);   // 2D center of extent in 3D world coordinates
-
 			// set initial camera position and parameters
+			const be = p.baseExtent;
 			if (this.userData.origin === undefined) {
 				const s = be.width;
 
@@ -94,16 +94,18 @@ export class Scene extends THREE.Scene {
 					focal = new THREE.Vector3().copy(v.lookAt).sub(p.origin);
 				}
 				else {
+					const pivot = new THREE.Vector3(be.cx, be.cy, p.origin.z).sub(p.origin);   // 2D center of extent in 3D world coordinates
+
 					v = conf.viewpoint.default;
-					pos = new THREE.Vector3().copy(v.pos).multiplyScalar(s).add(p.pivot);
-					focal = new THREE.Vector3().copy(v.lookAt).multiplyScalar(s).add(p.pivot);
+					pos = new THREE.Vector3().copy(v.pos).multiplyScalar(s).add(pivot);
+					focal = new THREE.Vector3().copy(v.lookAt).multiplyScalar(s).add(pivot);
 				}
 
 				pos.z *= p.zScale;
 				focal.z *= p.zScale;
 
-				const near = 0.001 * s,
-					far = 100 * s;
+				const near = 0.001 * s;
+				const far = 100 * s;
 
 				this.requestCameraUpdate(pos, focal, near, far);
 			}
@@ -182,7 +184,7 @@ export class Scene extends THREE.Scene {
 
 			objs = objs.concat(layer.visibleObjects());
 
-			if (includeLabels && layer.labels) {
+			if (includeLabels && "labels" in layer) {
 				objs = objs.concat(layer.labels);
 			}
 		}

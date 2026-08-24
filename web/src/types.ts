@@ -1,10 +1,9 @@
 /*
 These type definitions are incomplete and may contain inaccuracies
-
-TODO:
- - Definition of coordinates for points, linestrings and polygons
 */
 import type * as THREE from "three";
+import type { Collada } from "three/addons/loaders/ColladaLoader.js";
+import type { GLTF } from "three/addons/loaders/GLTFLoader.js";
 
 import type { LayerType, MaterialType, TweenType } from "./core.js";
 import type { Scene } from "./scene.js";
@@ -25,6 +24,7 @@ export interface Point3 {
     z: number;
 }
 
+export type Vec2 = [number, number];
 export type Vec3 = [number, number, number];
 
 export interface MapExtent {
@@ -128,6 +128,8 @@ export interface ModelData {
     ext?: string;
     resourcePath?: string;
 }
+
+export type ModelObject = Collada | GLTF;
 
 /* Layer and Block */
 export interface LayerData extends BaseData {
@@ -234,6 +236,8 @@ export interface FeatureData {
     geom: GeomData | MeshData;
     mtl?: {
         idx: number;
+        brdr?: number;
+        edge?: number;
     };
     model?: number;
     prop?: Record<string, string | number>;
@@ -245,14 +249,30 @@ export interface FeatureData {
     };
 }
 
+export interface Feature extends FeatureData {
+    objs?: RenderableObject[];
+}
+
+export type RenderableObject = THREE.Mesh<THREE.BufferGeometry, THREE.Material> | THREE.Line | THREE.Points | THREE.Sprite;
+
 export interface GeomData {
-    pts?: number[];     // TODO
+    pts?: number[] | Vec3[];
+    lines?: (number[] | Vec3[])[];
+    polygons: Vec2[][][];
+    centroids: Vec3[];
     r?: number;
     w?: number;
     h?: number;
     d?: number;
     l?: number;
     dd?: number;
+    bh?: number;
+    size?: number;
+    scale?: number;
+    rotateX?: number;
+    rotateY?: number;
+    rotateZ?: number;
+    rotateO?: THREE.EulerOrder;
     url?: string;
 }
 
@@ -579,5 +599,27 @@ export interface PyObj {
     sendTestResult(testName: string, result: boolean, msg: string): void;
 };
 
+//// Event map
+export interface ObjectEventMap extends THREE.Object3DEventMap {
+	renderRequest: {};
+}
+
+export interface SceneEventMap extends ObjectEventMap {
+	cameraUpdateRequest: {
+		pos: THREE.Vector3;
+		focal: THREE.Vector3;
+		near: number;
+		far: number;
+	};
+	lightChanged: {
+		light: string;
+	};
+}
+
+export interface ModelEventMap extends THREE.Object3DEventMap {
+	modelLoaded: {
+		model: ModelObject;
+	};
+}
 
 export type Q3DEventListener = (...args: any[]) => void;

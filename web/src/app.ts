@@ -8,7 +8,7 @@ import { app, conf, deg2rad, gui, modules, Group, LayerType } from "./core.js";
 import { Scene } from "./scene.js";
 import { E, decompress, transformObjectValues } from "./utils.js";
 
-import type { AppData, Q3DEventListener } from "./types.js";
+import type { AppData, ModelObject, Q3DEventListener } from "./types.js";
 
 const _v = new THREE.Vector3();
 
@@ -210,7 +210,8 @@ function setupQueryMarker() {
     app.queryMarker.name = "marker";
 
     app.queryMarker.onBeforeRender = function (renderer, scene, camera, geometry, material, group) {
-        this.scale.setScalar(this.position.distanceTo(camera.position) * ((camera.isPerspectiveCamera) ? 1 : conf.qmarker.k));
+        const scale = camera instanceof THREE.OrthographicCamera ? conf.qmarker.k : 1;
+        this.scale.setScalar(this.position.distanceTo(camera.position) * scale);
         this.updateMatrixWorld();
     };
 }
@@ -342,7 +343,7 @@ app.loadTextureFile = (url, callback) => {
     return new THREE.TextureLoader(app.loadingManager).load(url, callback);
 };
 
-app.loadModelFile = (url, callback) => {
+app.loadModelFile = (url, callback: (model: ModelObject) => void) => {
     const ext = url.split(".").pop();
 
     let loader;
@@ -868,8 +869,7 @@ app.highlightFeature = (object) => {
     if (object === null) return;
 
     const layer = app.scene.mapLayers[object.userData.layerId];
-    if (!layer || layer.type == LayerType.DEM || layer.type == LayerType.PointCloud) return;
-    if (layer.properties.objType == "Billboard") return;
+    if (!layer || !("objType" in layer.properties) || layer.properties.objType == "Billboard") return;
 
     // create a highlight object (if layer type is Point, slightly bigger than the object)
     const s = (layer.type == LayerType.Point) ? 1.01 : 1;
@@ -1041,12 +1041,12 @@ app.saveCanvasImage = (width, height, fill_background = true, saveImageFunc) => 
             app.scene.remove(app.queryMarker);
 
             if (!this.geom) {
-                var opt = conf.measure.marker;
-                this.geom = new THREE.SphereGeometry(opt.radius, 32, 32);
-                this.mtl = new THREE.MeshLambertMaterial({ color: opt.color, opacity: opt.opacity, transparent: (opt.opacity < 1) });
+                const markerOpt = conf.measure.marker;
+                this.geom = new THREE.SphereGeometry(markerOpt.radius, 32, 32);
+                this.mtl = new THREE.MeshLambertMaterial({ color: markerOpt.color, opacity: markerOpt.opacity, transparent: (markerOpt.opacity < 1) });
 
-                opt = conf.measure.line;
-                this.lineMtl = new THREE.LineBasicMaterial({ color: opt.color });
+                const lineOpt = conf.measure.line;
+                this.lineMtl = new THREE.LineBasicMaterial({ color: lineOpt.color });
                 this.markerGroup = new Group();
                 this.markerGroup.name = "measure marker";
                 this.lineGroup = new Group();
