@@ -125,9 +125,6 @@ class WebView(Q3DWebEngineView):
             case Command.GPU_INFO:
                 self.showGPUInfo()
 
-            case Command.CLICK:
-                self.triggerTestClick(QPointF(params["x"], params["y"]))
-
     def requestReceived(self, id, method, params, payload):
         if method == Request.SIZE:
             size = self.size()

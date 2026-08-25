@@ -266,9 +266,6 @@ Exit status: {exitStatus}
         Q3DWebViewCommon.showGPUInfo(self)
         self.socketServer.sendCommand(Command.GPU_INFO)
 
-    def triggerTestClick(self, pos):
-        self.socketServer.sendCommand(Command.CLICK, params={"x": pos.x(), "y": pos.y()})
-
     def eventReceived(self, method, params, payload):
         match method:
             case Event.WND_GEOM_CHANGED:

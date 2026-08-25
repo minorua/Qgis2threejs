@@ -162,3 +162,34 @@ function hideMarker() {
 		markerElem.style.display = "none";
 	}
 }
+
+function emulateClick(x, y) {
+	const elem = app.renderer.domElement;
+	const options = {
+		bubbles: true,
+		cancelable: true,
+		clientX: x,
+		clientY: y
+	};
+	app.controls.disconnect();		// prevent setPointerCapture() errors
+
+	elem.dispatchEvent(new PointerEvent("pointerdown", options));
+	elem.dispatchEvent(new MouseEvent("mousedown", options));
+	elem.dispatchEvent(new PointerEvent("pointerup", options));
+	elem.dispatchEvent(new MouseEvent("mouseup", options));
+	elem.dispatchEvent(new MouseEvent("click", options));
+
+	app.controls.connect(elem);
+}
+
+function emulateKeyPress(key, code) {
+	const options = {
+		bubbles: true,
+		cancelable: true,
+		key: key,
+		code: code
+	};
+
+	window.dispatchEvent(new KeyboardEvent("keydown", options));
+	window.dispatchEvent(new KeyboardEvent("keyup", options));
+}

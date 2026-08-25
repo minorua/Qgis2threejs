@@ -60,9 +60,6 @@ class Q3DWebBrowserProxy(Q3DWebViewCommon, QObject):
     def stopPreview(self):
         self.socketServer.closeActiveWebSocket()
 
-    def triggerTestClick(self, pos):
-        self.socketServer.sendCommand(Command.CLICK, params={"x": pos.x(), "y": pos.y()})
-
     def _disconnected(self):
         logger.debug("Preview browser disconnected.")
         self._reconnectTimer.start(RECONNECT_GRACE_MS)

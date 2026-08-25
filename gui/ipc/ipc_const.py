@@ -37,9 +37,7 @@ class Command:
     GPU_INFO = "gpuinfo"                # show GPU info
     QUIT = "quit"                       # close window
 
-    CLICK = "click"                     # simulate a click for testing
-
-    # test ->
+    # testing ->
     RESIZE = "resize"
 
 

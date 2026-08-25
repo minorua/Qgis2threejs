@@ -71,26 +71,14 @@ class GUITestBase(unittest.TestCase):
     @classmethod
     def mouseClick(cls, x, y):
         cls.runScript(f"showMarker({x}, {y}, 400)")
+        cls.sleep(300)
+        cls.runScript(f"emulateClick({x}, {y})")
         cls.sleep(500)
 
-        w = cls.WND.webView
-        pos = QPointF(x, y)
-        w.triggerTestClick(pos)
-
-        cls.sleep(100)
-
     @classmethod
-    def keyPress(cls, key):
-        w = cls.WND.webView
-
-        w = w.findChild(QWidget)
-        press = QKeyEvent(QEvent.Type.KeyPress, key, Qt.KeyboardModifier.NoModifier)
-        release = QKeyEvent(QEvent.Type.KeyRelease, key, Qt.KeyboardModifier.NoModifier)
-
-        QgsApplication.postEvent(w, press)
-        QgsApplication.postEvent(w, release)
-
-        cls.sleep(100)
+    def keyPress(cls, key, code):
+        cls.runScript(f'emulateKeyPress("{key}", "{code}")')
+        cls.sleep(200)
 
     @staticmethod
     def sleep(msec=500):

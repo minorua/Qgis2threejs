@@ -160,11 +160,3 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
 
         dlg.setLayout(v)
         dlg.show()
-
-    def triggerTestClick(self, pos):
-        w = self.findChild(QWidget)
-        press = QMouseEvent(QEvent.Type.MouseButtonPress, pos, Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
-        release = QMouseEvent(QEvent.Type.MouseButtonRelease, pos, Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
-
-        QApplication.postEvent(w, press)
-        QApplication.postEvent(w, release)

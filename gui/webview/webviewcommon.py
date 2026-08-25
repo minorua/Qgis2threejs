@@ -228,6 +228,3 @@ class Q3DWebViewCommon:
 
     def showDevTools(self):
         pass
-
-    def triggerTestClick(self, pos):
-        pass
