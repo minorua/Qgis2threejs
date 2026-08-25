@@ -52,7 +52,7 @@ class DEMBlockBuilderBase:
 
     def buildMeshData(self, z_arr, extent: MapExtent, localOrigin: QgsPoint, nodata=None, full_extent: MapExtent=None):
         """
-        center: Coordinates of the origin
+        localOrigin: Coordinates of the local origin
 
         @returns {DEMMeshData | DEMMeshDataRef}
         """
@@ -60,21 +60,16 @@ class DEMBlockBuilderBase:
             full_extent = extent
 
         rows, cols = z_arr.shape
-
         c, r = np.meshgrid(np.arange(cols), np.arange(rows))
 
+        x0, y0 = extent.point(0, 1)
+        x0, y0 = x0 - localOrigin.x(), y0 - localOrigin.y()
         gt = extent.geotransform(cols, rows)
 
-        # Coordinates of the upper-left corner of the extent relative to the center
-        x0 = gt[0] + 0.5 * (gt[1] + gt[2]) - localOrigin.x()
-        y0 = gt[3] + 0.5 * (gt[4] + gt[5]) - localOrigin.y()
-
-        # Coordinates
         x = x0 + c * gt[1] + r * gt[2]
         y = y0 + c * gt[4] + r * gt[5]
         z = z_arr - localOrigin.z() if localOrigin.z() else z_arr
 
-        # UVs
         u = c / ((cols - 1) * full_extent.width() / extent.width())
         v = 1 - r / ((rows - 1) * full_extent.height() / extent.height())
 
@@ -83,7 +78,6 @@ class DEMBlockBuilderBase:
         else:
             valid_mask = np.ones_like(z_arr, dtype=bool)
 
-        # Combine all coordinates and remove NoData points
         vertices = np.column_stack((x.ravel(), y.ravel(), z.ravel()))[valid_mask.ravel()]   # (N_valid, 3)
         uvs = np.column_stack((u.ravel(), v.ravel()))[valid_mask.ravel()]                   # (N_valid, 2)
 
@@ -91,13 +85,11 @@ class DEMBlockBuilderBase:
         grid_indices = np.full((rows, cols), -1, dtype=np.int32)    # np.int16 if rows * cols < 256 * 256
         grid_indices[valid_mask] = np.arange(np.sum(valid_mask))
 
-        # Obtain the vertex indices of the four corners of each cell using slicing
         p00 = grid_indices[:-1, :-1]
         p01 = grid_indices[:-1, 1:]
         p10 = grid_indices[1:, :-1]
         p11 = grid_indices[1:, 1:]
 
-        # Split each cell into two triangles
         t1 = np.stack([p00, p10, p01], axis=-1).reshape(-1, 3)
         t2 = np.stack([p10, p11, p01], axis=-1).reshape(-1, 3)
         triangles = np.vstack([t1, t2])

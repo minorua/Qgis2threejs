@@ -41,7 +41,7 @@ class MapExtent:
                             center.x() + half_width, center.y() + half_height)
 
     @staticmethod
-    def rotatePoint(x, y, degrees, origin=None):
+    def rotatePoint(x, y, degrees, origin=None) -> tuple[float, float]:
         """Rotate point around the origin"""
         if origin:
             x = x - origin.x()
@@ -91,12 +91,12 @@ class MapExtent:
         self._updateDerived()
         return self
 
-    def point(self, nx, ny, y_inverted=False):
+    def point(self, nx, ny, y_inverted=False) -> tuple[float, float]:
         """
         args:
           nx, ny     -- normalized x and y. 0 <= nx <= 1, 0 <= ny <= 1.
-          y_inverted -- If True, lower-left is (0, 1) and upper-right is (1, 0).
-                        Or else lower-left is (0, 0) and upper-right is (1, 1).
+          y_inverted -- If False, lower-left is (0, 0) and upper-right is (1, 1).
+                        Or else lower-left is (0, 1) and upper-right is (1, 0).
         """
         ur_rect = self._unrotated_rect
         x = ur_rect.xMinimum() + nx * ur_rect.width()
