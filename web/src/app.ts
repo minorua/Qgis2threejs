@@ -444,26 +444,28 @@ app.eventListener = {
     keydown: function (e) {
         if (e.ctrlKey) return;
 
+        const key = e.key.toLowerCase();
+
         if (e.shiftKey) {
-            switch (e.keyCode) {
-                case 82:  // Shift + R
+            switch (key) {
+                case "r":
                     app.controls.reset();
                     return;
-                case 83:  // Shift + S
+                case "s":
                     gui.showPrintDialog();
                     return;
             }
             return;
         }
 
-        switch (e.keyCode) {
-            case 8:   // BackSpace
+        switch (key) {
+            case "backspace":
                 if (app.measure.isActive) app.measure.removeLastPoint();
                 return;
-            case 13:  // Enter
+            case "enter":
                 app.animation.keyframes.resume();
                 return;
-            case 27:  // ESC
+            case "escape":
                 if (gui.popup.isVisible()) {
                     app.cleanView();
                 }
@@ -471,16 +473,16 @@ app.eventListener = {
                     app.setRotateAnimationMode(false);
                 }
                 return;
-            case 73:  // I
+            case "i":
                 gui.showInfo();
                 return;
-            case 76:  // L
+            case "l":
                 app.setLabelVisible(!app.labelVisible);
                 return;
-            case 82:  // R
+            case "r":
                 app.setRotateAnimationMode(!app.controls.autoRotate);
                 return;
-            case 87:  // W
+            case "w":
                 app.setWireframeMode(!app._wireframeMode);
                 return;
         }
