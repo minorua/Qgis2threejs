@@ -7,7 +7,8 @@
     "watch": "node scripts/build.mjs --watch",
     "release": "./scripts/release.sh",
     "setup-debug": "./scripts/setup-debug.sh",
-    "setup-test": "ts-json-schema-generator --path web/src/types.ts --type PreviewData --out web/src/schema/preview.json"
+    "setup-test": "ts-json-schema-generator --path web/src/types.ts --type PreviewData --out web/src/schema/preview.json",
+    "typecheck": "tsc --noEmit"
   },
   "author": "Minoru Akagi",
   "license": "GPL-3.0-or-later",
