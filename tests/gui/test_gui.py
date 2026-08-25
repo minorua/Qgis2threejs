@@ -121,7 +121,7 @@ def collectTestClasses(module):
 def runTest(wnd):
     filename = os.path.basename(QgsProject.instance().fileName())
 
-    if "testproject" not in filename:
+    if not filename.startswith("testproject"):
         QMessageBox.warning(wnd, "Test", 'Load one of "testproject?.qgs" and retry.')
         return
 

@@ -16,7 +16,7 @@ from qgis.core import QgsMapSettings, QgsProject
 
 from ...core.mapextent import MapExtent
 from ...utils.basic import pluginDir
-from ...utils.logging import configureLoggers, logger
+from ...utils import logging
 from ...utils.qgis import getLayersByLayerIds
 
 # constants
@@ -26,8 +26,9 @@ TEX_WIDTH, TEX_HEIGHT = (1024, 1024)
 log_to_stream = not sys.argv[0].endswith("run_test.py")
 
 # configure logger handlers for tests
-configureLoggers(is_test=True, log_to_stream=log_to_stream)
+logging.configureLoggers(is_test=True, log_to_stream=log_to_stream)
 
+logger = logging.logger
 logger.info(f"TESTING: {conf.IS_TESTING}")
 logger.info(f"DEBUG_MODE: {conf.DEBUG_MODE}")
 logger.info(f"sys.argv: {sys.argv}")

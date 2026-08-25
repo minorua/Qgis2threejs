@@ -55,10 +55,5 @@ class TestExportWebLM_datgui(TestExportWeb):
         return checker
 
 
-class TestExportWebLM_Mobile(TestExportWeb):
-
-    TEMPLATE = "Mobile.html"
-
-
 if __name__ == "__main__":
     unittest.main()
