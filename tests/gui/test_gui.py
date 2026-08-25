@@ -129,7 +129,7 @@ def runTest(wnd):
 
     # set view size
     webView = wnd.webView
-    if wnd.webViewMode == WebViewMode.SEPARATE:
+    if wnd.webViewMode in (WebViewMode.SEPARATE, WebViewMode.BROWSER):
         webView.socketServer.sendCommand(Command.RESIZE, {"width": WIDTH, "height": HEIGHT})
     else:
         viewSize = wnd.webView.size()

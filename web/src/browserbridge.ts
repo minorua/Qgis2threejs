@@ -20,6 +20,7 @@ const CMD_LOAD_DATA = "data";
 const CMD_RELOAD = "reload";
 const CMD_DEV_TOOLS = "devtools";	// NOT USED
 const CMD_GPU_INFO = "gpuinfo";		// NOT USED
+const CMD_RESIZE = "resize";		// USED FOR TESTING
 
 const REQ_RUN_SCRIPT = "run";
 const REQ_SIZE = "size";
@@ -114,6 +115,9 @@ function handleMessage(raw: string) {
 					break;
 				case CMD_RELOAD:
 					location.reload();
+					break;
+				case CMD_RESIZE:
+					window.open(window.location.href, "_blank", `width=${params.width},height=${params.height}`);
 					break;
 			}
 			break;

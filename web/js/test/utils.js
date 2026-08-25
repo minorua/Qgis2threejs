@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: MIT
 // https://github.com/minorua/Qgis2threejs
 
+document.title = "Testing Qgis2threejs";
+
 function floatEquals(a, b, precision) {
 	if (typeof a === "object") {
 		if (a.isBox3) return floatEquals(a.min, b.min, precision) && floatEquals(a.max, b.max, precision);
