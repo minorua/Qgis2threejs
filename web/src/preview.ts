@@ -607,7 +607,7 @@ function startAnimation(groups, repeat) {
 	if (groups) loadKeyframeGroups(groups);
 	conf.animation.repeat = repeat;
 
-	loadScriptFile("../js/lib/tweenjs/tween.js", () => {
+	loadScriptFile("./js/lib/tweenjs/tween.js", () => {
 		app.animation.keyframes.start();
 	});
 }

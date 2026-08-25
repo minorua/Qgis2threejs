@@ -57,9 +57,9 @@ class ScriptFile:
         BUFGEOMUTILS: (THREE_DIR + "utils/BufferGeometryUtils.js", TYPE_NAMESPACE),
         MESHLINE: ("lib/meshline/meshline.js", TYPE_NAMESPACE),
 
-        # relative paths to script files from viewer directory
-        PROJ4: ("../js/lib/proj4js/proj4.js", TYPE_NON_MODULE),
-        TEST: ("../../tests/gui/test.js", TYPE_NON_MODULE)
+        # relative paths to script files from web directory
+        PROJ4: ("./js/lib/proj4js/proj4.js", TYPE_NON_MODULE),
+        TEST: ("./js/test/utils.js", TYPE_NON_MODULE)
     }
 
 
