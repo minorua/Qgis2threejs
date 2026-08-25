@@ -23,7 +23,7 @@ class ModelManager(DataManager):
     def build(self, export=True, base64=False):
         a = []
         for path_url in self._list:
-            if path_url.startswith("http:") or path_url.startswith("https:"):
+            if path_url.startswith(("http:", "https:")):
                 a.append({"url": path_url})
 
             elif base64:
@@ -89,7 +89,11 @@ class ModelManager(DataManager):
                     "dest": "three/utils"
                 })
 
-            f.append({"files": self._list, "dest": "./data/{}/models".format(self.exportSettings.outputFileTitle())})
+            local_files = [path for path in self._list if not (path.startswith(("http:", "https:")))]
+            f.append({
+                "files": local_files,
+                "dest": "./data/{}/models".format(self.exportSettings.outputFileTitle())
+            })
         return f
 
     def moduleFiles(self):
