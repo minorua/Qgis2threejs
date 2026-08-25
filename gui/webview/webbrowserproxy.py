@@ -60,6 +60,9 @@ class Q3DWebBrowserProxy(Q3DWebViewCommon, QObject):
     def stopPreview(self):
         self.socketServer.closeActiveWebSocket()
 
+    def showDevTools(self):
+        self._page.showStatusMessage("Please open the developer tools in the external browser.", 5000)
+
     def _disconnected(self):
         logger.debug("Preview browser disconnected.")
         self._reconnectTimer.start(RECONNECT_GRACE_MS)
