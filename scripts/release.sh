@@ -113,6 +113,7 @@ git rm -q -r .github
 git rm -q -r docs
 git rm -q -r scripts
 git rm -q -r web/src
+git rm -q -r web/js/test
 git rm -q -r tests
 git commit -q -m "remove development files"
 
