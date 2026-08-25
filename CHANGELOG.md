@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## [3.2] - 2026-08-25
+
+- Added support for previewing scenes in an external web browser, even when WebEngineView is unavailable
+- Added support for saving scenes in three.js JSON format
+- Added WebP as a texture image format
+- Added a flat shading option for DEMs and some vector object types
+- Added Simple, Metal, and Clay to the available materials
+- Compressed DEM data before export
+- Converted JavaScript files to TypeScript
+- Removed map rotation setting from the scene base extent settings
+- Removed the Edges and Quad Wireframe options from the DEM Properties dialog
+
 ## [3.1.3] - 2026-07-29
 
 *Released from the `release-3.1` branch.*

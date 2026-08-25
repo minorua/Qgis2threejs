@@ -6,38 +6,30 @@ qgisMinimumVersion=4.0
 qgisMaximumVersion=4.99
 description=3D map visualization and web export powered by three.js JavaScript library
 about=This plugin visualizes DEM and vector data in 3D within web browsers. You can easily create various 3D objects, generate files for web publishing, and export 3D models in glTF format for 3DCG or 3D printing.
-version=3.1.2
+version=3.2
 author=Minoru Akagi
 email=akaginch@gmail.com
 
 # Optional items:
 changelog=
+    Version 3.2
+    - Added support for previewing scenes in an external web browser, even when WebEngineView is unavailable
+    - Added support for saving scenes in three.js JSON format
+    - Added WebP as a texture image format
+    - Added a flat shading option for DEMs and some vector object types
+    - Added Simple, Metal, and Clay to the available materials
+    - Compressed DEM data before export
+    - Converted JavaScript files to TypeScript
+    - Removed map rotation setting from the scene base extent settings
+    - Removed the Edges and Quad Wireframe options from the DEM Properties dialog
+
+    Version 3.1.3
+    - Fixed glTF export
+    - Fixed export with 3DViewer template
+
+    Version 3.1.2
     - Fixed bandit security warnings (#426)
     - Fixed remaining Qt6 enum compatibility issues (#427)
-
-    Version 3.1.1
-    - Split JavaScript code into multiple files and included a minified build in the release
-    - Updated dat.gui library to version 0.7.9
-    - Fixed animation of Thick Line objects
-    - Fixed generation of library list displayed in the About box
-    - Fixed z values of Overlay polygon borders
-    - Fixed remaining PyQt6 migration issue in GSIElevTileProvider
-
-    Version 3.1
-    - Updated three.js library to r184
-    - Replaced meshline library with pmndrs/meshline v3.3.1
-    - Switched polygon triangulation to QgsTessellator using the Earcut algorithm
-    - Removed Potree data support
-    - Removed local mode option from export dialog
-    - Removed Mobile template
-    - Removed browser path setting from plugin settings dialog
-
-    Version 3.0
-    - The preview now runs in a separate process
-    - Dropped support for QWebView (WebKit) and PyQt5
-    - The minimum supported version of QGIS is now 4.0
-    - Fixed a preview freeze caused by data loading errors
-    - Fixed an error that occurred when interrupting the layer build process
 
 # tags are comma separated with spaces allowed
 tags=3D,terrain,web,DEM,glTF,AR,narrative,story,animation
