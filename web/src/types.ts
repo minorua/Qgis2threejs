@@ -282,6 +282,13 @@ export interface MeshData {
     centroids: (Vec3 | 0)[];
 }
 
+/* Tile */
+export interface TileData extends BaseData {
+    type: "tile";
+    layer: number;
+    url: string;
+}
+
 /* Animation */
 export interface AnimationData extends BaseData {
     type: "animation";
@@ -364,7 +371,8 @@ export interface SignalData extends BaseData {
 export type AppData =
     SceneData
     | LayerData
-    | BlockData;
+    | BlockData
+    | TileData;
 
 export type PreviewData =
     AppData
@@ -593,6 +601,8 @@ export interface PyObj {
     saveText(text: string, filename: string, is_first: boolean, is_last: boolean): void;
     saveImage(dataUrl: string): void;
     copyToClipboard(dataUrl: string): void;
+
+    requestTileData(url: string): void;
 
     // dev
     emitRequestedRenderingFinished(): void;

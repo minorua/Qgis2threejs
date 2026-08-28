@@ -9,12 +9,13 @@ import { PointLayer } from "./layer/pointlayer.js";
 import { LineLayer } from "./layer/linelayer.js";
 import { PolygonLayer } from "./layer/polygonlayer.js";
 
-import type { AppData, BlockData, LayerData, SceneData, SceneEventMap, SceneProperties } from "./types.js";
+import type { AppData, BlockData, LayerData, SceneData, SceneEventMap, SceneProperties, TileData } from "./types.js";
 import type { MapLayer } from "./layer/layer.js";
 
 export class Scene extends THREE.Scene {
 
 	mapLayers: Record<number, MapLayer> = {};		// key is layerId
+	tilesRenderers = [];
 
 	declare lightGroup: Group;
 	declare labelGroup: Group;
@@ -63,6 +64,9 @@ export class Scene extends THREE.Scene {
 
 			case "block":
 				this.loadBlockData(data);
+				break;
+			case "tile":
+				this.loadTileData(data);
 				break;
 		}
 	}
@@ -142,6 +146,16 @@ export class Scene extends THREE.Scene {
 		layer.loadData(data, this);
 
 		this.requestRender();
+	}
+
+	loadTileData(data: TileData) {
+		console.warn("loadTileData", data);
+		for (const tilesRenderer of this.tilesRenderers) {
+			const plugin = tilesRenderer.plugins[0];
+			if (typeof plugin.dataReceived === "function") {
+				plugin.dataReceived(data.url, data.data);
+			}
+		}
 	}
 
 	buildLights(lights, rotation = 0) {

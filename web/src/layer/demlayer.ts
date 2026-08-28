@@ -7,6 +7,7 @@ import { app, conf, LayerType } from "../core.js";
 import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
 import { createWallGeometry, decodeBase64TypedArrayObject, getBoundaryLines } from "../utils.js";
+import { Q3DPlugin } from "../tiles/q3dplugin.js";
 
 import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, MapExtent, ParsedDEMGridData, ParsedDEMMeshData, Point3, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
@@ -29,10 +30,31 @@ export class DEMLayer extends MapLayer {
 
 		this.blocks = [];
 
-		this._loadAuxiliaryMaterials(data.properties);
+		if (data.properties) {
+			// this._loadAuxiliaryMaterials(data.properties);
+		}
 
 		if (data.body && data.body.blocks) {
-			data.body.blocks.forEach((block) => this.loadBlockData(block, scene));
+			// data.body.blocks.forEach((block) => this.loadBlockData(block, scene));
+		}
+
+		// tiles renderer
+		if (data.tileset) {
+			import("lib/3d-tiles-renderer/3d-tiles-renderer.js").then(mod => {
+				const plugin = new Q3DPlugin();
+				plugin.layer = this;
+				plugin.tileset = data.tileset;
+
+				this.tilesRenderer = new mod.TilesRenderer("/");
+				this.tilesRenderer.registerPlugin(plugin);
+				this.tilesRenderer.setCamera(app.camera);
+				this.tilesRenderer.setResolutionFromRenderer(app.camera, app.renderer);
+
+				this.addObject(this.tilesRenderer.group);
+				scene.tilesRenderers.push(this.tilesRenderer);
+
+				console.warn("Welcome tileset!");
+			});
 		}
 	}
 
@@ -287,7 +309,7 @@ class DEMGridBlock extends DEMBlockBase {
 			geom.loadData(grid_data.dem_values, grid_data.columns, grid_data.rows, data.extent, grid_data.nodata, data.segments);
 			mesh.material.needsUpdate = true;		// update shader after computing vertex normals
 
-			this.buildAuxiliaryObjects(layer, geom, mesh);
+			// this.buildAuxiliaryObjects(layer, geom, mesh);
 
 			layer.requestRender();
 		};
@@ -330,7 +352,7 @@ class DEMMeshBlock extends DEMBlockBase {
 			if (!geom.getAttribute("uv")) {
 				this.calculateUVs(geom, data.extent, layer.sceneData.origin);
 			}
-			this.buildAuxiliaryObjects(layer, geom, mesh);
+			// this.buildAuxiliaryObjects(layer, geom, mesh);
 
 			layer.requestRender();
 		};
@@ -400,7 +422,7 @@ function createBlock(layer: DEMLayer) {
  are calculated based on the full tile extent rather than only the
  data-containing region.
 */
-class GridGeometry extends THREE.BufferGeometry {
+export class GridGeometry extends THREE.BufferGeometry {
 
 	/**
 	 * @param array     - DEM values

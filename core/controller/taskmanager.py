@@ -15,9 +15,35 @@ class Task:
     UPDATE_SCENE_OPTS = 3           # update scene options
     RELOAD_PAGE = 4
     # Layer object                          # build layer
+    # BUildTileTask                         # build tile
     # {"type": "...", ...}                  # send data
     # {"type": "script", "script": "..."}   # run script
 
+
+class BuildTileTask:
+
+    def __init__(self, url, layer, level, x, y):
+        self.url = url
+        self.layer = layer
+        self.level = level
+        self.x = x
+        self.y = y
+
+    @classmethod
+    def fromUrl(cls, url, settings):
+        parts = url.removesuffix(".tile").rsplit("/", 5)[-5:]
+        type = parts[0].removeprefix("~")
+        jsLayerId, level, x, y = map(int, parts[1:])
+
+        layer = settings.getLayerByJSLayerId(jsLayerId)
+        if layer is None:
+            logger.warning(f"Layer not found: {jsLayerId}")
+            return None
+
+        return cls(url, layer, level, x, y)
+
+    def __repr__(self):
+        return f"BuildTileTask: {self.url}"
 
 class TaskSequenceStatus:
 
@@ -33,7 +59,7 @@ class TaskSequenceStatus:
 class TaskManager(QObject):
 
     # signals - task manager to controller
-    executeTask = pyqtSignal(object)     # item: Task.BUILD_SCENE, Task.UPDATE_SCENE_OPTS, Layer, {"string": str, "data": any}
+    executeTask = pyqtSignal(object)     # item: Task.BUILD_SCENE, Task.UPDATE_SCENE_OPTS, Layer, [Layer, level, x, y], {"string": str, "data": any}
     abortCurrentTask = pyqtSignal()
     allTasksFinalized = pyqtSignal()
 
@@ -137,6 +163,10 @@ class TaskManager(QObject):
         self.taskQueue = [i for i in self.taskQueue if not (isinstance(i, Layer) and i.layerId == layer.layerId)]
         if len(self.taskQueue) < task_count:
             self.totalLayerCount -= 1
+
+    def addBuildTileTask(self, task: BuildTileTask):
+        self.taskQueue.append(task)
+        self.processNextTask()
 
     def addSendDataTask(self, data: dict):
         self.taskQueue.append(data)

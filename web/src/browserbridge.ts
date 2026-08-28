@@ -22,6 +22,7 @@ const CMD_DEV_TOOLS = "devtools";	// NOT USED
 const CMD_GPU_INFO = "gpuinfo";		// NOT USED
 const CMD_RESIZE = "resize";		// USED FOR TESTING
 
+const REQ_TILE_DATA = "tiledata"
 const REQ_RUN_SCRIPT = "run";
 const REQ_SIZE = "size";
 
@@ -73,6 +74,8 @@ const pyObj: PyObj = {
 	emitScriptReady: proxyMethod("emitScriptReady"),
 	emitTweenStarted: proxyMethod("emitTweenStarted"),
 	emitAnimationStopped: proxyMethod("emitAnimationStopped"),
+	emitRequestedRenderingFinished: proxyMethod("emitRequestedRenderingFinished"),
+	sendTestResult: proxyMethod("sendTestResult"),
 
 	showStatusMessage: proxyMethod("showStatusMessage"),
 	saveBase64: proxyMethod("saveBase64"),
@@ -80,11 +83,16 @@ const pyObj: PyObj = {
 	saveImage: proxyMethod("saveImage"),
 	copyToClipboard: proxyMethod("copyToClipboard"),
 
-	emitRequestedRenderingFinished: proxyMethod("emitRequestedRenderingFinished"),
-	sendTestResult: proxyMethod("sendTestResult")
+	requestTileData: proxyMethod("requestTileData")
 };
 
 window.pyObj = pyObj;
+
+/*
+function requestTileData(url: string) {
+	sendMessage(TYPE_REQUEST, REQ_TILE_DATA, {url});		// TODO: id?
+}
+*/
 
 function runScript(script: string) {
 	try {
@@ -131,6 +139,11 @@ function handleMessage(raw: string) {
 				sendMessage(TYPE_RESPONSE, method, { width: window.innerWidth, height: window.innerHeight }, id);
 			}
 			break;
+
+		case TYPE_RESPONSE:
+			if (method === REQ_TILE_DATA) {
+				app.loadTileData(params.url, params.data);
+			}
 
 		case TYPE_EVENT:
 			break;

@@ -43,6 +43,9 @@ class Command:
 
 class Request:
 
+    # <- web
+    TILE_DATA = "tiledata"
+
     # page proxy ->
     RUN_SCRIPT = "run"
 

@@ -64,8 +64,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>352</width>
-            <height>483</height>
+            <width>340</width>
+            <height>498</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -94,15 +94,15 @@
             </layout>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBoxResampMethod">
+            <widget class="QGroupBox" name="groupBoxDEMStructure">
              <property name="title">
-              <string>Resampling Method</string>
+              <string>DEM Structure</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_5">
               <item>
                <widget class="QRadioButton" name="radioButton_Resampling">
                 <property name="text">
-                 <string>Bilinear resampling</string>
+                 <string>Simple (bilinear resampling)</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -173,7 +173,7 @@
               <item>
                <widget class="QRadioButton" name="radioButton_OriginalValues">
                 <property name="text">
-                 <string>Use original DEM values</string>
+                 <string>Tiles (single resolution)</string>
                 </property>
                </widget>
               </item>
@@ -222,6 +222,13 @@
                  </widget>
                 </item>
                </layout>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="radioButton_Pyramid">
+                <property name="text">
+                 <string>Pyramid tiles (multi-resolution)</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -775,11 +782,13 @@
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>scrollArea</tabstop>
   <tabstop>lineEdit_Altitude</tabstop>
   <tabstop>radioButton_Resampling</tabstop>
   <tabstop>horizontalSlider_DEMSize</tabstop>
   <tabstop>radioButton_OriginalValues</tabstop>
   <tabstop>spinBox_TileSideSegments</tabstop>
+  <tabstop>radioButton_Pyramid</tabstop>
   <tabstop>radioButton_ClipBaseExtent</tabstop>
   <tabstop>radioButton_ClipPolygon</tabstop>
   <tabstop>comboBox_ClipLayer</tabstop>
@@ -810,7 +819,6 @@
   <tabstop>checkBox_Visible</tabstop>
   <tabstop>checkBox_Clickable</tabstop>
   <tabstop>tabWidget</tabstop>
-  <tabstop>scrollArea</tabstop>
   <tabstop>scrollArea_2</tabstop>
  </tabstops>
  <resources/>

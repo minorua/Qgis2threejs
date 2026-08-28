@@ -67,6 +67,7 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
     def setSocketServer(self, server):
         self.socketServer = server
         self.socketServer.eventReceived.connect(self.eventReceived)
+        self.socketServer.requestReceived.connect(self.requestReceived)
 
         self.sendQueue.setSocketServer(server)
 
@@ -84,6 +85,10 @@ class Q3DWebPageProxy(Q3DWebPageCommon, QObject):
 
             case Event.JS_ERROR_WARNING:
                 self.jsErrorWarning.emit(params.get("isError", False), params.get("message", ""), params.get("lineNumber", -1), params.get("sourceID", ""))
+
+    # TODO: request...
+    def requestReceived(self, method, params, payload):
+        logger.info(f"[REQUEST] {method} - {params}")
 
     def reload(self):
         self.showStatusMessage("Initializing preview in an external process...")
