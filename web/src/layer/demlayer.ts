@@ -53,7 +53,7 @@ export class DEMLayer extends MapLayer {
 				this.addObject(this.tilesRenderer.group);
 				scene.tilesRenderers.push(this.tilesRenderer);
 
-				console.warn("Welcome tileset!");
+				this.requestRender();
 			});
 		}
 	}

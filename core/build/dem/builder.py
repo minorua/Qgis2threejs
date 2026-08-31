@@ -110,6 +110,9 @@ class DEMLayerBuilder(LayerBuilderBase):
 
     def buildTasks(self):
         """Yield build tasks that produce DEM tiles and materials."""
+        if self.properties.get("radioButton_Pyramid"):
+            return
+
         if self.properties.get("radioButton_OriginalValues"):
             if not self.provider.CanUseOriginalValues:
                 logger.error("DEM provider doesn't support providing original values.")
@@ -117,8 +120,6 @@ class DEMLayerBuilder(LayerBuilderBase):
 
             self.provider.setResampleAlg(gdal.GRA_NearestNeighbour)
             yield from self._buildTasks_Raw()
-
-        elif self.properties.get("radioButton_Pyramid"):
             return
 
         self.provider.setResampleAlg(gdal.GRA_Bilinear)

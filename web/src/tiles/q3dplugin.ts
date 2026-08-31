@@ -162,7 +162,7 @@ export class Q3DPlugin {
         });
 
         const mesh = new THREE.Mesh(geometry, material.mtl);
-        mesh.position.fromArray(box);
+        mesh.position.set(box[0], box[1], 0);
 
         const geom_data = content.grid;
         const build = (grid_data: ParsedDEMGridData) => {
@@ -232,7 +232,7 @@ export class Q3DPlugin {
 
         const geometry = new THREE.PlaneGeometry(1, 1, 128, 128);
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.fromArray(box);
+        mesh.position.set(box[0], box[1], 0);
         mesh.scale.set(box[3] * 2, box[7] * 2, box[11] * 2);
 
         // TODO: THIS IS DEBUG CODE.
