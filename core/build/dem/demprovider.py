@@ -12,7 +12,7 @@ except ImportError:
     numpy = None
 
 from ...geometry import GridGeometry
-from ...mapextent import GridRectangle, GridShape, MapExtent, RegularGrid
+from ...mapextent import GridShape, MapExtent, RegularGrid
 from ....utils.logging import logger
 
 NODATA_VALUE = -3.4e38
@@ -63,9 +63,6 @@ class GDALDEMProvider:
 
     def geotransform(self):
         return self.ds.GetGeoTransform()
-
-    def gridRectangle(self):
-        return GridRectangle.fromGeotransform(self.ds.GetGeoTransform(), self.width, self.height)
 
     def grid(self):
         gt = self.ds.GetGeoTransform()
