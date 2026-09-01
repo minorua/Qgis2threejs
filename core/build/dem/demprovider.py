@@ -3,9 +3,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import struct
-from math import floor
 from osgeo import gdal
-from qgis.core import QgsPointXY
+from qgis.core import QgsPointXY, QgsRectangle
 
 try:
     import numpy
@@ -13,7 +12,7 @@ except ImportError:
     numpy = None
 
 from ...geometry import GridGeometry
-from ...mapextent import MapExtent, GridRectangle
+from ...mapextent import GridRectangle, GridShape, MapExtent, RegularGrid
 from ....utils.logging import logger
 
 NODATA_VALUE = -3.4e38
@@ -67,6 +66,18 @@ class GDALDEMProvider:
 
     def gridRectangle(self):
         return GridRectangle.fromGeotransform(self.ds.GetGeoTransform(), self.width, self.height)
+
+    def grid(self):
+        gt = self.ds.GetGeoTransform()
+        xmin = gt[0] + 0.5 * gt[1]
+        ymax = gt[3] + 0.5 * gt[5]
+        xmax = xmin + gt[1] * (self.width - 1)
+        ymin = ymax + gt[5] * (self.height - 1)
+
+        return RegularGrid(
+            QgsRectangle(xmin, ymin, xmax, ymax),
+            GridShape(self.width, self.height)
+        )
 
     def _read(self, width, height, geotransform, asList=False, asNumpyArray=False):
         if geotransform[2]:
