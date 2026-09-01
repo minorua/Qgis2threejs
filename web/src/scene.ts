@@ -9,12 +9,13 @@ import { PointLayer } from "./layer/pointlayer.js";
 import { LineLayer } from "./layer/linelayer.js";
 import { PolygonLayer } from "./layer/polygonlayer.js";
 
-import type { AppData, BlockData, LayerData, SceneData, SceneEventMap, SceneProperties } from "./types.js";
+import type { AppData, BlockData, LayerData, SceneData, SceneEventMap, SceneProperties, TileData } from "./types.js";
 import type { MapLayer } from "./layer/layer.js";
 
 export class Scene extends THREE.Scene {
 
 	mapLayers: Record<number, MapLayer> = {};		// key is layerId
+	tilesRenderers = [];
 
 	declare lightGroup: Group;
 	declare labelGroup: Group;
@@ -63,6 +64,9 @@ export class Scene extends THREE.Scene {
 
 			case "block":
 				this.loadBlockData(data);
+				break;
+			case "tile":
+				this.loadTileData(data);
 				break;
 		}
 	}
@@ -142,6 +146,13 @@ export class Scene extends THREE.Scene {
 		layer.loadData(data, this);
 
 		this.requestRender();
+	}
+
+	loadTileData(data: TileData) {
+		for (const tilesRenderer of this.tilesRenderers) {
+			const plugin = tilesRenderer.plugins[0];
+			plugin.dataReceived(data.url, data.data);
+		}
 	}
 
 	buildLights(lights, rotation = 0) {
@@ -228,6 +239,18 @@ export class Scene extends THREE.Scene {
 			if (b) box.union(b);
 		}
 		return box;
+	}
+
+	// 3d tiles renderer
+	addTilesRenderer(tilesRenderer) {
+		this.tilesRenderers.push(tilesRenderer);
+	}
+
+	removeTilesRenderer(tilesRenderer) {
+		const i = this.tilesRenderers.indexOf(tilesRenderer);
+		if (i !== -1) {
+			this.tilesRenderers.splice(i, 1);
+		}
 	}
 
 }

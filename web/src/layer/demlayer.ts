@@ -7,6 +7,7 @@ import { app, conf, LayerType } from "../core.js";
 import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
 import { createWallGeometry, decodeBase64TypedArrayObject, getBoundaryLines } from "../utils.js";
+import { Q3DPlugin } from "../tiles/q3dplugin.js";
 
 import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, MapExtent, ParsedDEMGridData, ParsedDEMMeshData, Point3, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
@@ -18,6 +19,7 @@ export class DEMLayer extends MapLayer {
 	blocks: DEMBlockBase[] = [];
 	sideVisible: boolean = false;
 	auxiliaryMtl: Partial<Record<"sides", Material>> = {};
+	tilesRenderer = null;
 
 	anim?: any[];
 
@@ -29,10 +31,40 @@ export class DEMLayer extends MapLayer {
 
 		this.blocks = [];
 
-		this._loadAuxiliaryMaterials(data.properties);
+		if (data.properties) {
+			this._loadAuxiliaryMaterials(data.properties);
+		}
 
 		if (data.body && data.body.blocks) {
 			data.body.blocks.forEach((block) => this.loadBlockData(block, scene));
+		}
+
+		// tiles renderer
+		if (data.tileset) {
+			import("lib/3d-tiles-renderer/3d-tiles-renderer.js").then(mod => {
+				const plugin = new Q3DPlugin();
+				plugin.layer = this;
+				plugin.tileset = data.tileset;
+
+				if (conf.debugMode) {
+					plugin.showBoundingBox = true;
+					plugin.showBoundingVolume = true;
+				}
+
+				this.tilesRenderer = new mod.TilesRenderer();
+				this.tilesRenderer.registerPlugin(plugin);
+				this.tilesRenderer.setCamera(app.camera);
+				this.tilesRenderer.setResolutionFromRenderer(app.camera, app.renderer);
+
+				this.addObject(this.tilesRenderer.group);
+				scene.addTilesRenderer(this.tilesRenderer);
+
+				this.requestRender();
+			});
+		}
+		else if (this.tilesRenderer) {
+			scene.removeTilesRenderer(this.tilesRenderer);
+			this.tilesRenderer = null;
 		}
 	}
 
@@ -102,6 +134,16 @@ export class DEMLayer extends MapLayer {
 		this.objectGroup.traverse((obj) => {
 			if (obj.name == "side" || obj.name == "bottom") obj.visible = visible;
 		});
+	}
+
+	visibleObjects() {
+		const objs = [];
+		if (!this.visible) return objs;
+
+		this.objectGroup.traverse((obj) => {
+			if (obj instanceof THREE.Mesh && obj.name != "side" && obj.name != "bottom") objs.push(obj);
+		});
+		return objs;
 	}
 
 	// texture animation
@@ -395,12 +437,12 @@ function createBlock(layer: DEMLayer) {
  The GridGeometry class is almost the same as PlaneGeometry, but it does not
  generate triangles that include vertices with no-data values.
 
- It supports tile mode. When the grid has margin areas (right/bottom)
+ It supports tile mode. When the grid has margin areas (right/top)
  with no actual data, pass `segments` explicitly so that UV coordinates
  are calculated based on the full tile extent rather than only the
  data-containing region.
 */
-class GridGeometry extends THREE.BufferGeometry {
+export class GridGeometry extends THREE.BufferGeometry {
 
 	/**
 	 * @param array     - DEM values
@@ -421,6 +463,7 @@ class GridGeometry extends THREE.BufferGeometry {
 		const segment_height = ((isTileMode) ? width : height) / segmentsY;
 		const half_w = width / 2;
 		const half_h = ((isTileMode) ? width : height) / 2;
+		const iyd = (isTileMode) ? segments - rows + 1 : 0;
 
 		const indices = [];
 		const vertices = [];
@@ -434,8 +477,9 @@ class GridGeometry extends THREE.BufferGeometry {
 
 		    currIndices.fill(-1);
 
-			const y = -iy * segment_height + half_h;
-			const v = 1 - (iy / segmentsY);
+			const iyt = iy + iyd;
+			const y = -iyt * segment_height + half_h;
+			const v = 1 - (iyt / segmentsY);
 
 			for (let ix = 0; ix < columns; ix++) {
 
@@ -479,4 +523,50 @@ class GridGeometry extends THREE.BufferGeometry {
 		this.computeBoundingBox();
 		this.computeVertexNormals();
 	}
+}
+
+
+export function buildTile(layer, data, tile, showBoundingBox = false, showBoundingVolume = false) {
+	const material = new Material();
+	material.loadData(data.material);
+	layer.materials.add(material);
+
+	const geometry = new GridGeometry();
+	const mesh = new THREE.Mesh(geometry, material.mtl);
+	mesh.position.fromArray(data.translate);
+
+	const geom_data = data.grid;
+	decodeBase64TypedArrayObject(geom_data.grid).then((grid_data: ParsedDEMGridData) => {
+		geometry.loadData(grid_data.dem_values, grid_data.columns, grid_data.rows, geom_data.extent, grid_data.nodata, geom_data.segments);
+
+		mesh.material.needsUpdate = true;		// update shader after computing vertex normals
+
+		if (showBoundingBox) {
+			const helper = new THREE.Box3Helper(
+				geometry.boundingBox,
+				0xffff00
+			);
+			helper.updateMatrixWorld();     // necessary because the helper is a grandchild of TilesGroup, which does not call this
+			mesh.add(helper);
+		}
+
+		if (showBoundingVolume) {
+			const box = tile.boundingVolume.box;
+			const helper = new THREE.Box3Helper(
+				new THREE.Box3().setFromCenterAndSize(
+					new THREE.Vector3().fromArray(box),
+					new THREE.Vector3(box[3] * 2, box[7] * 2, box[11] * 2)
+				),
+				0x33ff33
+			);
+			layer.objectGroup.add(helper);
+		}
+	});
+
+	const { engineData } = tile;
+	engineData.materials = [material.mtl];
+	engineData.geometry = [geometry];
+	engineData.textures = [];
+	engineData.scene = mesh;
+	engineData.metadata = null;
 }

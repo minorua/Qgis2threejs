@@ -713,6 +713,10 @@ app.updateControlsAndRender = () => {
             app.camera.updateMatrixWorld();
         }
 
+        for (const tilesRenderer of app.scene.tilesRenderers) {
+            tilesRenderer.update();
+        }
+
         // rendering
         app.renderer.clear()
         if (app.effect) {

@@ -3,17 +3,20 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import math
+import base64
 from osgeo import gdal
-from qgis.PyQt.QtCore import QSize
-from qgis.core import QgsPoint, QgsPointXY, QgsProject
+from qgis.PyQt.QtCore import QBuffer, QIODevice, QSize
+from qgis.PyQt.QtGui import QImage, QPainter, QFont, QColor
+from qgis.core import QgsPoint, QgsProject
 
 from .block_builder import DEMBlockResampBuilder, DEMBlockRawBuilder
 from .material_builder import DEMMaterialBuilder
 from .property_reader import DEMPropertyReader
+from .tileset import Tileset
 from ..layerbuilderbase import LayerBuilderBase
 from ...const import DEMMtlType
 from ...geometry import dissolvePolygonsWithinExtent
-from ...mapextent import MapExtent
+from ...mapextent import MapExtent, ZRange
 from ....conf import DEF_SETS, GRID_DEM_OUTPUT_MODE
 from ....utils.basic import  parseFloat
 from ....utils.js import hex_color
@@ -30,8 +33,14 @@ class DEMLayerBuilder(LayerBuilderBase):
         self.provider = settings.demProviderByLayerId(layer.layerId)
         self.mtlBuilder = DEMMaterialBuilder(layer, settings, imageManager, assetDestination)
 
-        BldClass = DEMBlockRawBuilder if self.properties.get("radioButton_OriginalValues") else DEMBlockResampBuilder
+        if self.properties.get("radioButton_OriginalValues") or self.properties.get("radioButton_Pyramid"):
+            BldClass = DEMBlockRawBuilder
+        else:
+            BldClass = DEMBlockResampBuilder
+
         self.blockBuilder = BldClass(layer, settings, self.provider, self.mtlBuilder.materialManager, self.assetDestination)
+
+        self._tileset = None
 
     def build(self, build_blocks=False):
         """
@@ -53,6 +62,19 @@ class DEMLayerBuilder(LayerBuilderBase):
             "id": self.layer.jsLayerId,
             "properties": self.layerProperties()
         }
+
+        pyramid = self.properties.get("radioButton_Pyramid")
+        if pyramid and self.provider.CanUseOriginalValues:
+            self.provider.setResampleAlg(gdal.GRA_NearestNeighbour)
+
+            tileset = self._getTileset()
+            if tileset:
+                d["tileset"] = tileset.metadata()
+
+                # with open("D:/tileset.json", "w", encoding="ascii") as f:
+                #     f.write(tileset.metadata(asJson=True))
+            else:
+                logger.error("Failed to create a tileset.")
 
         if build_blocks:
             d["body"] = {
@@ -86,82 +108,64 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         return p
 
+    def _getTileset(self, tileSegments=None):
+        if self._tileset:
+            return self._tileset
+
+        geotransform = self.provider.geotransform()
+        if not math.isclose(geotransform[1], -geotransform[5]):
+            logger.error(f"{self.layer.name}: DEM pixel size is different in X and Y directions.")
+            return None
+
+        # DEM provider is assumed to be GDALDEMProvider.
+        layer_grid = self.provider.grid()
+
+        target_grid = layer_grid
+        if not self.properties.get("radioButton_NoClip"):
+            be = self.settings.baseExtent()
+            target_grid = target_grid.intersection(be.unrotatedRect())
+            if not target_grid:
+                return None
+
+        zrange = ZRange(0, 1000)        # TODO:
+        args = (self.layer.jsLayerId, target_grid, zrange, self.settings.mapTo3d().origin)
+
+        self._tileset = Tileset(*args) if tileSegments is None else Tileset(*args, tileSegments=tileSegments)
+        return self._tileset
+
     def buildTasks(self):
         """Yield build tasks that produce DEM tiles and materials."""
-        orig = self.properties.get("radioButton_OriginalValues")
+        if self.properties.get("radioButton_Pyramid"):
+            return
 
-        if orig and self.provider.CanUseOriginalValues:
+        if self.properties.get("radioButton_OriginalValues"):
+            if not self.provider.CanUseOriginalValues:
+                logger.error("DEM provider doesn't support providing original values.")
+                return
+
             self.provider.setResampleAlg(gdal.GRA_NearestNeighbour)
             yield from self._buildTasks_Raw()
-        else:
-            self.provider.setResampleAlg(gdal.GRA_Bilinear)
-            yield from self._buildTasks_Resamp()
+            return
+
+        self.provider.setResampleAlg(gdal.GRA_Bilinear)
+        yield from self._buildTasks_Resamp()
 
     def _buildTasks_Raw(self):
-        be = self.settings.baseExtent()
+        segments = self.properties.get("spinBox_TileSideSegments", 512)
+        tileset = self._getTileset(segments)
+        if not tileset:
+            logger.error("Failed to create a tileset.")
+            return
 
         materials = self.properties.get("materials", [])
         mtlCount = len(materials)
         currentMtlId = self.properties.get("mtlId")
 
-        segments = self.properties.get("spinBox_TileSideSegments", 512)
-        noClip = self.properties.get("radioButton_NoClip")
+        for blockIndex, tileRect in enumerate(tileset.iterMaxLevelTileRects()):
+                tileExtent = MapExtent.fromRect(tileRect)
 
-        # DEM provider is assumed to be GDALDEMProvider.
-        layer_extent = self.provider.extent()
-
-        if noClip:
-            gt = self.provider.geotransform()
-            ulx, uly = gt[0], gt[3]
-            xres, yres = gt[1], -gt[5]
-
-            tile_cols = math.ceil((self.provider.width - 1) / segments)
-            tile_rows = math.ceil((self.provider.height - 1) / segments)
-
-            lrx, lry = layer_extent.point(1, 0)     # C  (px is area)
-        else:
-            # clip to base extent
-            layer_grect = self.provider.gridRectangle()
-            grect = layer_grect.intersect(be.unrotatedRect())
-            if grect is None:
-                return
-
-            ulx, uly = grect.rect.xMinimum(), grect.rect.yMaximum()
-            xres, yres = grect.grid.xres, grect.grid.yres
-
-            tile_cols = math.ceil((grect.columns() - 1) / segments)
-            tile_rows = math.ceil((grect.rows() - 1) / segments)
-
-            lrx, lry = grect.rect.xMaximum(), grect.rect.yMinimum()     # C  (px is area)
-
-        layer_lrx, layer_lry = lrx - xres / 2, lry + yres / 2  # C' (px is pt)
-
-        if not math.isclose(xres, yres):
-            logger.error(f"{self.layer.name}: DEM pixel size is different in X and Y directions.")
-            return
-
-        tile_size = xres * segments
-        tiles = []
-        for row in range(tile_rows):
-            for col in range(tile_cols):
-                blockIndex = row * tile_cols + col
-
-                cx = ulx + xres / 2 + (col + 0.5) * tile_size
-                cy = uly - yres / 2 - (row + 0.5) * tile_size
-                tileExtent = MapExtent(QgsPoint(cx, cy), tile_size, tile_size)
-
-                tiles.append((-row, blockIndex, tileExtent))
-
-        for i, (_r, blockIndex, tileExtent) in enumerate(sorted(tiles)):
-                # determine the valid extent - the extent of the tile that contains data
-                ulx, uly = tileExtent.point(0, 1)              # A' (px is pt)
-                tile_lrx, tile_lry = tileExtent.point(1, 0)    # B' (px is pt)
-
-                valid_width = min(layer_lrx, tile_lrx) - ulx
-                valid_height = uly - max(layer_lry, tile_lry)
-                center = QgsPointXY(ulx + valid_width / 2, uly - valid_height / 2)
-
-                validExtent = MapExtent(center, valid_width, valid_height)
+                validRect = tileRect.intersect(tileset.boundingRect)
+                validExtent = MapExtent.fromRect(validRect)
 
                 # set up material builder for first/current material
                 if self.layer.opt.allMaterials and len(materials):
@@ -184,7 +188,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                         self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, useNow=bool(id == currentMtlId))
                         yield self.mtlBuilder
 
-                self.progress(i + 1, tile_cols * tile_rows)
+                self.progress(blockIndex + 1, tileset.tileShape.cols * tileset.tileShape.rows)
 
     def _buildTasks_Resamp(self):
         materials = self.properties.get("materials", [])
@@ -268,3 +272,33 @@ class DEMLayerBuilder(LayerBuilderBase):
                     yield self.mtlBuilder
 
             self.progress(i + 1, size2)
+
+    def buildTile(self, url, level, x, y):
+        tileset = self._getTileset()
+
+        tileRect = tileset.tileRect(level, x, y)
+        tileExtent = MapExtent.fromRect(tileRect)
+
+        validRect = tileRect.intersect(tileset.boundingRect)
+        validExtent = MapExtent.fromRect(validRect)
+
+        self.blockBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, validExtent=validExtent)
+        grid = self.blockBuilder.build()
+
+        self.mtlBuilder.setup(0, tileExtent, debugText=f"{level}/{x}/{y}")
+        mtl = self.mtlBuilder.build().get("materials", [{}])[0]
+
+        o = self.settings.mapTo3d().origin
+        extent = grid["extent"]
+        cx, cy = extent["cx"] - o.x(), extent["cy"] - o.y()     # in 3d world coordinates
+
+        return {
+            "type": "tile",
+            "layer": self.layer.jsLayerId,
+            "url": url,
+            "data": {
+                "grid": grid,
+                "material": mtl,
+                "translate": [cx, cy, 0]
+            }
+        }

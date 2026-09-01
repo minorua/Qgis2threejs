@@ -71,12 +71,12 @@ class MaterialManager(DataManager):
         m = Material(MaterialType.DEFAULT_MESH if shading else MaterialType.MESH_BASIC, opacity=opacity, flat=flat, doubleSide=doubleSide, options=texture)
         return self._index(m)
 
-    def getMapImageIndex(self, width, height, extent, validExtent=None, opacity=1, transparent_bg=False, shading=True, flat=False, format="PNG"):
-        tex = ImageSource(ImageSourceType.MAP_IMAGE, None, width, height, extent, validExtent, transparent_bg, format)
+    def getMapImageIndex(self, width, height, extent, validExtent=None, opacity=1, transparent_bg=False, shading=True, flat=False, format="PNG", debugText=""):
+        tex = ImageSource(ImageSourceType.MAP_IMAGE, None, width, height, extent, validExtent, transparent_bg, format, debugText)
         return self._indexTex(tex, opacity, shading, flat)
 
-    def getLayerImageIndex(self, layerids, width, height, extent, validExtent=None, opacity=1, transparent_bg=False, shading=True, flat=False, format="PNG"):
-        tex = ImageSource(ImageSourceType.LAYER_IMAGE, layerids, width, height, extent, validExtent, transparent_bg, format)
+    def getLayerImageIndex(self, layerids, width, height, extent, validExtent=None, opacity=1, transparent_bg=False, shading=True, flat=False, format="PNG", debugText=""):
+        tex = ImageSource(ImageSourceType.LAYER_IMAGE, layerids, width, height, extent, validExtent, transparent_bg, format, debugText)
         return self._indexTex(tex, opacity, shading, flat)
 
     def getImageFileIndex(self, path, opacity=1, transparent_bg=False, shading=True, flat=False, doubleSide=False):
