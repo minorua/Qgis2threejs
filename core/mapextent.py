@@ -3,7 +3,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2015-03-05
 
+from dataclasses import dataclass
 import math
+
 from qgis.core import QgsPointXY, QgsRectangle, QgsGeometry
 
 
@@ -135,7 +137,7 @@ class MapExtent:
         return self
 
     @staticmethod
-    def fromRect(rect):
+    def fromRect(rect: QgsRectangle):
         return MapExtent(rect.center(), rect.width(), rect.height())
 
     @staticmethod
@@ -318,3 +320,52 @@ class GridRectangle:
 
     def __repr__(self):
         return f"GridRectangle(rect: {self.rect}, grid: {self.grid}, columns: {self.columns()}, rows: {self.rows()})"
+
+
+@dataclass
+class GridShape:
+    cols: int
+    rows: int
+
+
+class RegularGrid:
+
+    def __init__(self, rect: QgsRectangle, shape: GridShape):
+        """
+        rect: The rectangular extent covered by the grid.
+        shape: The number of grid points in each direction.
+        """
+        self.rect = rect
+        self.shape = shape
+
+    def intersection(self, rect: QgsRectangle):
+        r = self.rect.intersect(rect)
+        if r.isEmpty():
+            return None
+
+        xres = self.rect.width() / (self.shape.cols - 1)
+        yres = self.rect.height() / (self.shape.rows - 1)
+
+        xmin = self.rect.xMinimum()
+        ymin = self.rect.yMinimum()
+
+        col_min = math.ceil((r.xMinimum() - xmin) / xres)
+        col_max = math.floor((r.xMaximum() - xmin) / xres)
+        row_min = math.ceil((r.yMinimum() - ymin) / yres)
+        row_max = math.floor((r.yMaximum() - ymin) / yres)
+
+        if col_min > col_max or row_min > row_max:
+            return None
+
+        return RegularGrid(
+            QgsRectangle(
+                xmin + col_min * xres,
+                ymin + row_min * yres,
+                xmin + col_max * xres,
+                ymin + row_max * yres
+            ),
+            GridShape(
+                col_max - col_min + 1,
+                row_max - row_min + 1,
+            )
+        )
