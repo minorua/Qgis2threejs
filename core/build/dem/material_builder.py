@@ -21,13 +21,14 @@ class DEMMaterialBuilder:
 
         self.mtlId = None
 
-    def setup(self, blockIndex, extent, validExtent=None, mtlId=None, asBlock=True, useNow=True):
+    def setup(self, blockIndex, extent, validExtent=None, mtlId=None, asBlock=True, useNow=True, debugText=""):
         self.blockIndex = blockIndex
         self.extent = extent
         self.validExtent = validExtent
         self.mtlId = mtlId
         self.asBlock = asBlock
         self.useNow = useNow
+        self.debugText = debugText
 
     def build(self):
         """
@@ -63,12 +64,12 @@ class DEMMaterialBuilder:
         match mtl_type:
             case DEMMtlType.MAPCANVAS:
                 mi = self.materialManager.getMapImageIndex(tex_size.width(), tex_size.height(), self.extent, self.validExtent,
-                                                           opacity, transparent_bg, shading, flat, fmt)
+                                                           opacity, transparent_bg, shading, flat, fmt, self.debugText)
 
             case DEMMtlType.LAYER:
                 layerids = p.get("layerIds", [])
                 mi = self.materialManager.getLayerImageIndex(layerids, tex_size.width(), tex_size.height(), self.extent, self.validExtent,
-                                                             opacity, transparent_bg, shading, flat, fmt)
+                                                             opacity, transparent_bg, shading, flat, fmt, self.debugText)
 
             case DEMMtlType.FILE:
                 filepath = p.get("lineEdit_ImageFile", "")

@@ -7,7 +7,7 @@ import os
 from typing import NamedTuple
 
 from qgis.PyQt.QtCore import Qt, QBuffer, QByteArray, QIODevice, QRectF, QSize
-from qgis.PyQt.QtGui import QColor, QImage, QPainter
+from qgis.PyQt.QtGui import QColor, QFont, QImage, QPainter
 from qgis.core import Qgis, QgsMapSettings
 
 from .base import DataManager
@@ -33,6 +33,7 @@ class ImageSource(NamedTuple):
     validExtent: MapExtent | None = None
     transparent_bg: bool = False
     format: str = "PNG"
+    debugText: str = ""
 
 
 class ImageManager(DataManager):
@@ -92,6 +93,18 @@ class ImageManager(DataManager):
         else:
             job.start()
             job.waitForFinished()
+
+        if s.debugText:
+            font_size = 64
+            font_color = QColor(255, 255, 0)
+
+            font = QFont()
+            font.setPointSize(font_size)
+
+            painter.setFont(font)
+            painter.setPen(font_color)
+            painter.drawText(10, s.height - 10, s.debugText)
+
         painter.end()
 
         return image
