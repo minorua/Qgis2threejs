@@ -48,7 +48,7 @@ class DEMBlockBuilderBase:
         if nodata is not None:
             g["nodata"] = BinaryContainer.fromFloat(nodata)
 
-        return self.buildJSONBinary(g)
+        return g
 
     def buildMeshData(self, z_arr, extent: MapExtent, localOrigin: QgsPoint, nodata=None, full_extent: MapExtent=None):
         """
@@ -98,11 +98,11 @@ class DEMBlockBuilderBase:
         valid_triangles_mask = np.all(triangles >= 0, axis=1)
         faces = triangles[valid_triangles_mask]
 
-        return self.buildJSONBinary({
+        return {
             "vertices": BinaryContainer(nparr_to_bytes(vertices, np.float32), "f32"),
             "indices": BinaryContainer(nparr_to_bytes(faces, np.uint32), "I32"),
             "uvs": BinaryContainer(nparr_to_bytes(uvs, np.float32), "f32")
-        })
+        }
 
     def buildJSONBinary(self, data):
         jhb = JSONBinaryWriter(data)
@@ -146,7 +146,8 @@ class DEMBlockResampBuilder(DEMBlockBuilderBase):
         }
 
         if self.clip_geometry:
-            b["mesh"] = self.buildClippedMeshData(self.clip_geometry)
+            mesh = self.buildClippedMeshData(self.clip_geometry)
+            b["mesh"] = self.buildJSONBinary(mesh)
 
         else:
             columns, rows = (self.grid_seg.width() + 1, self.grid_seg.height() + 1)
@@ -159,10 +160,12 @@ class DEMBlockResampBuilder(DEMBlockBuilderBase):
                 arr = np.array(grid_values, dtype=np.float32).reshape(rows, columns)
 
             if GRID_DEM_OUTPUT_MODE == "mesh":
-                b["mesh"] = self.buildMeshData(arr, self.extent, self.localOrigin, self.provider.nodata, full_extent=self.extent)
+                data = self.buildMeshData(arr, self.extent, self.localOrigin, self.provider.nodata, full_extent=self.extent)
                 b["translate"] = [0, 0, 0]
-            else:
-                b["grid"] = self.buildGridData(arr, self.extent, self.localOrigin, self.provider.nodata)
+            else:   # "grid"
+                data = self.buildGridData(arr, self.extent, self.localOrigin, self.provider.nodata)
+
+            b[GRID_DEM_OUTPUT_MODE] = self.buildJSONBinary(data)
 
         return b
 
@@ -181,10 +184,10 @@ class DEMBlockResampBuilder(DEMBlockBuilderBase):
         tin = TINGeometry.fromQgsGeometry(polys, z_func, transform_func, centroid=False, ccw2d=True)
         d = tin.toDict(flat=True)
 
-        return self.buildJSONBinary({
+        return {
             "vertices": BinaryContainer(nparr_to_bytes(np.array(d["vertices"], dtype=np.float32)), "f32"),
             "indices": BinaryContainer(nparr_to_bytes(np.array(d["indices"], dtype=np.uint32)), "I32")
-        })
+        }
 
     def processEdges(self, grid_values, roughness):
         grid_width, grid_height = (self.grid_seg.width() + 1,
@@ -340,10 +343,12 @@ class DEMBlockRawBuilder(DEMBlockBuilderBase):
             arr = self.provider.readAsArray(columns, rows, validExtent)
 
             if GRID_DEM_OUTPUT_MODE == "mesh":
-                b["mesh"] = self.buildMeshData(arr, validExtent, self.localOrigin, self.provider.nodata, full_extent=self.extent)
+                data = self.buildMeshData(arr, validExtent, self.localOrigin, self.provider.nodata, full_extent=self.extent)
                 b["translate"] = [0, 0, 0]
-            else:
-                b["grid"] = self.buildGridData(arr, validExtent, self.localOrigin, self.provider.nodata)
+            else:   # "grid"
+                data = self.buildGridData(arr, validExtent, self.localOrigin, self.provider.nodata)
+
+            b[GRID_DEM_OUTPUT_MODE] = self.buildJSONBinary(data)
 
         return b
 

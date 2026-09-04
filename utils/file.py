@@ -97,6 +97,10 @@ def copyFiles(filesToCopy, out_dir):
                     copyFile(os.path.join(source, filename), os.path.join(dest, filename), overwrite)
 
 
+def mkpath(dirName):
+    QDir().mkpath(dirName)
+
+
 def removeDir(dirName):
     d = QDir(dirName)
     if d.exists():

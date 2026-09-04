@@ -37,6 +37,7 @@ class ScriptFile:
     VIEWHELPER = 5
     BUFGEOMUTILS = 6
     MESHLINE = 10
+    TILES3D = 11
     PROJ4 = 20
     POTREE = 21
     PCLAYER = 101
@@ -56,6 +57,7 @@ class ScriptFile:
 
         BUFGEOMUTILS: (THREE_DIR + "utils/BufferGeometryUtils.js", TYPE_NAMESPACE),
         MESHLINE: ("lib/meshline/meshline.js", TYPE_NAMESPACE),
+        TILES3D: ("lib/3d-tiles-renderer/3d-tiles-renderer.js", TYPE_NAMESPACE),
 
         # relative paths to script files from web directory
         PROJ4: ("./js/lib/proj4js/proj4.js", TYPE_NON_MODULE),

@@ -247,29 +247,35 @@ class ThreeJSExporter(QObject):
             files.append({"dirs": [LIB + "/proj4js"]})
 
         # layer-specific dependencies
-        added = set()
-        for layer in [lyr for lyr in self.settings.layers() if lyr.visible]:  # HACK: lyr.export
-            objType = layer.properties.get("comboBox_ObjectType")
-            if layer.type == LayerType.LINESTRING:
-                if objType == "Thick Line" and "meshline" not in added:
-                    files.append({"dirs": [LIB + "/meshline"]})
-                    added.add("meshline")
+        for layer in [lyr for lyr in self.settings.layers() if lyr.visible]:  # TODO: lyr.export
+            if layer.type == LayerType.DEM:
+                if layer.properties.get("radioButton_Pyramid"):
+                    files.append({"dirs": [LIB + "/3d-tiles-renderer"]})
 
-                elif objType == "Box" and "geomutils" not in added:
-                    files.append({"files": [THREE + "/utils/BufferGeometryUtils.js"], "dest": "three/utils"})
-                    added.add("geomutils")
+            elif layer.type == LayerType.LINESTRING:
+                match layer.properties.get("comboBox_ObjectType"):
+                    case "Thick Line":
+                        files.append({"dirs": [LIB + "/meshline"]})
+
+                    case "Box":
+                        files.append({"files": [THREE + "/utils/BufferGeometryUtils.js"], "dest": "three/utils"})
 
         # model loades and model files
         for manager in self.modelManagers:
-            for f in manager.filesToCopy():
-                if f not in files:
-                    files.append(f)
+            files += manager.filesToCopy()
 
         # animation
         if self.settings.isAnimationEnabled():
             files.append({"dirs": [LIB + "/tweenjs"]})
 
-        return files
+        def unique(items):
+            result = []
+            for item in items:
+                if item not in result:
+                    result.append(item)
+            return result
+
+        return unique(files)
 
     def scripts(self):
         files = []
@@ -311,32 +317,36 @@ class ThreeJSExporter(QObject):
 
         # layer-specific dependencies
         for layer in [lyr for lyr in self.settings.layers() if lyr.visible]:
-            objType = layer.properties.get("comboBox_ObjectType")
-            if layer.type == LayerType.LINESTRING:
-                if objType == "Thick Line":
-                    files.append(("./meshline/meshline.js", ScriptFile.TYPE_NAMESPACE))
+            if layer.type == LayerType.DEM:
+                if layer.properties.get("radioButton_Pyramid"):
+                    files.append(("./3d-tiles-renderer/3d-tiles-renderer.js", ScriptFile.TYPE_NAMESPACE))
 
-                elif objType == "Box":
-                    files.append(("three/addons/utils/BufferGeometryUtils.js", ScriptFile.TYPE_NAMESPACE))
+            elif layer.type == LayerType.LINESTRING:
+                match layer.properties.get("comboBox_ObjectType"):
+                    case "Thick Line":
+                        files.append(("./meshline/meshline.js", ScriptFile.TYPE_NAMESPACE))
+                    case "Box":
+                        files.append(("three/addons/utils/BufferGeometryUtils.js", ScriptFile.TYPE_NAMESPACE))
 
         # model loaders
         for manager in self.modelManagers:
             files += manager.moduleFiles()
 
+        mod_num = 0
         script = ""
         for filepath, type in list(dict.fromkeys(files)):
             obj = filepath.split("/")[-1].split(".")[0]
 
             if type == ScriptFile.TYPE_CLASS:
                 script += f'import {{ {obj} }} from "{filepath}";\n'
+                script += f'modules["{obj}"] = {obj};\n'
 
             elif type == ScriptFile.TYPE_NAMESPACE:
-                script += f'import * as {obj} from "{filepath}";\n'
+                script += f'import * as MOD{mod_num} from "{filepath}";\n'
+                script += f'modules["{obj}"] = MOD{mod_num};\n'
 
             else:
                 raise
-
-            script += f'modules.{obj} = {obj};\n'
 
         return script
 
@@ -418,7 +428,8 @@ class ThreeJSExporter(QObject):
             if self.aborted:
                 raise ExportCancelled()
 
-            blocks.append(block)
+            if block:
+                blocks.append(block)
 
         obj.setdefault("body", {})["blocks"] = blocks
         return obj

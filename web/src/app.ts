@@ -389,7 +389,7 @@ app.loadModelData = (data: Uint8Array, ext: string, resourcePath: string, callba
     }
 };
 
-app.loadJSONBinaryFile = (url: string): Promise<Record<string, ArrayBuffer>> => {
+app.loadJSONBinaryFile = (url: string): Promise<Record<string, ArrayBuffer | any>> => {
     app.loadingManager.itemStart(url);
 
     return new Promise((resolve, reject) => {

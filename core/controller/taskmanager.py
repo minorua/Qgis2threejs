@@ -33,9 +33,7 @@ class BuildTileTask:
 
     @staticmethod
     def fromUrl(url, settings):
-        parts = url.removesuffix(".tile").rsplit("/", 5)[-5:]
-        type = parts[0].removeprefix("~")
-        jsLayerId, level, x, y = map(int, parts[1:])
+        jsLayerId, level, x, y = map(int, url.removesuffix(".tile").rsplit("/", 4)[-4:])
 
         layer = settings.getLayerByJSLayerId(jsLayerId)
         if layer is None:

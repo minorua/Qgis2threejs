@@ -74,7 +74,7 @@ class Tileset:
                 "geometricError": geometric_error,
                 "refine": "REPLACE",
                 "content": {
-                    "uri": f"~dem/{self.jsLayerId}/{level}/{x}/{y}.tile"
+                    "uri": f"dem/{self.jsLayerId}/{level}/{x}/{y}.tile"
                 }
             }
 

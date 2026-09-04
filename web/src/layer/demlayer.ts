@@ -3,13 +3,13 @@
 
 import { THREE } from "../three.js";
 
-import { app, conf, LayerType } from "../core.js";
+import { app, conf, modules, LayerType } from "../core.js";
 import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
 import { createWallGeometry, decodeBase64TypedArrayObject, getBoundaryLines } from "../utils.js";
 import { Q3DPlugin } from "../tiles/q3dplugin.js";
 
-import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, MapExtent, ParsedDEMGridData, ParsedDEMMeshData, Point3, Vec3 } from "../types.js";
+import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, MapExtent, ParsedDEMGridData, ParsedDEMMeshData, Point3, TileInfo, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
 
 
@@ -35,17 +35,18 @@ export class DEMLayer extends MapLayer {
 			this._loadAuxiliaryMaterials(data.properties);
 		}
 
-		if (data.body && data.body.blocks) {
-			data.body.blocks.forEach((block) => this.loadBlockData(block, scene));
-		}
-
 		// tiles renderer
 		if (data.tileset) {
-			import("lib/3d-tiles-renderer/3d-tiles-renderer.js").then(mod => {
+			const mod = modules["3d-tiles-renderer"];
+			if (mod) {
 				const plugin = new Q3DPlugin();
 				plugin.layer = this;
 				plugin.tileset = data.tileset;
+				if (data.body && data.body.blocks) {
+					plugin.tileInfoList = data.body.blocks;
+				}
 
+				conf.debugMode = 1;		// TODO: [temporary] remove
 				if (conf.debugMode) {
 					plugin.showBoundingBox = true;
 					plugin.showBoundingVolume = true;
@@ -60,11 +61,17 @@ export class DEMLayer extends MapLayer {
 				scene.addTilesRenderer(this.tilesRenderer);
 
 				this.requestRender();
-			});
+			};
+			return;
 		}
-		else if (this.tilesRenderer) {
+
+		if (this.tilesRenderer) {
 			scene.removeTilesRenderer(this.tilesRenderer);
 			this.tilesRenderer = null;
+		}
+
+		if (data.body && data.body.blocks) {
+			data.body.blocks.forEach((block) => this.loadBlockData(block, scene));
 		}
 	}
 
@@ -525,7 +532,6 @@ export class GridGeometry extends THREE.BufferGeometry {
 	}
 }
 
-
 export function buildTile(layer, data, tile, showBoundingBox = false, showBoundingVolume = false) {
 	let resolve;
 	const promise = new Promise((r) => {
@@ -568,6 +574,8 @@ export function buildTile(layer, data, tile, showBoundingBox = false, showBoundi
 			);
 			layer.objectGroup.add(helper);
 		}
+
+		resolve(true);
 	});
 
 	const { engineData } = tile;
@@ -576,4 +584,6 @@ export function buildTile(layer, data, tile, showBoundingBox = false, showBoundi
 	engineData.textures = [];
 	engineData.scene = mesh;
 	engineData.metadata = null;
+
+	return promise;
 }

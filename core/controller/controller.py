@@ -343,19 +343,23 @@ class Q3DController(QObject):
     def buildLayer(self, layer):
         self.taskManager.processingLayer = layer
 
-        objType = layer.properties.get("comboBox_ObjectType")
         files = []
-        if layer.type == LayerType.POINT:
-            if objType == "3D Model":
-                files = [ScriptFile.COLLADALOADER,
-                         ScriptFile.GLTFLOADER]
+        if layer.type == LayerType.DEM:
+            if layer.properties.get("radioButton_Pyramid"):
+                files = [ScriptFile.TILES3D]
 
-        elif layer.type == LayerType.LINESTRING:
-            if objType == "Thick Line":
-                files = [ScriptFile.MESHLINE]
+        else:
+            objType = layer.properties.get("comboBox_ObjectType")
+            if layer.type == LayerType.POINT:
+                if objType == "3D Model":
+                    files = [ScriptFile.COLLADALOADER, ScriptFile.GLTFLOADER]
 
-            elif objType == "Box":
-                files = [ScriptFile.BUFGEOMUTILS]
+            elif layer.type == LayerType.LINESTRING:
+                if objType == "Thick Line":
+                    files = [ScriptFile.MESHLINE]
+
+                elif objType == "Box":
+                    files = [ScriptFile.BUFGEOMUTILS]
 
         if files:
             self.loadScriptFiles(files, callback=lambda: self._buildLayer(layer))

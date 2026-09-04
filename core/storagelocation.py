@@ -21,3 +21,11 @@ class StorageLocation:
 
     def url(self, fileTail: str) -> str:
         return f"{self.baseUrl}{self.filePrefix}{fileTail}"
+
+    def clone(self):
+        return StorageLocation(self.outputDir, self.baseUrl, self.filePrefix)
+
+    def copyTo(self, target):
+        target.outputDir = self.outputDir
+        target.baseUrl = self.baseUrl
+        target.filePrefix = self.filePrefix

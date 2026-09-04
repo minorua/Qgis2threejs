@@ -145,7 +145,7 @@ export interface BlockData extends BaseData {
     progress?: number;
 }
 
-interface Tileset {
+export interface Tileset {
     asset: {
         version: string;
     }
@@ -166,11 +166,17 @@ interface Tile {
     refine: "REPLACE" | "ADD";
 }
 
+export interface TileInfo {
+    tileId: string;
+    grid: DEMBlockGridData;
+    material: DEMBlockMaterialData;
+}
+
 /* DEM Layer and its Block */
 export interface DEMLayerData extends LayerData {
     properties: DEMLayerProperties;
     body?: {
-        blocks?: DEMBlockData[];
+        blocks: DEMBlockData[] | TileInfo[];    // TODO: refactor
     }
     tileset?: Tileset;
 }
