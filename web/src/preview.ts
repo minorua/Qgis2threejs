@@ -151,6 +151,7 @@ function loadData(data: PreviewData, viaQueue: boolean): boolean {
 		// fall through
 		case "layer":
 		case "block":
+		case "tile":
 			result = app.loadData(data);
 
 			if ("progress" in data) {
@@ -441,6 +442,10 @@ export function requestRendering() {
 		app.render(true);
 		pyObj.emitRequestedRenderingFinished();
 	});
+}
+
+export function requestTileData(url: string) {
+	pyObj.requestTileData(url)
 }
 
 let barTimerId: number | null = null;

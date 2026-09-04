@@ -13,6 +13,7 @@ import urllib.parse
 from PyQt6.QtNetwork import QHostAddress, QTcpServer
 
 from .socketinterface import SocketInterface
+from ...conf import DEBUG_MODE
 from ...utils.logging import logger
 
 # RFC 6455 — The WebSocket Protocol
@@ -128,6 +129,9 @@ class WebSocketServer(SocketInterface):
             lines = header_bytes.decode("iso-8859-1").split("\r\n")
             request_line = lines[0]
             method, path, _ = request_line.split(" ", 2)
+
+            if DEBUG_MODE:
+                logger.debug("HTTP REQ: " + request_line)
 
             headers = {}
             for line in lines[1:]:

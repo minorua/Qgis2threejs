@@ -338,16 +338,19 @@ class RegularGrid:
         self.rect = rect
         self.shape = shape
 
+    def xres(self):
+        return self.rect.width() / (self.shape.cols - 1)
+
+    def yres(self):
+        return self.rect.height() / (self.shape.rows - 1)
+
     def intersection(self, rect: QgsRectangle):
         r = self.rect.intersect(rect)
         if r.isEmpty():
             return None
 
-        xres = self.rect.width() / (self.shape.cols - 1)
-        yres = self.rect.height() / (self.shape.rows - 1)
-
-        xmin = self.rect.xMinimum()
-        ymin = self.rect.yMinimum()
+        xres, yres = self.xres(), self.yres()
+        xmin, ymin = self.rect.xMinimum(), self.rect.yMinimum()
 
         col_min = math.ceil((r.xMinimum() - xmin) / xres)
         col_max = math.floor((r.xMaximum() - xmin) / xres)

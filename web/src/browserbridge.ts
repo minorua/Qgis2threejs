@@ -73,6 +73,8 @@ const pyObj: PyObj = {
 	emitScriptReady: proxyMethod("emitScriptReady"),
 	emitTweenStarted: proxyMethod("emitTweenStarted"),
 	emitAnimationStopped: proxyMethod("emitAnimationStopped"),
+	emitRequestedRenderingFinished: proxyMethod("emitRequestedRenderingFinished"),
+	sendTestResult: proxyMethod("sendTestResult"),
 
 	showStatusMessage: proxyMethod("showStatusMessage"),
 	saveBase64: proxyMethod("saveBase64"),
@@ -80,8 +82,7 @@ const pyObj: PyObj = {
 	saveImage: proxyMethod("saveImage"),
 	copyToClipboard: proxyMethod("copyToClipboard"),
 
-	emitRequestedRenderingFinished: proxyMethod("emitRequestedRenderingFinished"),
-	sendTestResult: proxyMethod("sendTestResult")
+	requestTileData: proxyMethod("requestTileData")
 };
 
 window.pyObj = pyObj;

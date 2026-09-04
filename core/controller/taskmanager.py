@@ -2,6 +2,8 @@
 # (C) 2026 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from dataclasses import dataclass
+
 from qgis.PyQt.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot
 
 from ..exportsettings import Layer
@@ -15,8 +17,35 @@ class Task:
     UPDATE_SCENE_OPTS = 3           # update scene options
     RELOAD_PAGE = 4
     # Layer object                          # build layer
+    # BUildTileTask                         # build tile
     # {"type": "...", ...}                  # send data
     # {"type": "script", "script": "..."}   # run script
+
+
+@dataclass
+class BuildTileTask:
+
+    url: str
+    layer: Layer
+    level: int
+    x: int
+    y: int
+
+    @staticmethod
+    def fromUrl(url, settings):
+        parts = url.removesuffix(".tile").rsplit("/", 5)[-5:]
+        type = parts[0].removeprefix("~")
+        jsLayerId, level, x, y = map(int, parts[1:])
+
+        layer = settings.getLayerByJSLayerId(jsLayerId)
+        if layer is None:
+            logger.warning(f"Layer not found: {jsLayerId}")
+            return None
+
+        return BuildTileTask(url, layer, level, x, y)
+
+    def __repr__(self):
+        return f"BuildTileTask: {self.url}"
 
 
 class TaskSequenceStatus:
@@ -33,7 +62,7 @@ class TaskSequenceStatus:
 class TaskManager(QObject):
 
     # signals - task manager to controller
-    executeTask = pyqtSignal(object)     # item: Task.BUILD_SCENE, Task.UPDATE_SCENE_OPTS, Layer, {"string": str, "data": any}
+    executeTask = pyqtSignal(object)     # item: Task.BUILD_SCENE, Task.UPDATE_SCENE_OPTS, Layer, BuildTileTask, {"string": str, "data": any}
     abortCurrentTask = pyqtSignal()
     allTasksFinalized = pyqtSignal()
 
@@ -137,6 +166,10 @@ class TaskManager(QObject):
         self.taskQueue = [i for i in self.taskQueue if not (isinstance(i, Layer) and i.layerId == layer.layerId)]
         if len(self.taskQueue) < task_count:
             self.totalLayerCount -= 1
+
+    def addBuildTileTask(self, task: BuildTileTask):
+        self.taskQueue.append(task)
+        self.processNextTask()
 
     def addSendDataTask(self, data: dict):
         self.taskQueue.append(data)

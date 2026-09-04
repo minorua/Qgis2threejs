@@ -129,6 +129,15 @@ class ThreeJSBuilder(QObject):
 
         self.taskCompleted.emit()
 
+    @pyqtSlot(str, Layer, int, int, int, ExportSettings)
+    def buildTileSlot(self, url, layer, level, x, y, settings):
+        tileBuilder = self._tileBuilder(layer, settings)
+
+        data = tileBuilder.buildTile(url, level, x, y)
+
+        self.dataReady.emit(data)
+        self.taskCompleted.emit()
+
     def buildScene(self, settings):
         be = settings.baseExtent()
         mapTo3d = settings.mapTo3d()
@@ -173,3 +182,6 @@ class ThreeJSBuilder(QObject):
     def _layerBuilder(self, layer, settings, progress=None):
         imageManager = ImageManager(settings.mapSettings)
         return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(layer, settings, imageManager, progress=progress)
+
+    def _tileBuilder(self, layer, settings, progress=None):
+        return self._layerBuilder(layer, settings, progress)

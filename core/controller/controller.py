@@ -7,7 +7,7 @@ from functools import wraps
 from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal, pyqtSlot
 from qgis.core import Qgis, QgsProject
 
-from .taskmanager import Task, TaskManager
+from .taskmanager import BuildTileTask, Task, TaskManager
 from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
@@ -36,6 +36,8 @@ class Q3DController(QObject):
     # signals - controller to builder
     buildSceneRequest = pyqtSignal(ExportSettings)
     buildLayerRequest = pyqtSignal(Layer, ExportSettings)
+    buildTileRequest = pyqtSignal(str, Layer, int, int, int, ExportSettings)
+
     quitRequest = pyqtSignal()                   # request the builder to move back to the main thread
 
     def __init__(self, parent, settings, webPage, offScreen=False, useThread=False):
@@ -116,10 +118,12 @@ class Q3DController(QObject):
 
             # web bridge -> controller
             (self.webPage.bridge.initialized, self.viewerInitialized),
+            (self.webPage.bridge.tileDataRequest, self.tileDataRequested),
 
             # controller -> builder
             (self.buildSceneRequest, self.builder.buildSceneSlot),
             (self.buildLayerRequest, self.builder.buildLayerSlot),
+            (self.buildTileRequest, self.builder.buildTileSlot),
 
             # task manager -> controller
             (self.taskManager.executeTask, self.executeTask),
@@ -238,6 +242,11 @@ class Q3DController(QObject):
             self.runScript("app.start()")
             self.taskManager.addBuildSceneTask()
 
+    def tileDataRequested(self, url):
+        task = BuildTileTask.fromUrl(url, self.settings)
+        if task:
+            self.taskManager.addBuildTileTask(task)
+
     def updateSettingsCopyIfNeeded(self):
         if self.settings.isUpdated() or self._settingsCopy is None:
             self._settingsCopy = self.settings.clone()
@@ -261,7 +270,7 @@ class Q3DController(QObject):
                 case Task.UPDATE_SCENE_OPTS:
                     self.updateSceneOptions(callback=self.taskManager.taskFinalized)
 
-                case Layer():   # BUILD_LAYER
+                case Layer():   # BUILD LAYER
                     if self.settings.getLayer(task.layerId):
                         if task.visible:
                             self.buildLayer(task)
@@ -276,6 +285,9 @@ class Q3DController(QObject):
                 case dict():    # SEND_DATA
                     self.appendDataToSendQueue(data=task)
                     self.taskManager.taskFinalized()
+
+                case BuildTileTask():
+                    self.buildTile(task)
 
                 case _:
                     logger.warning(f"Unknown task: {task}")
@@ -364,6 +376,10 @@ class Q3DController(QObject):
         self.webPage.sendQueue.removeLayer(layer.jsLayerId)   # remove data related to layer from send queue
 
         self.runScript(f"hideLayer({layer.jsLayerId}, true)", callback=callback)
+
+    def buildTile(self, task: BuildTileTask):
+        self.taskManager.processingLayer = task.layer
+        self.buildTileRequest.emit(task.url, task.layer, task.level, task.x, task.y, self._settingsCopy)
 
     # send queue management
     @pyqtSlot(dict)

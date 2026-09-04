@@ -422,7 +422,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         if self.isPlane:
             widgets += [self.lineEdit_Altitude]
         else:
-            widgets += [self.radioButton_OriginalValues, self.spinBox_TileSideSegments]
+            widgets += [self.radioButton_OriginalValues, self.spinBox_TileSideSegments, self.radioButton_Pyramid]
             widgets += [self.horizontalSlider_DEMSize, self.spinBox_Roughening]
             widgets += [self.radioButton_ClipPolygon, self.comboBox_ClipLayer, self.radioButton_NoClip]
 
@@ -436,7 +436,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
 
         # configure geometry tab widgets
         if self.isPlane:
-            self.setWidgetsVisible([self.groupBoxResampMethod, self.groupBoxClip], False)
+            self.setWidgetsVisible([self.groupBoxDEMStructure, self.groupBoxClip], False)
             self.setWidgetsVisible([self.labelRoughness, self.spinBox_Roughening], False)
             self.lineEdit_Altitude.textChanged.connect(self.altitudeChanged)
 
@@ -446,7 +446,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
             err_msg = self.origValuesErrorMsg()
             if err_msg:
                 self.labelOriginalValues.setText("This option is disabled because " + err_msg)
-                self.setWidgetsEnabled([self.radioButton_OriginalValues, self.radioButton_NoClip], False)
+                self.setWidgetsEnabled([self.radioButton_OriginalValues, self.radioButton_Pyramid, self.radioButton_NoClip], False)
                 self.setWidgetsVisible([self.labelTileSize, self.spinBox_TileSideSegments], False)
             else:
                 self.labelOriginalValues.hide()

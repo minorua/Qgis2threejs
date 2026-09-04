@@ -81,10 +81,10 @@ class ImageManager(DataManager):
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         if s.validExtent is not None:
+            nx = s.validExtent.width() / s.extent.width()
+            ny = s.validExtent.height() / s.extent.height()
             painter.setClipRect(
-                QRectF(0, 0,
-                       s.validExtent.width() / s.extent.width() * s.width,
-                       s.validExtent.height() / s.extent.height() * s.height)
+                QRectF(0, (1 - ny) * s.height, nx * s.width, s.height)
             )
 
         job = QgsMapRendererCustomPainterJob(settings, painter)

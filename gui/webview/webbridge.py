@@ -65,6 +65,8 @@ class WebBridge(QObject):
     statusMessage = pyqtSignal(str, int)
     testResultReceived = pyqtSignal(str, bool, str)
 
+    tileDataRequest = pyqtSignal(str)               # url
+
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -101,6 +103,11 @@ class WebBridge(QObject):
     @deco
     def emitAnimationStopped(self):
         self.animationStopped.emit()
+
+    @pyqtSlot(str)
+    @deco
+    def requestTileData(self, url):
+        self.tileDataRequest.emit(url)
 
     @pyqtSlot(str, int)
     @deco
