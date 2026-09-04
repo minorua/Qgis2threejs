@@ -109,7 +109,7 @@ class DEMBlockBuilderBase:
         if self.settings.isPreview:
             return jhb.toJSONCompatible()
 
-        tail = f"{self.blockIndex}.binjson"
+        tail = f"{self.blockIndex}.bin"
         jhb.write(self.assetDestination.path(tail))
         return {
             "url": self.assetDestination.url(tail)
