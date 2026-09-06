@@ -289,11 +289,11 @@ class ThreeJSExporter(QObject):
 
         # proj4.js
         if self.settings.isCoordLatLon():    # display coordinates in latitude and longitude format
-            files.append(("./proj4js/proj4.js", ScriptFile.TYPE_NON_MODULE))
+            files.append(ScriptFile.FILES[ScriptFile.PROJ4])
 
         # animation
         if self.settings.isAnimationEnabled():
-            files.append(("./tweenjs/tween.js", ScriptFile.TYPE_NON_MODULE))
+            files.append(ScriptFile.FILES[ScriptFile.TWEEN])
 
         script = ""
         for filepath, type in list(dict.fromkeys(files)):
@@ -309,24 +309,24 @@ class ThreeJSExporter(QObject):
         files = []
 
         if self.settings.isNavigationEnabled():
-            files.append(("three/addons/helpers/ViewHelper.js", ScriptFile.TYPE_CLASS))
+            files.append(ScriptFile.FILES[ScriptFile.VIEWHELPER])
 
         # outline effect
         if self.settings.useOutlineEffect():
-            files.append(("three/addons/effects/OutlineEffect.js", ScriptFile.TYPE_CLASS))
+            files.append(ScriptFile.FILES[ScriptFile.OUTLINE])
 
         # layer-specific dependencies
         for layer in [lyr for lyr in self.settings.layers() if lyr.visible]:
             if layer.type == LayerType.DEM:
                 if layer.properties.get("radioButton_Pyramid"):
-                    files.append(("./3d-tiles-renderer/3d-tiles-renderer.js", ScriptFile.TYPE_NAMESPACE))
+                    files.append(ScriptFile.FILES[ScriptFile.TILES3D])
 
             elif layer.type == LayerType.LINESTRING:
                 match layer.properties.get("comboBox_ObjectType"):
                     case "Thick Line":
-                        files.append(("./meshline/meshline.js", ScriptFile.TYPE_NAMESPACE))
+                        files.append(ScriptFile.FILES[ScriptFile.MESHLINE])
                     case "Box":
-                        files.append(("three/addons/utils/BufferGeometryUtils.js", ScriptFile.TYPE_NAMESPACE))
+                        files.append(ScriptFile.FILES[ScriptFile.BUFGEOMUTILS])
 
         # model loaders
         for manager in self.modelManagers:

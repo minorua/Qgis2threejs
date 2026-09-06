@@ -39,8 +39,7 @@ class ScriptFile:
     MESHLINE = 10
     TILES3D = 11
     PROJ4 = 20
-    POTREE = 21
-    PCLAYER = 101
+    TWEEN = 22
     TEST = 102
 
     # type
@@ -59,8 +58,10 @@ class ScriptFile:
         MESHLINE: ("lib/meshline/meshline.js", TYPE_NAMESPACE),
         TILES3D: ("lib/3d-tiles-renderer/3d-tiles-renderer.js", TYPE_NAMESPACE),
 
+        PROJ4: ("lib/proj4js/proj4.js", TYPE_NON_MODULE),
+        TWEEN: ("lib/tweenjs/tween.js", TYPE_NON_MODULE),
+
         # relative paths to script files from web directory
-        PROJ4: ("./js/lib/proj4js/proj4.js", TYPE_NON_MODULE),
         TEST: ("./js/test/utils.js", TYPE_NON_MODULE)
     }
 
