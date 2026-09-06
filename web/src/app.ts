@@ -537,18 +537,21 @@ app.buildCamera = (is_ortho) => {
     }
 };
 
-// adjusts camera's near and far based on the scene's bounding box
+// adjusts camera's near and far based on the scene's XY bounding box
 app.adjustCameraNearFar = () => {
     const bbox = app.scene.boundingBox();
-    if (!bbox.isEmpty()) {
-        const sphere = bbox.getBoundingSphere(new THREE.Sphere());
+    if (bbox.isEmpty()) return;
 
-        app.camera.near = (app.camera.isOrthographicCamera) ? 0 : 0.001 * sphere.radius;
-        app.camera.far = 50 * sphere.radius;
-        app.camera.updateProjectionMatrix();
+    const radius = 0.5 * Math.hypot(
+        bbox.max.x - bbox.min.x,
+        bbox.max.y - bbox.min.y
+    );
 
-        console.debug("[camera] near: " + app.camera.near + ", far: " + app.camera.far);
-    }
+    app.camera.near = (app.camera.isOrthographicCamera) ? 0 : 0.001 * radius;
+    app.camera.far = 50 * radius;
+    app.camera.updateProjectionMatrix();
+
+    console.debug("[camera] near: " + app.camera.near + ", far: " + app.camera.far);
 };
 
 // moves camera target to center of scene
