@@ -664,12 +664,8 @@ class PropertiesDialog(QDialog):
         self.restoreGeometry(settings.value("/Qgis2threejs/propdlg/geometry", b""))
 
     def closeEvent(self, event):
-        try:
-            # save dialog geometry
-            settings = QSettings()
-            settings.setValue("/Qgis2threejs/propdlg/geometry", self.saveGeometry())
-        except:
-            pass
+        settings = QSettings()
+        settings.setValue("/Qgis2threejs/propdlg/geometry", self.saveGeometry())
 
         QDialog.closeEvent(self, event)
 

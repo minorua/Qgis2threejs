@@ -7,6 +7,7 @@ import os
 import json
 import math
 import re
+import traceback
 
 from qgis.PyQt.QtCore import Qt, QPoint, QSize, QUrl
 from qgis.PyQt.QtWidgets import (QAbstractItemView, QAction, QActionGroup, QCheckBox, QComboBox, QGroupBox, QLineEdit,
@@ -1126,8 +1127,8 @@ class PointCloudPropertyPage(PropertyPage, Ui_PCPropertiesWidget):
                     bbox = [bbox.get("lx"), bbox.get("ly"), bbox.get("lz"), bbox.get("ux"), bbox.get("uy"), bbox.get("uz")]
                 else:
                     bbox = d.get("boundsConforming")    # ept
-            except:
-                pass
+            except Exception:
+                logger.warning(traceback.format_exc())
 
         def updateInfoBox():
             html = "<style>th {text-align:left;padding-right:10px;}</style><table>"

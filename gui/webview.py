@@ -27,8 +27,8 @@ try:
     from qgis.PyQt.QtWebKitWidgets import QWebView      # type: ignore
     WEBKIT_AVAILABLE = True
 
-except:     # ModuleNotFoundError
-    pass
+except Exception as e:
+    logger.warning(f"WebKit widgets are unavailable: {e}")
 
 if not (WEBENGINE_AVAILABLE or WEBKIT_AVAILABLE):
     logger.warning("Neither WebKit nor WebEngine modules are available.")

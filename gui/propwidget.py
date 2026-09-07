@@ -4,6 +4,7 @@
 # begin: 2014-01-06
 
 import os
+import traceback
 
 from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QVariant
 from qgis.PyQt.QtGui import QIcon
@@ -11,7 +12,7 @@ from qgis.PyQt.QtWidgets import QComboBox, QFileDialog, QWidget
 from qgis.core import QgsApplication, QgsFieldProxyModel, QgsProject
 
 from .ui.widgetComboEdit import Ui_ComboEditWidget
-from ..utils import getDEMLayersInProject, shortTextFromSelectedLayerIds
+from ..utils import getDEMLayersInProject, logger, shortTextFromSelectedLayerIds
 from ..utils.gui import selectColor
 
 class WVT:
@@ -69,8 +70,8 @@ class WidgetFuncBase:
             lineEdit = self.widget.expressionComboBox().lineEdit()
             lineEdit.setPlaceholderText(text)
             lineEdit.setToolTip(text)
-        except:
-            pass
+        except Exception:
+            logger.warning(traceback.format_exc())
 
     def values(self):
         return {"type": self.widget.funcType,

@@ -5,6 +5,7 @@
 
 import os
 from datetime import datetime
+import traceback
 
 from qgis.PyQt.QtCore import Qt, QDir, QSettings, QUrl
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QPushButton
@@ -14,7 +15,7 @@ import qgis
 from .ui.exporttowebdialog import Ui_ExportToWebDialog
 from ..conf import PLUGIN_NAME
 from ..core.export.export import ExportCancelled, ThreeJSExporter
-from ..utils import getTemplateConfig, openHelp, openUrl, templateDir, temporaryOutputDir
+from ..utils import getTemplateConfig, logger, openHelp, openUrl, templateDir, temporaryOutputDir
 
 
 class ExportToWebDialog(QDialog):
@@ -92,8 +93,8 @@ class ExportToWebDialog(QDialog):
             self.ui.pushButton_Publish.clicked.connect(self.publish)
             try:
                 self.ui.pushButton_Publish.setIcon(self.q2om.action.icon())
-            except:
-                pass
+            except Exception:
+                logger.warning(traceback.format_exc())
         else:
             self.ui.pushButton_Publish.setEnabled(False)
 
