@@ -11,7 +11,6 @@
 
 import math
 import numpy as np
-import struct
 
 from osgeo import gdal
 from qgis.PyQt.QtCore import QSettings
@@ -54,9 +53,6 @@ class GSIElevTileProvider:
 
         self.resampleAlg = gdal.GRA_Bilinear
         self.nodata = None
-
-    def name(self):
-        return "GSI Elevation Tile"
 
     def read(self, width, height, extent):
         """Read data as bytes."""

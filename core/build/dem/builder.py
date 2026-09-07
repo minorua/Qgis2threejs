@@ -151,7 +151,6 @@ class DEMLayerBuilder(LayerBuilderBase):
             logger.error(f"{self.layer.name}: DEM pixel size is different in X and Y directions.")
             return None
 
-        # DEM provider is assumed to be GDALDEMProvider.
         layer_grid = self.provider.grid()
 
         target_grid = layer_grid

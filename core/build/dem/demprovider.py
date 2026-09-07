@@ -4,7 +4,7 @@
 
 import struct
 from osgeo import gdal
-from qgis.core import QgsPointXY, QgsRectangle
+from qgis.core import QgsCoordinateTransform, QgsPointXY, QgsProject, QgsRasterProjector, QgsRectangle, Qgis
 
 try:
     import numpy
@@ -18,9 +18,66 @@ from ....utils.logging import logger
 NODATA_VALUE = -3.4e38
 
 
-class GDALDEMProvider:
+class DEMProviderBase:
 
     CanUseOriginalValues = True
+
+    def geotransform(self):
+        pass
+
+    def xSize(self):
+        pass
+
+    def ySize(self):
+        pass
+
+    def _read(self, width, height, geotransform, asList=False, asNumpyArray=False):
+        pass
+
+    def setResampleAlg(self, alg):
+        pass
+
+    def extent(self):
+        gt = self.geotransform()
+        width = gt[1] * self.xSize()
+        height = -gt[5] * self.ySize()
+        return MapExtent(QgsPointXY(gt[0] + width / 2, gt[3] - height / 2), width, height)
+
+    def grid(self):
+        gt = self.geotransform()
+        xSize, ySize = self.xSize(), self.ySize()
+
+        xmin = gt[0] + 0.5 * gt[1]
+        ymax = gt[3] + 0.5 * gt[5]
+        xmax = xmin + gt[1] * (xSize - 1)
+        ymin = ymax + gt[5] * (ySize - 1)
+
+        return RegularGrid(QgsRectangle(xmin, ymin, xmax, ymax), GridShape(xSize, ySize))
+
+    def read(self, width, height, extent):
+        """read data into a byte array"""
+        return self._read(width, height, extent.geotransform(width, height))
+
+    def readAsArray(self, width, height, extent):
+        return self._read(width, height, extent.geotransform(width, height), asNumpyArray=True)
+
+    def readValues(self, width, height, extent):
+        """read data into a list"""
+        return self._read(width, height, extent.geotransform(width, height), asList=True)
+
+    def readAsGridGeometry(self, width, height, extent):
+        return GridGeometry(extent,
+                            width - 1, height - 1,
+                            self.readValues(width, height, extent))
+
+    def readValue(self, x, y):
+        """get value at specified position using 1px * 1px memory raster"""
+        res = 0.1
+        extent = MapExtent(QgsPointXY(x, y), res, res)
+        return self.readValues(1, 1, extent)[0]
+
+
+class GDALDEMProvider(DEMProviderBase):
 
     def __init__(self, filename, dest_wkt, source_wkt=None):
         self.filename = filename
@@ -52,29 +109,14 @@ class GDALDEMProvider:
         if source_wkt:
             self._opts["srcSRS"] = self.source_wkt
 
-    def setResampleAlg(self, alg):
-        self._opts["resampleAlg"] = alg
-
-    def extent(self):
-        gt = self.ds.GetGeoTransform()
-        width = gt[1] * self.width
-        height = -gt[5] * self.height
-        return MapExtent(QgsPointXY(gt[0] + width / 2, gt[3] - height / 2), width, height)
-
     def geotransform(self):
         return self.ds.GetGeoTransform()
 
-    def grid(self):
-        gt = self.ds.GetGeoTransform()
-        xmin = gt[0] + 0.5 * gt[1]
-        ymax = gt[3] + 0.5 * gt[5]
-        xmax = xmin + gt[1] * (self.width - 1)
-        ymin = ymax + gt[5] * (self.height - 1)
+    def xSize(self):
+        return self.ds.RasterXSize
 
-        return RegularGrid(
-            QgsRectangle(xmin, ymin, xmax, ymax),
-            GridShape(self.width, self.height)
-        )
+    def ySize(self):
+        return self.ds.RasterYSize
 
     def _read(self, width, height, geotransform, asList=False, asNumpyArray=False):
         if geotransform[2]:
@@ -84,20 +126,15 @@ class GDALDEMProvider:
 
         band = warped_ds.GetRasterBand(1)
 
-        if numpy is None:
-            ba = band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32)
-            if asList:
-                return struct.unpack("f" * width * height, ba)
-            return ba
-
-        arr = band.ReadAsArray()
         if asNumpyArray:
-            return arr
+            return band.ReadAsArray()
+
+        ba = band.ReadRaster(0, 0, width, height, buf_type=gdal.GDT_Float32)
 
         if asList:
-            return arr.flatten().tolist()
+            return struct.unpack("f" * width * height, ba)
 
-        return arr.tobytes()
+        return ba
 
     def _readWarp(self, width, height, gt):
         self._opts["width"] = width
@@ -118,27 +155,70 @@ class GDALDEMProvider:
 
         return warped_ds
 
-    def read(self, width, height, extent):
-        """read data into a byte array"""
-        return self._read(width, height, extent.geotransform(width, height))
+    def setResampleAlg(self, alg):
+        self._opts["resampleAlg"] = alg
 
-    def readAsArray(self, width, height, extent):
-        return self._read(width, height, extent.geotransform(width, height), asNumpyArray=True)
 
-    def readValues(self, width, height, extent):
-        """read data into a list"""
-        return self._read(width, height, extent.geotransform(width, height), asList=True)
+# Experimental
+class QGISRasterDEMProvider(DEMProviderBase):
 
-    def readAsGridGeometry(self, width, height, extent):
-        return GridGeometry(extent,
-                            width - 1, height - 1,
-                            self.readValues(width, height, extent))
+    def __init__(self, layer, dest_crs=None):
+        dataProvider = layer.dataProvider().clone()
+        self.provider = dataProvider
+        self.nodata = dataProvider.sourceNoDataValue(1) if dataProvider.sourceHasNoDataValue(1) else None
 
-    def readValue(self, x, y):
-        """get value at specified position using 1px * 1px memory raster"""
-        res = 0.1
-        geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
-        return self._read(1, 1, geotransform, asList=True)[0]
+        src_crs = layer.crs()
+        self.dest_crs = dest_crs if dest_crs else src_crs
+
+        self._projector = None
+        if src_crs != self.dest_crs:
+            self._projector = QgsRasterProjector()
+            self._projector.setInput(self.provider)
+            self._projector.setCrs(src_crs, self.dest_crs, QgsProject.instance().transformContext())
+
+    def extent(self):
+        return MapExtent.fromRect(self.provider.extent())
+
+    def geotransform(self):
+        rect = self.provider.extent()
+        return [rect.xMinimum(), rect.width() / self.provider.xSize(), 0,
+                rect.yMaximum(), 0, -rect.height() / self.provider.ySize()]
+
+    def xSize(self):
+        return self.provider.xSize()
+
+    def ySize(self):
+        return self.provider.ySize()
+
+    def _read(self, width, height, geotransform, asList=False, asNumpyArray=False):
+        gt = geotransform
+        rect = QgsRectangle(gt[0], gt[3] + gt[5] * height,
+                            gt[0] + gt[1] * width, gt[3])
+
+        interface = self._projector or self.provider
+        block = interface.block(1, rect, width, height)
+
+        if asNumpyArray:
+            return block.as_numpy(use_masking=False).astype(numpy.float32)
+
+        if block.dataType() != Qgis.DataType.Float32:
+            block.convert(Qgis.DataType.Float32)
+
+        ba = block.data()
+
+        if asList:
+            return struct.unpack("f" * width * height, ba)
+
+        return ba
+
+    def setResampleAlg(self, alg):
+        if self.provider.providerCapabilities() & Qgis.RasterProviderCapability.ProviderHintCanPerformProviderResampling:
+            method = Qgis.RasterResamplingMethod.Bilinear if alg == gdal.GRA_Bilinear else Qgis.RasterResamplingMethod.Nearest
+            self.provider.setZoomedInResamplingMethod(method)
+            self.provider.setZoomedOutResamplingMethod(method)
+            self.provider.enableProviderResampling(True)
+        else:
+            logger.warning("Raster provider doesn't support provider resampling.")
 
 
 class FlatDEMProvider:
@@ -148,9 +228,6 @@ class FlatDEMProvider:
     def __init__(self, value=0):
         self.value = value
         self.nodata = None
-
-    def name(self):
-        return "Flat Plane"
 
     def read(self, width, height, extent):
         return struct.pack(f"{width * height}f", *([self.value] * width * height))
