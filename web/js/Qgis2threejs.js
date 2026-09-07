@@ -647,18 +647,20 @@ Q3D.E = function (id) {
 		}
 	};
 
-	// adjusts camera's near and far based on the scene's bounding box
+	// adjusts camera's near and far based on the scene's XY bounding box
 	app.adjustCameraNearFar = function () {
 		var bbox = app.scene.boundingBox();
-		if (!bbox.isEmpty()) {
-			var sphere = bbox.getBoundingSphere(new THREE.Sphere());
+		if (bbox.isEmpty()) return;
 
-			app.camera.near = (app.camera.isOrthographicCamera) ? 0 : 0.001 * sphere.radius;
-			app.camera.far = 50 * sphere.radius;
-			app.camera.updateProjectionMatrix();
+		var dx = bbox.max.x - bbox.min.x;
+		var dy = bbox.max.y - bbox.min.y;
+		var radius = 0.5 * Math.sqrt(dx * dx + dy * dy);
 
-			console.debug("[camera] near: " + app.camera.near + ", far: " + app.camera.far);
-		}
+		app.camera.near = (app.camera.isOrthographicCamera) ? 0 : 0.001 * radius;
+		app.camera.far = 50 * radius;
+		app.camera.updateProjectionMatrix();
+
+		console.debug("[camera] near: " + app.camera.near + ", far: " + app.camera.far);
 	};
 
 	// moves camera target to center of scene
