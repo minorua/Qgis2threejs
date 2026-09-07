@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [3.2.1] - 2026-09-07
+
+- Fixed camera near and far plane distance calculation by ignoring the Z extent
+
 ## [3.2] - 2026-08-25
 
 - Added support for previewing scenes in an external web browser, even when WebEngineView is unavailable
@@ -44,6 +48,18 @@
 - The preview now runs in a separate process
 - Dropped support for QWebView (WebKit) and PyQt5
 - The minimum supported version of QGIS is now 4.0
+
+## [2.10.3] - 2026-09-07
+
+*Released from the `release-2.10` branch.*
+
+- Fixed camera near and far plane distance calculation by ignoring the Z extent
+
+## [2.10.2] - 2026-05-18
+
+*Released from the `release-2.10` branch.*
+
+- Added base64Charset function to LASLAZWorker.js to avoid false-positive Base64 high-entropy string detection
 
 ## [2.10.1] - 2026-05-18
 
