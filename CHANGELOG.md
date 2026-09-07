@@ -1,7 +1,10 @@
 ## CHANGELOG
 
+### Version 2.10.3
+- Fixed camera near and far plane distance calculation by ignoring the Z extent
+
 ### Version 2.10.2
-- add base64Charset function to LASLAZWorker.js to avoid false-positive Base64 high-entropy string detection
+- Added base64Charset function to LASLAZWorker.js to avoid false-positive Base64 high-entropy string detection
 
 ### Version 2.10.1
 - Fixed a preview freeze caused by data loading errors
