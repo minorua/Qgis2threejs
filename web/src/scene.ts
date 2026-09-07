@@ -3,7 +3,7 @@
 
 import { THREE } from "./three.js";
 
-import { conf, deg2rad, Group, UV } from "./core.js";
+import { conf, deg2rad, Group, NODATA_Z_THRESHOLD, UV } from "./core.js";
 import { DEMLayer } from "./layer/demlayer.js";
 import { PointLayer } from "./layer/pointlayer.js";
 import { LineLayer } from "./layer/linelayer.js";
@@ -225,7 +225,12 @@ export class Scene extends THREE.Scene {
 			if (onlyVisible && !this.mapLayers[id].visible) continue;
 
 			const b = this.mapLayers[id].boundingBox();
-			if (b) box.union(b);
+			if (b && b.max.z >= NODATA_Z_THRESHOLD) {
+				if (b.min.z < NODATA_Z_THRESHOLD) {
+					b.min.z = b.max.z;
+				}
+				box.union(b);
+			}
 		}
 		return box;
 	}

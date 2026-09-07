@@ -22,6 +22,7 @@ export const modules = { THREE } as Modules;
 export const tweens: Tweens = {};
 
 export const deg2rad = Math.PI / 180;
+export const NODATA_Z_THRESHOLD = -1e38;
 
 /**
  * @enum {string}
