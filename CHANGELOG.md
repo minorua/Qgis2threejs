@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [3.2.1] - 2026-09-07
+
+- Fixed camera near and far plane distance calculation by ignoring the Z extent
+
 ## [3.2] - 2026-08-25
 
 - Added support for previewing scenes in an external web browser, even when WebEngineView is unavailable
