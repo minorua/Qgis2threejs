@@ -1,5 +1,8 @@
 ## CHANGELOG
 
+### Version 2.10.4
+- Fixed bandit security warnings
+
 ### Version 2.10.3
 - Fixed camera near and far plane distance calculation by ignoring the Z extent
 
