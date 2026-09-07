@@ -177,6 +177,7 @@ Q3D.uv = {
 };
 
 Q3D.deg2rad = Math.PI / 180;
+Q3D.NODATA_Z_THRESHOLD = -1e38;
 
 Q3D.ua = window.navigator.userAgent.toLowerCase();
 Q3D.isTouchDevice = ("ontouchstart" in window);
@@ -2133,8 +2134,14 @@ class Q3DScene extends THREE.Scene {
 		var box = new THREE.Box3();
 		for (var id in this.mapLayers) {
 			if (only_visible && !this.mapLayers[id].visible) continue;
-			box.union(this.mapLayers[id].boundingBox());
-		}
+
+			var b = this.mapLayers[id].boundingBox();
+			if (b && b.max.z >= Q3D.NODATA_Z_THRESHOLD) {
+				if (b.min.z < Q3D.NODATA_Z_THRESHOLD) {
+					b.min.z = b.max.z;
+				}
+				box.union(b);
+			}		}
 		return box;
 	}
 
