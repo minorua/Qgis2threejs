@@ -46,8 +46,7 @@ export class DEMLayer extends MapLayer {
 					plugin.tileInfoList = data.body.blocks;
 				}
 
-				conf.debugMode = 1;		// TODO: [temporary] remove
-				if (conf.debugMode) {
+				if (false && conf.debugMode) {
 					plugin.showBoundingBox = true;
 					plugin.showBoundingVolume = true;
 				}
