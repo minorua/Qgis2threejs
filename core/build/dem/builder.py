@@ -161,7 +161,9 @@ class DEMLayerBuilder(LayerBuilderBase):
             if not target_grid:
                 return None
 
-        zrange = ZRange(0, 1000)        # TODO:
+        stats = self.layer.mapLayer.dataProvider().bandStatistics(1)
+        zrange = ZRange(stats.minimumValue, stats.maximumValue)
+
         args = (self.layer.jsLayerId, target_grid, zrange, self.settings.mapTo3d().origin)
 
         self._tileset = Tileset(*args) if tileSegments is None else Tileset(*args, tileSegments=tileSegments)
