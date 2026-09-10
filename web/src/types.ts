@@ -396,8 +396,11 @@ export interface LabelsData extends BaseData {
 export interface SignalData extends BaseData {
     type: "signal";
     name: string;
+
     success?: boolean;
     is_scene?: boolean;
+
+    layer?: number;
 }
 
 export type AppData =

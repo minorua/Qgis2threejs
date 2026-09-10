@@ -176,6 +176,9 @@ function loadData(data: PreviewData, viaQueue: boolean): boolean {
 				// to the scene are rendered even on low-performance systems.
 				setTimeout(() => app.render(), 300);
 			}
+			else if (data.name == "tileMtlChanged") {
+				setTileMaterialUpdaters(data.layer);
+			}
 			break;
 
 		case "labels":
@@ -454,6 +457,13 @@ export function requestRendering() {
 
 export function requestTileData(url: string) {
 	pyObj.requestTileData(url)
+}
+
+function setTileMaterialUpdaters(layerId: number) {
+	const layer = app.scene.mapLayers[layerId];
+	if (layer === undefined || layer.tilesRenderer === undefined) return;
+
+	layer.tilesRenderer.plugins[0].setTileMaterialUpdaters();
 }
 
 let barTimerId: number | null = null;

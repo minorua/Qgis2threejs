@@ -30,20 +30,24 @@ class BuildTileTask:
     level: int
     x: int
     y: int
+    onlyMaterial: bool
 
     @staticmethod
     def fromUrl(url, settings):
-        jsLayerId, level, x, y = map(int, url.removesuffix(".tile").rsplit("/", 4)[-4:])
+        tileUrl, _, args = url.partition("?")
+        onlyMaterial = bool(args == "mtl")
+
+        jsLayerId, level, x, y = map(int, tileUrl.removesuffix(".tile").rsplit("/", 4)[-4:])
 
         layer = settings.getLayerByJSLayerId(jsLayerId)
         if layer is None:
             logger.warning(f"Layer not found: {jsLayerId}")
             return None
 
-        return BuildTileTask(url, layer, level, x, y)
+        return BuildTileTask(url, layer, level, x, y, onlyMaterial)
 
     def __repr__(self):
-        return f"BuildTileTask: {self.url}"
+        return f'BuildTileTask: {self.url}{" (mtl)" if self.onlyMaterial else ""})'
 
 
 class TaskSequenceStatus:

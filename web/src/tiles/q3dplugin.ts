@@ -149,7 +149,7 @@ export class Q3DPlugin {
         console.debug("Tile data received: ", url, data);
 
         pending.resolve(data);
-        this.pendingRequests.delete(this);
+        this.pendingRequests.delete(url);
     }
 
     /**
@@ -198,4 +198,31 @@ export class Q3DPlugin {
         // TODO:
     }
 
+    setTileMaterialUpdaters() {
+        const noop = () => {};
+
+        for (const tile of this.tiles.lruCache.itemList) {
+            const mesh = tile.engineData.scene;
+            mesh.onBeforeRender = (renderer, object, camera, geometry, material, group) => {
+                const uri = tile.content.uri + "?mtl";
+
+                const pending = this.pendingRequests.get(uri);
+                if (pending) return;
+
+                window.requestTileData(uri);
+
+                let resolve, reject;
+                const promise = new Promise((res, rej) => {
+                    resolve = res;
+                    reject = rej;
+                }).then((content) => {
+                    buildTile(this.layer, content, tile, this.showBoundingBox, this.showBoundingVolume);
+                });
+
+                this.pendingRequests.set(uri, { promise, resolve, reject });
+
+                mesh.onBeforeRender = noop;
+            };
+        }
+    }
 }
