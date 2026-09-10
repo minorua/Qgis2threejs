@@ -149,10 +149,11 @@ export class Scene extends THREE.Scene {
 	}
 
 	loadTileData(data: TileData) {
-		for (const tilesRenderer of this.tilesRenderers) {
-			const plugin = tilesRenderer.plugins[0];
-			plugin.dataReceived(data.url, data.data);
-		}
+		const layer = this.mapLayers[data.layer];
+		if (layer === undefined || layer.tilesRenderer === undefined) return;
+
+		const plugin = layer.tilesRenderer.plugins[0];
+		plugin.dataReceived(data.url, data.data);
 	}
 
 	buildLights(lights, rotation = 0) {

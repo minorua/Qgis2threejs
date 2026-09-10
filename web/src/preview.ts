@@ -194,6 +194,10 @@ function loadData(data: PreviewData, viaQueue: boolean): boolean {
 		case "narration":
 			showNarrativeBox(data.content);
 			break;
+
+		case "tileMtlReplace":
+			replaceTileMaterials(data.layer);
+			break;
 	}
 
 	if (viaQueue) {
@@ -454,6 +458,13 @@ export function requestRendering() {
 
 export function requestTileData(url: string) {
 	pyObj.requestTileData(url)
+}
+
+function replaceTileMaterials(layerId: number) {
+	const layer = app.scene.mapLayers[layerId];
+	if (layer) {
+		layer.tilesRenderer.plugins[0].replaceTileMaterials();
+	}
 }
 
 let barTimerId: number | null = null;

@@ -149,7 +149,7 @@ export class Q3DPlugin {
         console.debug("Tile data received: ", url, data);
 
         pending.resolve(data);
-        this.pendingRequests.delete(this);
+        this.pendingRequests.delete(url);
     }
 
     /**
@@ -158,7 +158,7 @@ export class Q3DPlugin {
      * @param {string} extension
      */
 	parseTile(content, tile, extension, url, abortSignal) {
-        if (content.tileId === undefined) {
+        if (content.tileId === undefined) {     // preview
             return buildTile(this.layer, content, tile, this.showBoundingBox, this.showBoundingVolume);
         }
 
@@ -187,7 +187,6 @@ export class Q3DPlugin {
             buildTile(this.layer, data, tile, this.showBoundingBox, this.showBoundingVolume);
             resolve(true);
         });
-
         return promise;
 	}
 
@@ -198,4 +197,27 @@ export class Q3DPlugin {
         // TODO:
     }
 
+    replaceTileMaterials() {
+        for (const tile of this.tiles.visibleTiles) {
+            if (!tile.content) continue;
+
+            const uri = tile.content.uri + "?mtl";
+
+            const pending = this.pendingRequests.get(uri);
+            if (pending) continue;
+
+            console.debug("Requesting tile texture data...", uri);
+            window.requestTileData(uri);
+
+            let resolve, reject;
+            const promise = new Promise((res, rej) => {
+                resolve = res;
+                reject = rej;
+            }).then((content) => {
+                buildTile(this.layer, content, tile, this.showBoundingBox, this.showBoundingVolume);
+            });
+
+            this.pendingRequests.set(uri, { promise, resolve, reject });
+        }
+    }
 }

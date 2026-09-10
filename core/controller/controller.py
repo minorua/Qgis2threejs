@@ -36,7 +36,7 @@ class Q3DController(QObject):
     # signals - controller to builder
     buildSceneRequest = pyqtSignal(ExportSettings)
     buildLayerRequest = pyqtSignal(Layer, ExportSettings)
-    buildTileRequest = pyqtSignal(str, Layer, int, int, int, ExportSettings)
+    buildTileRequest = pyqtSignal(str, Layer, int, int, int, bool, ExportSettings)
 
     quitRequest = pyqtSignal()                   # request the builder to move back to the main thread
 
@@ -390,7 +390,7 @@ class Q3DController(QObject):
 
     def buildTile(self, task: BuildTileTask):
         self.taskManager.processingLayer = task.layer
-        self.buildTileRequest.emit(task.url, task.layer, task.level, task.x, task.y, self._settingsCopy)
+        self.buildTileRequest.emit(task.url, task.layer, task.level, task.x, task.y, task.onlyMaterial, self._settingsCopy)
 
     # send queue management
     @pyqtSlot(dict)

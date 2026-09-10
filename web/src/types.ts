@@ -321,6 +321,11 @@ export interface TileData extends BaseData {
     }
 }
 
+export interface TileMaterialReplaceData extends BaseData {
+    type: "tileMtlReplace";
+    layer: number;
+}
+
 /* Animation */
 export interface AnimationData extends BaseData {
     type: "animation";
@@ -412,7 +417,8 @@ export type PreviewData =
     | NarrationData
     | CameraStateData
     | LabelsData
-    | SignalData;
+    | SignalData
+    | TileMaterialReplaceData;
 
 
 //// binary data

@@ -129,11 +129,11 @@ class ThreeJSBuilder(QObject):
 
         self.taskCompleted.emit()
 
-    @pyqtSlot(str, Layer, int, int, int, ExportSettings)
-    def buildTileSlot(self, url, layer, level, x, y, settings):
+    @pyqtSlot(str, Layer, int, int, int, bool, ExportSettings)
+    def buildTileSlot(self, url, layer, level, x, y, onlyMaterial, settings):
         tileBuilder = self._tileBuilder(layer, settings)
 
-        data = tileBuilder.buildTile(url, level, x, y)
+        data = tileBuilder.buildTile(url, level, x, y, onlyMaterial)
 
         self.dataReady.emit(data)
         self.taskCompleted.emit()

@@ -532,6 +532,19 @@ export class GridGeometry extends THREE.BufferGeometry {
 }
 
 export function buildTile(layer, data, tile, showBoundingBox = false, showBoundingVolume = false) {
+	if (!data.grid) {
+		console.info("switching tile material...");
+
+		const material = new Material();
+		material.loadData(data.material, () => layer.requestRender());
+
+		const engineData = tile.engineData;
+		engineData.materials = [material.mtl];
+		engineData.scene.material = material.mtl;
+
+		return Promise.resolve(true);
+	}
+
 	let resolve;
 	const promise = new Promise((r) => {
 		resolve = r;

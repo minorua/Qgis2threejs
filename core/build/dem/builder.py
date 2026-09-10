@@ -42,6 +42,14 @@ class TileIdTask:
         return f"{self.tile.level}/{self.tile.x}/{self.tile.y}"
 
 
+class DataTask:
+    def __init__(self, data):
+        self.data = data
+
+    def build(self):
+        return self.data
+
+
 class BuildTasks:
     def __init__(self, discardResult=False):
         self.tasks = []
@@ -181,7 +189,9 @@ class DEMLayerBuilder(LayerBuilderBase):
             self.provider.setResampleAlg(gdal.GRA_NearestNeighbour)
 
             if pyramid:
-                if not self.settings.isPreview:
+                if self.settings.isPreview:
+                    yield from self._buildTasks_TilePreview(minLevel=0)
+                else:
                     yield from self._buildTasks_TileExport(minLevel=0)
             else:
                 segments = self.properties.get("spinBox_TileSideSegments", 512)
@@ -191,6 +201,13 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         self.provider.setResampleAlg(gdal.GRA_Bilinear)
         yield from self._buildTasks_Resamp()
+
+    def _buildTasks_TilePreview(self, minLevel=None):
+        if self.layer.opt.onlyMaterial:
+            yield DataTask({
+                "type": "tileMtlReplace",
+                "layer": self.layer.jsLayerId
+            })
 
     def _buildTasks_TileExport(self, minLevel=None):
         materials = self.properties.get("materials", [])
@@ -353,7 +370,7 @@ class DEMLayerBuilder(LayerBuilderBase):
 
             self.progress(i + 1, size2)
 
-    def buildTile(self, url, level, x, y):
+    def buildTile(self, url, level, x, y, onlyMaterial=False):
         tileset = self._getTileset()
 
         tileRect = tileset.tileRect(level, x, y)
@@ -362,18 +379,17 @@ class DEMLayerBuilder(LayerBuilderBase):
         validRect = tileRect.intersect(tileset.boundingRect)
         validExtent = MapExtent.fromRect(validRect)
 
-        self.blockBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, validExtent=validExtent)
-        grid = self.blockBuilder.build()
+        data = {}
+        if not onlyMaterial:
+            self.blockBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, validExtent=validExtent)
+            data["grid"] = self.blockBuilder.build()
 
         self.mtlBuilder.setup(0, tileExtent, debugText=f"{level}/{x}/{y}")
-        mtl = self.mtlBuilder.build().get("materials", [{}])[0]
+        data["material"] = self.mtlBuilder.build().get("materials", [{}])[0]
 
         return {
             "type": "tile",
             "layer": self.layer.jsLayerId,
             "url": url,
-            "data": {
-                "grid": grid,
-                "material": mtl
-            }
+            "data": data
         }
