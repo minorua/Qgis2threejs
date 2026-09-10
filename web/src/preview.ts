@@ -43,7 +43,7 @@ export const preview = {
 /**
  * Initialize the viewer
  */
-export function init(off_screen: boolean, debug_mode: number, qgis_version: number) {
+export function init(off_screen: boolean, debug_mode: number, qgis_version: number, modules_to_load: string[]) {
 
 	conf.debugMode = debug_mode;
 	conf.qgisVersion = qgis_version;
@@ -58,7 +58,7 @@ export function init(off_screen: boolean, debug_mode: number, qgis_version: numb
 			}
 		});
 
-		_init(off_screen);
+		loadModules(modules_to_load).then(() => _init(off_screen));
 	};
 
 	if (window.pyObj) {
@@ -127,6 +127,14 @@ function _init(off_screen) {
 }
 
 //// load functions
+function loadModules(module_paths: string[]): Promise<void> {
+	return module_paths.reduce((promise, path) => {
+		return promise.then(() => new Promise<void>((resolve) => {
+			loadScriptFile(path, resolve, true);
+		}));
+	}, Promise.resolve());
+}
+
 /**
  * Loads JSON-compatible data or handles signals, commands and requests
  * @returns true if no error occurs.

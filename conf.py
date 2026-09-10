@@ -48,7 +48,7 @@ class DEF_SETS:
     Z_EXAGGERATION = 1.0
     Z_SHIFT = 0
 
-    CONTROLS = "OrbitControls.js"    # last selected one has priority
+    CONTROLS = "Orb"    # last selected one has priority
 
     # dem
     TEXTURE_SIZE = 1024

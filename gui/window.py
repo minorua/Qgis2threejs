@@ -241,6 +241,18 @@ class Q3DWindow(QMainWindow):
         ui.actionPerspective.setActionGroup(ui.actionGroupCamera)
         ui.actionOrthographic.setActionGroup(ui.actionGroupCamera)
         ui.actionOrthographic.setChecked(self.settings.isOrthoCamera())
+
+        ui.actionGroupControls = QActionGroup(self)
+        ui.actionOrbitControls.setActionGroup(ui.actionGroupControls)
+        ui.actionMapControls.setActionGroup(ui.actionGroupControls)
+        ui.actionEnvironmentControls.setActionGroup(ui.actionGroupControls)
+
+        match self.settings.controls():
+            case "Map":
+                ui.actionMapControls.setChecked(True)
+            case "Env":
+                ui.actionEnvironmentControls.setChecked(True)
+
         ui.actionNavigationWidget.setChecked(self.settings.isNavigationEnabled())
 
         # signal-slot connections
@@ -252,6 +264,7 @@ class Q3DWindow(QMainWindow):
         ui.actionSceneSettings.triggered.connect(self.showScenePropertiesDialog)
         ui.actionAddPlane.triggered.connect(self.addPlane)
         ui.actionGroupCamera.triggered.connect(self.cameraChanged)
+        ui.actionGroupControls.triggered.connect(self.controlsChanged)
         ui.actionNavigationWidget.toggled.connect(self.navStateChanged)
         ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
         ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
@@ -643,6 +656,7 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.uncheckAll()       # hide all 3D objects from the scene
         self.ui.treeView.clearLayers()
         self.ui.actionPerspective.setChecked(True)
+        self.ui.actionOrbitControls.setChecked(True)
 
         self.settings.initialize(mapSettings=self.qgisIface.mapCanvas().mapSettings(),
                                  isPreview=True,
@@ -720,6 +734,17 @@ class Q3DWindow(QMainWindow):
 
         self.settings.setCamera(is_ortho)
         self.runScript(f"switchCamera({js_bool(is_ortho)})")
+
+    def controlsChanged(self, action):
+        if action == self.ui.actionOrbitControls:
+            name = "Orb"
+        elif action == self.ui.actionEnvironmentControls:
+            name = "Env"
+        else:
+            name = "Map"
+        self.settings.setControls(name)
+
+        self.controller.taskManager.addReloadPageTask()
 
     def navStateChanged(self, enabled):
         self.settings.setNavigationEnabled(enabled)

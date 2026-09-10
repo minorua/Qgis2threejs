@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MIT
 
 import { THREE } from "./three.js";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 import { app, conf, deg2rad, gui, modules, Group, LayerType } from "./core.js";
 import { Scene } from "./scene.js";
@@ -60,7 +59,7 @@ app.init = (container) => {
     setupScene();
 
     app.buildCamera();
-    setupControls();
+    app.setupControls();
 
     setupWidgets();
 
@@ -183,12 +182,34 @@ function setupScene() {
     });
 }
 
-function setupControls() {
-    app.controls = new OrbitControls(app.camera, app.renderer.domElement);
-    app.controls.listenToKeyEvents(window);
-    app.controls.addEventListener("change", (event) => app.render());
+app.setupControls = (name: string) => {
+    if (!name) {
+        if ("EnvironmentControls" in modules) name = "Env";
+        else if ("MapControls" in modules) name = "Map";
+        else if ("OrbitControls" in modules) name = "Orb";
+    }
+
+    if (name == "Env") {
+        app.controls = new modules.EnvironmentControls(app.scene, app.camera, app.renderer.domElement);
+        app.controls.up.set(0, 0, 1);
+        app.controls.fallbackPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+        app.controls.addEventListener("change", () => app.updateControlsAndRender());
+    }
+    else {
+        if (name == "Map") {
+            app.controls = new modules.MapControls(app.camera, app.renderer.domElement);
+        }
+        else if (name == "Orb") {
+            app.controls = new modules.OrbitControls(app.camera, app.renderer.domElement);
+        }
+        else {
+            return;
+        }
+        app.controls.listenToKeyEvents(window);
+        app.controls.addEventListener("change", () => app.render());
+    }
     app.controls.update();
-}
+};
 
 function setupWidgets() {
     if (conf.navigation.enabled) {

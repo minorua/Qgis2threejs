@@ -217,7 +217,15 @@ class ThreeJSExporter(QObject):
         files = [{"dirs": [THREE]}]
 
         # controls
-        files.append({"files": [THREE + "/controls/" + self.settings.controls()], "dest": "three/controls"})
+        ctrl = self.settings.controls()
+        if ctrl == "Env":
+            files.append({"dirs": [LIB + "/3d-tiles-renderer"]})
+        else:
+            ctrl_files = [THREE + "/controls/OrbitControls.js"]
+            if ctrl == "Map":
+                ctrl_files.append(THREE + "/controls/MapControls.js")
+
+            files.append({"files": ctrl_files, "dest": "three/controls"})
 
         if self.settings.isNavigationEnabled():
             files.append({"files": [THREE + "/helpers/ViewHelper.js"], "dest": "three/helpers"})
@@ -308,6 +316,16 @@ class ThreeJSExporter(QObject):
     def imports(self):
         files = []
 
+        # controls
+        ctrl = self.settings.controls()
+        if ctrl == "Env":
+            files.append(ScriptFile.FILES[ScriptFile.ENVIRONMENTCONTROLS])
+        else:
+            files.append(ScriptFile.FILES[ScriptFile.ORBITCONTROLS])
+            if ctrl == "Map":
+                files.append(ScriptFile.FILES[ScriptFile.MAPCONTROLS])
+
+        # view helper
         if self.settings.isNavigationEnabled():
             files.append(ScriptFile.FILES[ScriptFile.VIEWHELPER])
 

@@ -137,7 +137,16 @@
      <addaction name="actionNorthArrow"/>
      <addaction name="actionHeaderFooterLabel"/>
     </widget>
+    <widget class="QMenu" name="menuControls">
+     <property name="title">
+      <string>Controls</string>
+     </property>
+     <addaction name="actionOrbitControls"/>
+     <addaction name="actionMapControls"/>
+     <addaction name="actionEnvironmentControls"/>
+    </widget>
     <addaction name="menuCamera"/>
+    <addaction name="menuControls"/>
     <addaction name="menuWidgets"/>
     <addaction name="separator"/>
     <addaction name="actionResetCameraPosition"/>
@@ -371,6 +380,33 @@
   <action name="actionSaveAsJSON">
    <property name="text">
     <string>three.js JSON (.json)...</string>
+   </property>
+  </action>
+  <action name="actionOrbitControls">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>OrbitControls</string>
+   </property>
+  </action>
+  <action name="actionMapControls">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>MapControls</string>
+   </property>
+  </action>
+  <action name="actionEnvironmentControls">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>EnvironmentControls</string>
    </property>
   </action>
  </widget>

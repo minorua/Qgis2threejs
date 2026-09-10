@@ -13,7 +13,7 @@ from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
 from ... import conf
 from ...conf import DEBUG_MODE
-from ...utils.js import hex_color, js_bool
+from ...utils.js import hex_color, js_bool, pyobj2js
 from ...utils.logging import logger
 
 
@@ -218,9 +218,16 @@ class Q3DController(QObject):
         if configs:
             self.runScript("\n".join(configs))
 
-        self.runScript("init({}, {}, {})".format(js_bool(self.offScreen),
-                                                 DEBUG_MODE,
-                                                 Qgis.QGIS_VERSION_INT))
+        ctrl = self.settings.controls()
+        if ctrl == "Map":
+            mods = [ScriptFile.FILES[ScriptFile.ORBITCONTROLS][0],
+                    ScriptFile.FILES[ScriptFile.MAPCONTROLS][0]]
+        elif ctrl == "Env":
+            mods = [ScriptFile.FILES[ScriptFile.ENVIRONMENTCONTROLS][0]]
+        else:
+            mods = [ScriptFile.FILES[ScriptFile.ORBITCONTROLS][0]]
+
+        self.runScript(f"init({js_bool(self.offScreen)}, {DEBUG_MODE}, {Qgis.QGIS_VERSION_INT}, {pyobj2js(mods, escape=True)})")
 
     def viewerInitialized(self):
         # labels

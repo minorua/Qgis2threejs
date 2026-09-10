@@ -408,13 +408,13 @@ class ExportSettings:
 
     # controls
     def controls(self):
-        ctrl = self.data.get(ExportSettings.CONTROLS, {}).get("comboBox_Controls")
+        ctrl = self.data.get(ExportSettings.CONTROLS, {}).get("name")
         if ctrl:
             return ctrl
         return QSettings().value("/Qgis2threejs/lastControls", DEF_SETS.CONTROLS, type=str)
 
     def setControls(self, name):
-        self.set(ExportSettings.CONTROLS, {"comboBox_Controls": name})
+        self.set(ExportSettings.CONTROLS, {"name": name})
 
     # layer
     def layers(self, export_only=False):

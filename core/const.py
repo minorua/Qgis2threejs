@@ -36,10 +36,16 @@ class ScriptFile:
     OUTLINE = 4
     VIEWHELPER = 5
     BUFGEOMUTILS = 6
+    ORBITCONTROLS = 7
+    MAPCONTROLS = 8
+    ENVIRONMENTCONTROLS = 9
+
     MESHLINE = 10
     TILES3D = 11
+
     PROJ4 = 20
     TWEEN = 22
+
     TEST = 102
 
     # type
@@ -53,6 +59,9 @@ class ScriptFile:
         COLLADALOADER: (THREE_DIR + "loaders/ColladaLoader.js", TYPE_CLASS),
         OUTLINE: (THREE_DIR + "effects/OutlineEffect.js", TYPE_CLASS),
         VIEWHELPER: (THREE_DIR + "helpers/ViewHelper.js", TYPE_CLASS),
+        ORBITCONTROLS: (THREE_DIR + "controls/OrbitControls.js", TYPE_CLASS),
+        MAPCONTROLS: (THREE_DIR + "controls/MapControls.js", TYPE_CLASS),
+        ENVIRONMENTCONTROLS: ("lib/3d-tiles-renderer/EnvironmentControls.js", TYPE_CLASS),
 
         BUFGEOMUTILS: (THREE_DIR + "utils/BufferGeometryUtils.js", TYPE_NAMESPACE),
         MESHLINE: ("lib/meshline/meshline.js", TYPE_NAMESPACE),

@@ -507,6 +507,7 @@ export interface App {
     loadModelData(data, ext: string, resourcePath: string, callback?);
     loadJSONBinaryFile(url: string): Promise<any>;
     buildCamera(is_ortho?: boolean);
+    setupControls(name?: string);
     buildNorthArrow(container: HTMLElement, declination?: number);
     buildViewHelper(container: HTMLElement);
 
