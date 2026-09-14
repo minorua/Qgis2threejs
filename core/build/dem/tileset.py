@@ -40,7 +40,7 @@ class Tileset:
 
     def metadata(self, asJson=False):
         max_level_tile_size = self.gridResolution * self.tileSegments
-        max_level_error = self.gridResolution * 0.5
+        max_level_error = self.gridResolution
 
         origin_x = self.localOrigin.x()
         origin_y = self.localOrigin.y()
