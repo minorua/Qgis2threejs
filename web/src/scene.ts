@@ -128,6 +128,7 @@ export class Scene extends THREE.Scene {
 		if (layer === undefined) {
 			layer = createLayer(data);
 			if (!layer) return;
+
 			layer.addEventListener("renderRequest", () => this.requestRender());
 
 			this.mapLayers[data.id] = layer;
