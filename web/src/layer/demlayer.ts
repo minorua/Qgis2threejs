@@ -38,30 +38,30 @@ export class DEMLayer extends MapLayer {
 		// tiles renderer
 		if (data.tileset) {
 			const mod = modules["3d-tiles-renderer"];
-			if (mod) {
-				const plugin = new Q3DPlugin();
-				plugin.layer = this;
-				plugin.tileset = data.tileset;
-				if (data.body && data.body.blocks) {
-					plugin.tileInfoList = data.body.blocks;
-				}
+			if (!mod) return;
 
-				conf.debugMode = 1;		// TODO: [temporary] remove
-				if (conf.debugMode) {
-					plugin.showBoundingBox = true;
-					plugin.showBoundingVolume = true;
-				}
+			const plugin = new Q3DPlugin();
+			plugin.layer = this;
+			plugin.tileset = data.tileset;
+			if (data.body && data.body.blocks) {
+				plugin.tileInfoList = data.body.blocks;
+			}
 
-				this.tilesRenderer = new mod.TilesRenderer();
-				this.tilesRenderer.registerPlugin(plugin);
-				this.tilesRenderer.setCamera(app.camera);
-				this.tilesRenderer.setResolutionFromRenderer(app.camera, app.renderer);
+			if (conf.tiles.showBoundingBox) {
+				plugin.showBoundingBox = true;
+				plugin.showBoundingVolume = true;
+			}
 
-				this.addObject(this.tilesRenderer.group);
-				scene.addTilesRenderer(this.tilesRenderer);
+			this.tilesRenderer = new mod.TilesRenderer();
+			this.tilesRenderer.registerPlugin(plugin);
+			this.tilesRenderer.setCamera(app.camera);
+			this.tilesRenderer.setResolutionFromRenderer(app.camera, app.renderer);
 
-				this.requestRender();
-			};
+			this.addObject(this.tilesRenderer.group);
+			scene.addTilesRenderer(this.tilesRenderer);
+
+			this.requestRender();
+
 			return;
 		}
 

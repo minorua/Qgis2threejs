@@ -144,6 +144,10 @@ export const conf = {
     /** @type: {number} */
     debugMode: 0,
 
+    tiles: {
+        showBoundingBox: false
+    },
+
     /** @type: {number | null} */
     qgisVersion: null,
 
