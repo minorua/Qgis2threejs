@@ -15,7 +15,7 @@ export class Material {
 	origProp!: MaterialData | Record<string, never>;
 	groupId!: number;
 
-	private _updateAspect?: () => void;
+	private _updateAspect?: () => void = null;
 	private _callbacks: (() => void)[] = [];
 
 	set(material: THREE.Material) {
@@ -146,7 +146,7 @@ export class Material {
 
 		if (this._updateAspect) {
 			app.removeEventListener("canvasSizeChanged", this._updateAspect);
-			this._updateAspect = undefined;
+			this._updateAspect = null;
 		}
 	}
 }
@@ -164,6 +164,14 @@ export class Materials extends THREE.EventDispatcher {
 		}
 		else {
 			this.array.push(new Material().set(material));
+		}
+	}
+
+	remove(material: Material, dispose: boolean = false) {
+		this.removeItem(material.mtl);
+
+		if (dispose) {
+			material.dispose();
 		}
 	}
 

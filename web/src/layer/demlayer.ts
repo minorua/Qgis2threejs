@@ -536,9 +536,15 @@ export function buildTile(layer, data, tile, showBoundingBox = false, showBoundi
 	if (!data.grid) {
 		const material = new Material();
 		material.loadData(data.material, () => layer.requestRender());
+		layer.materials.add(material);
 
 		const engineData = tile.engineData;
+		for (const mtl of engineData.materials) {
+			layer.materials.removeItem(mtl, true);
+		}
+
 		engineData.materials = [material.mtl];
+		engineData.textures = (material.mtl.map) ? [material.mtl.map] : [];
 		engineData.scene.material = material.mtl;
 
 		return Promise.resolve(true);
@@ -592,7 +598,7 @@ export function buildTile(layer, data, tile, showBoundingBox = false, showBoundi
 	const { engineData } = tile;
 	engineData.materials = [material.mtl];
 	engineData.geometry = [geometry];
-	engineData.textures = [];
+	engineData.textures = (material.mtl.map) ? [material.mtl.map] : [];
 	engineData.scene = mesh;
 	engineData.metadata = null;
 

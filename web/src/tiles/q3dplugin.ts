@@ -195,7 +195,7 @@ export class Q3DPlugin {
      * @param {Tile} tile
      */
 	disposeTile(tile) {
-        // TODO:
+        console.debug("disposeTile", tile.content.uri);
     }
 
     setTileMaterialUpdaters() {
@@ -203,6 +203,8 @@ export class Q3DPlugin {
 
         for (const tile of this.tiles.lruCache.itemList) {
             const mesh = tile.engineData.scene;
+            if (!mesh) continue;
+
             mesh.onBeforeRender = (renderer, object, camera, geometry, material, group) => {
                 const uri = tile.content.uri + "?mtl";
 
