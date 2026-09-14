@@ -56,11 +56,10 @@ export class DEMLayer extends MapLayer {
 			this.tilesRenderer.registerPlugin(plugin);
 			this.tilesRenderer.setCamera(app.camera);
 			this.tilesRenderer.setResolutionFromRenderer(app.camera, app.renderer);
+			this.tilesRenderer.addEventListener("needs-update", () => this.requestRender());
 
 			this.addObject(this.tilesRenderer.group);
 			scene.addTilesRenderer(this.tilesRenderer);
-
-			this.requestRender();
 
 			return;
 		}
