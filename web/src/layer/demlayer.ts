@@ -654,6 +654,8 @@ export function buildTile(layer, data, tile, showBoundingBox = false, showBoundi
 
 	const geometry = new GridGeometry();
 	const mesh = new THREE.Mesh(geometry, material.mtl);
+	mesh.userData.layerId = layer.id;
+	mesh.userData.tile = tile;
 
 	const geom_data = data.grid;
 	const origin = layer.sceneData.origin;
