@@ -451,14 +451,16 @@ function createBlock(layer: DEMLayer) {
 export class GridGeometry extends THREE.BufferGeometry {
 
 	/**
-	 * @param array     - DEM values
-	 * @param columns   - Number of columns of actual grid data
-	 * @param rows      - Number of rows of actual grid data
-	 * @param extent    - Extent of the plane
-	 * @param nodata    - No data value
-	 * @param segments	- Segments of a tile side. When supplied, the grid is treated as a square tile.
+	 * @param array      - DEM values
+	 * @param columns    - Number of columns of actual grid data
+	 * @param rows       - Number of rows of actual grid data
+	 * @param extent     - Extent of the plane
+	 * @param nodata     - No data value
+	 * @param segments	 - Segments of a tile side. When supplied, the grid is treated as a square tile.
+	 * @param skirtDepth - Depth of the skirt. 0 disables the skirt, a positive value specifies the skirt depth,
+	 * 					   and -1 uses an automatically calculated depth.
 	 */
-	loadData(array: Float32Array, columns: number, rows: number, extent: MapExtent, nodata?: number | Float32Array, segments?: number) {
+	loadData(array: Float32Array, columns: number, rows: number, extent: MapExtent, nodata?: number | Float32Array, segments?: number, skirtDepth: number = 0) {
 		if (nodata instanceof Float32Array) nodata = nodata[0];
 
 		const { width, height }  = extent;
@@ -479,6 +481,14 @@ export class GridGeometry extends THREE.BufferGeometry {
 		let currIndices = new Array(columns);
 		let prevIndices = new Array(columns);
 
+		const topIndices = new Array(columns).fill(-1);
+		const bottomIndices = new Array(columns).fill(-1);
+		const leftIndices = new Array(rows).fill(-1);
+		const rightIndices = new Array(rows).fill(-1);
+
+		let zmin = Number.POSITIVE_INFINITY;
+		let zmax = Number.NEGATIVE_INFINITY;
+
 		for (let iy = 0; iy < rows; iy++) {
 
 		    currIndices.fill(-1);
@@ -494,7 +504,18 @@ export class GridGeometry extends THREE.BufferGeometry {
 
 				if (z === nodata) continue;
 
+				if (z < zmin) zmin = z;
+				if (z > zmax) zmax = z;
+
 				currIndices[ix] = vertexIndex;
+
+				if (skirtDepth) {
+					if (iy === 0) topIndices[ix] = vertexIndex;
+					if (iy === rows - 1) bottomIndices[ix] = vertexIndex;
+					if (ix === 0) leftIndices[iy] = vertexIndex;
+					if (ix === columns - 1) rightIndices[iy] = vertexIndex;
+				}
+
 				++vertexIndex;
 
 				const x = ix * segment_width - half_w;
@@ -523,11 +544,74 @@ export class GridGeometry extends THREE.BufferGeometry {
 		}
 
 		this.setIndex(indices);
-		this.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-		this.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+		this.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+		this.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+		this.computeVertexNormals();
 		this.computeBoundingSphere();
 		this.computeBoundingBox();
-		this.computeVertexNormals();
+
+		if (!skirtDepth) return;
+
+		if (skirtDepth == -1) {
+			skirtDepth = (zmax - zmin) * 0.05;
+		}
+
+		const addSkirt = (boundary: number[]) => {
+			for (let i = 0; i < boundary.length - 1; i++) {
+				const v1 = boundary[i];
+				const v2 = boundary[i + 1];
+
+				if (v1 === -1 || v2 === -1) continue;
+
+				const x1 = vertices[v1 * 3];
+				const y1 = vertices[v1 * 3 + 1];
+				const z1 = vertices[v1 * 3 + 2];
+
+				const x2 = vertices[v2 * 3];
+				const y2 = vertices[v2 * 3 + 1];
+				const z2 = vertices[v2 * 3 + 2];
+
+				vertices.push(
+					x1, y1, z1,
+					x2, y2, z2,
+					x1, y1, z1 - skirtDepth,
+					x2, y2, z2 - skirtDepth
+				);
+
+				uvs.push(
+					uvs[v1 * 2], uvs[v1 * 2 + 1],
+					uvs[v2 * 2], uvs[v2 * 2 + 1],
+					uvs[v1 * 2], uvs[v1 * 2 + 1],
+					uvs[v2 * 2], uvs[v2 * 2 + 1]
+				);
+
+				const top1 = vertexIndex++;
+				const top2 = vertexIndex++;
+				const bottom1 = vertexIndex++;
+				const bottom2 = vertexIndex++;
+
+				indices.push(
+					top1, top2, bottom2,
+					top1, bottom2, bottom1
+				);
+			}
+		};
+
+		addSkirt(topIndices);
+		addSkirt(rightIndices);
+		addSkirt(bottomIndices.reverse());
+		addSkirt(leftIndices.reverse());
+
+		const normals = Array.from(this.getAttribute("normal").array);
+		const skirtVertexCount = (vertices.length - normals.length) / 3;
+		for (let i = 0; i < skirtVertexCount; i++) {
+			normals.push(0, 0, 1);
+		}
+
+		this.setIndex(indices);
+		this.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+		this.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+		this.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
 	}
 }
 
@@ -566,7 +650,7 @@ export function buildTile(layer, data, tile, showBoundingBox = false, showBoundi
 	mesh.position.set(geom_data.extent.cx - origin.x, geom_data.extent.cy - origin.y, 0);
 
 	decodeBase64TypedArrayObject(geom_data.grid).then((grid_data: ParsedDEMGridData) => {
-		geometry.loadData(grid_data.dem_values, grid_data.columns, grid_data.rows, geom_data.extent, grid_data.nodata, geom_data.segments);
+		geometry.loadData(grid_data.dem_values, grid_data.columns, grid_data.rows, geom_data.extent, grid_data.nodata, geom_data.segments, -1);
 
 		mesh.material.needsUpdate = true;		// update shader after computing vertex normals
 
