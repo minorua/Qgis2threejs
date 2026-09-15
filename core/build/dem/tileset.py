@@ -47,7 +47,9 @@ class Tileset:
         origin_z = self.localOrigin.z()
 
         xmin = self.boundingRect.xMinimum() - origin_x
+        xmax = self.boundingRect.xMaximum() - origin_x
         ymin = self.boundingRect.yMinimum() - origin_y
+        ymax = self.boundingRect.yMaximum() - origin_y
         zmin = self.zrange.zmin - origin_z
         zmax = self.zrange.zmax - origin_z
 
@@ -69,7 +71,7 @@ class Tileset:
             node = {
                 "boundingVolume": {
                     "box": BoundingVolume(tile_xmin, tile_ymin, zmin,
-                                          tile_xmax, tile_ymax, zmax).toObbData()
+                                          min(tile_xmax, xmax), min(tile_ymax, ymax), zmax).toObbData()
                 },
                 "geometricError": geometric_error,
                 "refine": "REPLACE",

@@ -9,7 +9,7 @@ import { Material } from "../material.js";
 import { createWallGeometry, decodeBase64TypedArrayObject, getBoundaryLines } from "../utils.js";
 import { Q3DPlugin } from "../tiles/q3dplugin.js";
 
-import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, MapExtent, ParsedDEMGridData, ParsedDEMMeshData, Point3, TileInfo, Vec3 } from "../types.js";
+import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, MapExtent, ParsedDEMGridData, ParsedDEMMeshData, Point3, TileInfo, Tileset, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
 
 
@@ -133,6 +133,16 @@ export class DEMLayer extends MapLayer {
 			}
 		}
 		this.requestRender();
+	}
+
+	boundingBox() {
+		if (!this.tilesRenderer || !this.tilesRenderer.rootTileset) return super.boundingBox();
+
+		const tileset = this.tilesRenderer.rootTileset as Tileset;
+		const box = tileset.root.boundingVolume.box;
+		const center = new THREE.Vector3().fromArray(box);
+		const halfSize = new THREE.Vector3(box[3], box[7], box[11])
+		return new THREE.Box3().setFromCenterAndSize(center, halfSize.multiplyScalar(2));
 	}
 
 	setSideVisible(visible: boolean) {
