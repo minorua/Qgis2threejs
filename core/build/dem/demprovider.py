@@ -73,8 +73,8 @@ class DEMProviderBase:
     def readValue(self, x, y):
         """get value at specified position using 1px * 1px memory raster"""
         res = 0.1
-        extent = MapExtent(QgsPointXY(x, y), res, res)
-        return self.readValues(1, 1, extent)[0]
+        geotransform = [x - res / 2, res, 0, y + res / 2, 0, -res]
+        return self._read(1, 1, geotransform, asList=True)[0]
 
 
 class GDALDEMProvider(DEMProviderBase):
