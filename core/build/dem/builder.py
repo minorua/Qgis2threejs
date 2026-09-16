@@ -83,7 +83,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         else:
             BldClass = DEMBlockResampBuilder
 
-        self.blockBuilder = BldClass(layer, settings, self.provider, self.mtlBuilder.materialManager, self.assetDestination)
+        self.demBuilder = BldClass(layer, settings, self.provider, self.mtlBuilder.materialManager, self.assetDestination)
 
         self._tileset = None
 
@@ -273,8 +273,8 @@ class DEMLayerBuilder(LayerBuilderBase):
             # set up grid builder
             if not self.layer.opt.onlyMaterial:
                 # DEMBlockRawBuilder
-                self.blockBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments, validExtent=validExtent)
-                yield BuildTask(self.blockBuilder)
+                self.demBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments, validExtent=validExtent)
+                yield BuildTask(self.demBuilder)
 
             # set up material builder for remaininig materials
             if self.layer.opt.allMaterials:
@@ -350,7 +350,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                 if is_center:
                     blkBuilder = centerBlk
                 else:
-                    blkBuilder = self.blockBuilder
+                    blkBuilder = self.demBuilder
                     if sx * sx <= 1 and sy * sy <= 1:
                         neighbors = [(sx, sy, centerBlk, 1)]
 
@@ -382,8 +382,8 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         data = {}
         if not onlyMaterial:
-            self.blockBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, validExtent=validExtent)
-            data["grid"] = self.blockBuilder.build()
+            self.demBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, validExtent=validExtent)
+            data["grid"] = self.demBuilder.build()
 
         self.mtlBuilder.setup(0, tileExtent, debugText=f"{level}/{x}/{y}")
         data["material"] = self.mtlBuilder.build().get("materials", [{}])[0]
