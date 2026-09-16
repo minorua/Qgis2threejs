@@ -337,8 +337,8 @@ class DEMBlockRawBuilder(DEMBlockBuilderBase):
             res = self.tileSize / self.segments
             validExtent = self.validExtent
 
-            columns = int(validExtent.width() / res + 1)
-            rows = int(validExtent.height() / res + 1)
+            columns = round(validExtent.width() / res) + 1
+            rows = round(validExtent.height() / res) + 1
 
             arr = self.provider.readAsArray(columns, rows, validExtent)
 
