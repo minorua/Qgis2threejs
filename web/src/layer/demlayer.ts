@@ -625,7 +625,7 @@ export class GridGeometry extends THREE.BufferGeometry {
 	}
 }
 
-export function buildTile(layer, data, tile, showBoundingBox = false, showBoundingVolume = false) {
+export async function buildTile(layer, data, tile, showBoundingBox = false, showBoundingVolume = false) {
 	if (!data.grid) {
 		const material = new Material();
 		material.loadData(data.material, () => layer.requestRender());
@@ -640,13 +640,8 @@ export function buildTile(layer, data, tile, showBoundingBox = false, showBoundi
 		engineData.textures = (material.mtl.map) ? [material.mtl.map] : [];
 		engineData.scene.material = material.mtl;
 
-		return Promise.resolve(true);
+		return true;
 	}
-
-	let resolve;
-	const promise = new Promise((r) => {
-		resolve = r;
-	});
 
 	const material = new Material();
 	material.loadData(data.material);
@@ -659,35 +654,6 @@ export function buildTile(layer, data, tile, showBoundingBox = false, showBoundi
 	const origin = layer.sceneData.origin;
 	mesh.position.set(geom_data.extent.cx - origin.x, geom_data.extent.cy - origin.y, 0);
 
-	decodeBase64TypedArrayObject(geom_data.grid).then((grid_data: ParsedDEMGridData) => {
-		geometry.loadData(grid_data.dem_values, grid_data.columns, grid_data.rows, geom_data.extent, grid_data.nodata, geom_data.segments, -1);
-
-		mesh.material.needsUpdate = true;		// update shader after computing vertex normals
-
-		if (showBoundingBox) {
-			const helper = new THREE.Box3Helper(
-				geometry.boundingBox,
-				0xffff00
-			);
-			helper.updateMatrixWorld();     // necessary because the helper is a grandchild of TilesGroup, which does not call this
-			mesh.add(helper);
-		}
-
-		if (showBoundingVolume) {
-			const box = tile.boundingVolume.box;
-			const helper = new THREE.Box3Helper(
-				new THREE.Box3().setFromCenterAndSize(
-					new THREE.Vector3().fromArray(box),
-					new THREE.Vector3(box[3] * 2, box[7] * 2, box[11] * 2)
-				),
-				0x33ff33
-			);
-			layer.objectGroup.add(helper);
-		}
-
-		resolve(true);
-	});
-
 	const { engineData } = tile;
 	engineData.materials = [material.mtl];
 	engineData.geometry = [geometry];
@@ -695,5 +661,31 @@ export function buildTile(layer, data, tile, showBoundingBox = false, showBoundi
 	engineData.scene = mesh;
 	engineData.metadata = null;
 
-	return promise;
+	const grid_data = await decodeBase64TypedArrayObject(geom_data.grid) as ParsedDEMGridData;
+	geometry.loadData(grid_data.dem_values, grid_data.columns, grid_data.rows, geom_data.extent, grid_data.nodata, geom_data.segments, -1);
+
+	mesh.material.needsUpdate = true;		// update shader after computing vertex normals
+
+	if (showBoundingBox) {
+		const helper = new THREE.Box3Helper(
+			geometry.boundingBox,
+			0xffff00
+		);
+		helper.updateMatrixWorld();     // necessary because the helper is a grandchild of TilesGroup, which does not call this
+		mesh.add(helper);
+	}
+
+	if (showBoundingVolume) {
+		const box = tile.boundingVolume.box;
+		const helper = new THREE.Box3Helper(
+			new THREE.Box3().setFromCenterAndSize(
+				new THREE.Vector3().fromArray(box),
+				new THREE.Vector3(box[3] * 2, box[7] * 2, box[11] * 2)
+			),
+			0x33ff33
+		);
+		layer.objectGroup.add(helper);
+	}
+
+	return true;
 }

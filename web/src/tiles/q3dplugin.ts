@@ -112,15 +112,15 @@ export class Q3DPlugin {
      * @param url
      * @param options
      */
-    fetchData(url, options) {
+    async fetchData(url, options) {
         if (typeof window.requestTileData !== "function") {
             const tileId = url.split("/").slice(-3).join("/").replace(".tile", "")
 
             const tileInfo = this.tileInfoList.find(info => info.tileId === tileId);
             if (tileInfo) {
-                return Promise.resolve(tileInfo);
+                return tileInfo;
             }
-            return Promise.reject(new Error("Tile info not found"));
+            throw new Error("Tile info not found");
         }
 
         const pending = this.pendingRequests.get(url);
@@ -157,38 +157,30 @@ export class Q3DPlugin {
      * @param {Tile} tile
      * @param {string} extension
      */
-	parseTile(content, tile, extension, url, abortSignal) {
+	async parseTile(content, tile, extension, url, abortSignal) {
         if (content.tileId === undefined) {
             return buildTile(this.layer, content, tile, this.showBoundingBox, this.showBoundingVolume);
         }
 
-        let resolve, reject;
-        const promise = new Promise((res, rej) => {
-            resolve = res;
-            reject = rej;
-        });
-
         const grid = content.grid as DEMBlockGridData;
         const extent = grid.extent;
 
-        app.loadJSONBinaryFile(grid.grid.url).then((grid_data: ParsedDEMGridData) => {
-            grid.grid = grid_data;
+        const grid_data = await app.loadJSONBinaryFile(grid.grid.url) as ParsedDEMGridData;
+        grid.grid = grid_data;
 
-            const data = {
-                grid: grid,
-                material: content.material.materials[0],
-                translate: [
-                    extent.cx - this.layer.sceneData.origin.x,
-                    extent.cy - this.layer.sceneData.origin.y,
-                    0
-                ]
-            };
+        const data = {
+            grid: grid,
+            material: content.material.materials[0],
+            translate: [
+                extent.cx - this.layer.sceneData.origin.x,
+                extent.cy - this.layer.sceneData.origin.y,
+                0
+            ]
+        };
 
-            buildTile(this.layer, data, tile, this.showBoundingBox, this.showBoundingVolume);
-            resolve(true);
-        });
+        buildTile(this.layer, data, tile, this.showBoundingBox, this.showBoundingVolume);
 
-        return promise;
+		return true;
 	}
 
     /**
