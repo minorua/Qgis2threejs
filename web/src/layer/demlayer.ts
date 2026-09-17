@@ -20,6 +20,7 @@ export class DEMLayer extends MapLayer {
 	sideVisible: boolean = false;
 	auxiliaryMtl: Partial<Record<"sides", Material>> = {};
 	tilesRenderer = null;
+	_mtlIndex = 0;
 
 	anim?: any[];
 
@@ -116,13 +117,19 @@ export class DEMLayer extends MapLayer {
 		this.requestRender();
 	}
 
-	get currentMtlIndex(): number | undefined {
-		const b = this.blocks[0];
-		return (b) ? b.currentMtlIndex : undefined;
+	get currentMtlIndex(): number {
+		return this._mtlIndex;
 	}
 
 	set currentMtlIndex(mtlIndex: number) {
-		this.materials.removeItemsByGroupId(this.currentMtlIndex);
+		this.materials.removeItemsByGroupId(this._mtlIndex);
+
+		this._mtlIndex = mtlIndex;
+
+		if (this.tilesRenderer) {
+			this.tilesRenderer.plugins[0].setTileMaterialUpdaters(mtlIndex);
+			return;
+		}
 
 		for (const b of this.blocks) {
 			const m = b.materials[mtlIndex];
@@ -626,29 +633,14 @@ export class GridGeometry extends THREE.BufferGeometry {
 }
 
 export async function buildTile(layer, data, tile, showBoundingBox = false, showBoundingVolume = false) {
-	if (!data.grid) {
-		const material = new Material();
-		material.loadData(data.material, () => layer.requestRender());
-		layer.materials.add(material);
-
-		const engineData = tile.engineData;
-		for (const mtl of engineData.materials) {
-			layer.materials.removeItem(mtl, true);
-		}
-
-		engineData.materials = [material.mtl];
-		engineData.textures = (material.mtl.map) ? [material.mtl.map] : [];
-		engineData.scene.material = material.mtl;
-
-		return true;
-	}
-
 	const material = new Material();
-	material.loadData(data.material);
+	material.loadData(data.materials[layer.currentMtlIndex]);
 	layer.materials.add(material);
 
 	const geometry = new GridGeometry();
 	const mesh = new THREE.Mesh(geometry, material.mtl);
+	mesh.userData.layerId = layer.id;
+	mesh.userData.materials = data.materials;
 
 	const geom_data = data.grid;
 	const origin = layer.sceneData.origin;
@@ -661,7 +653,7 @@ export async function buildTile(layer, data, tile, showBoundingBox = false, show
 	engineData.scene = mesh;
 	engineData.metadata = null;
 
-	const grid_data = await decodeBase64TypedArrayObject(geom_data.grid) as ParsedDEMGridData;
+	const grid_data = geom_data.grid;
 	geometry.loadData(grid_data.dem_values, grid_data.columns, grid_data.rows, geom_data.extent, grid_data.nodata, geom_data.segments, -1);
 
 	mesh.material.needsUpdate = true;		// update shader after computing vertex normals

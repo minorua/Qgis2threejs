@@ -389,8 +389,8 @@ class DEMLayerBuilder(LayerBuilderBase):
             self.demBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, validExtent=validExtent)
             data["grid"] = self.demBuilder.build()
 
-        self.mtlBuilder.setup(0, tileExtent, debugText=f"{level}/{x}/{y}")
-        data["material"] = self.mtlBuilder.build().get("materials", [{}])[0]
+        self.mtlBuilder.setup(0, tileExtent, asBlock=False, debugText=f"{level}/{x}/{y}")
+        data["materials"] = [self.mtlBuilder.build()]
 
         return {
             "type": "tile",

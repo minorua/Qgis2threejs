@@ -317,7 +317,7 @@ export interface TileData extends BaseData {
     url: string;
     data: {
         grid: DEMGridData;
-        material: MaterialData;
+        materials: MaterialData[];
     }
 }
 

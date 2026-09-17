@@ -5,6 +5,8 @@
 
 import { app } from "../core.js"
 import { buildTile } from "../layer/demlayer.js";
+import { Material } from "../material.js";
+import { decodeBase64TypedArrayObject } from "../utils.js";
 
 import type { TilesRenderer } from "lib/3d-tiles-renderer/3d-tiles-renderer.js";
 import type { DEMBlockGridData, ParsedDEMGridData, Tileset } from "../types.js";
@@ -117,12 +119,12 @@ export class Q3DPlugin {
             const tileId = url.split("/").slice(-3).join("/").replace(".tile", "")
 
             const tileInfo = this.tileInfoList.find(info => info.tileId === tileId);
-            if (tileInfo) {
-                return tileInfo;
-            }
+            if (tileInfo) return tileInfo;
+
             throw new Error("Tile info not found");
         }
 
+        // preview
         const pending = this.pendingRequests.get(url);
         if (pending) return pending.promise;
 
@@ -158,19 +160,19 @@ export class Q3DPlugin {
      * @param {string} extension
      */
 	async parseTile(content, tile, extension, url, abortSignal) {
-        if (content.tileId === undefined) {
+        if (content.tileId === undefined) {     // preview
+            const geom_data = content.grid;
+            geom_data.grid = await decodeBase64TypedArrayObject(geom_data.grid) as ParsedDEMGridData;
             return buildTile(this.layer, content, tile, this.showBoundingBox, this.showBoundingVolume);
         }
 
         const grid = content.grid as DEMBlockGridData;
+        grid.grid = await app.loadJSONBinaryFile(grid.grid.url) as ParsedDEMGridData;
+
         const extent = grid.extent;
-
-        const grid_data = await app.loadJSONBinaryFile(grid.grid.url) as ParsedDEMGridData;
-        grid.grid = grid_data;
-
         const data = {
             grid: grid,
-            material: content.materials[0],
+            materials: content.materials,
             translate: [
                 extent.cx - this.layer.sceneData.origin.x,
                 extent.cy - this.layer.sceneData.origin.y,
@@ -190,33 +192,58 @@ export class Q3DPlugin {
         console.debug("disposeTile", tile.content.uri);
     }
 
-    setTileMaterialUpdaters() {
+    setTileMaterialUpdaters(mtlIndex: number) {
         const noop = () => {};
 
         for (const tile of this.tiles.lruCache.itemList) {
             const mesh = tile.engineData.scene;
             if (!mesh) continue;
 
-            mesh.onBeforeRender = (renderer, object, camera, geometry, material, group) => {
-                const uri = tile.content.uri + "?mtl";
+            if (mtlIndex !== undefined) {
+                this.layer.materials.remove(mesh.material, true);
 
-                const pending = this.pendingRequests.get(uri);
-                if (pending) return;
+                const material = new Material();
+                material.loadData(mesh.userData.materials[mtlIndex], () => this.layer.requestRender());
+                this.layer.materials.add(material);
 
-                window.requestTileData(uri);
+                const mtl = material.mtl;
+                tile.engineData.materials = [mtl];
+        		tile.engineData.textures = (mtl.map) ? [mtl.map] : [];
+                mesh.material = mtl;
+            }
+            else {      // preview
+                mesh.onBeforeRender = (renderer, object, camera, geometry, material, group) => {
+                    const uri = tile.content.uri + "?mtl";
+                    const pending = this.pendingRequests.get(uri);
+                    if (pending) return;
 
-                let resolve, reject;
-                const promise = new Promise((res, rej) => {
-                    resolve = res;
-                    reject = rej;
-                }).then((content) => {
-                    buildTile(this.layer, content, tile, this.showBoundingBox, this.showBoundingVolume);
-                });
+                    window.requestTileData(uri);
 
-                this.pendingRequests.set(uri, { promise, resolve, reject });
+                    let resolve, reject;
+                    const promise = new Promise((res, rej) => {
+                        resolve = res;
+                        reject = rej;
+                    }).then((content) => {
+                        const material = new Material();
+                        material.loadData(content.materials[0], () => this.layer.requestRender());
+                        this.layer.materials.add(material);
 
-                mesh.onBeforeRender = noop;
-            };
+                        const engineData = tile.engineData;
+                        for (const mtl of engineData.materials) {
+                            this.layer.materials.removeItem(mtl, true);
+                        }
+
+                        const mtl = material.mtl;
+                        engineData.materials = [mtl];
+                        engineData.textures = (mtl.map) ? [mtl.map] : [];
+                        engineData.scene.material = mtl;
+                    });
+
+                    this.pendingRequests.set(uri, { promise, resolve, reject });
+
+                    mesh.onBeforeRender = noop;
+                };
+            }
         }
     }
 }
