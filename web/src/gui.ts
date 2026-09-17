@@ -237,6 +237,8 @@ gui.showQueryResult = (point, layer, obj, show_coords) => {
         }
     }
     gui.popup.show("queryresult");
+
+    console.info("Clicked", obj);
 };
 
 gui.showPrintDialog = () => {
