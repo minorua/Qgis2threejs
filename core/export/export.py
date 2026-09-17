@@ -407,19 +407,26 @@ class ThreeJSExporter(QObject):
     def buildLayers(self, settings):
         layers = []
         layer_list = [layer for layer in settings.layers() if layer.visible]
-        total = len(layer_list)
+        layer_count = len(layer_list)
         for i, layer in enumerate(layer_list):
             if self.aborted:
                 raise ExportCancelled()
 
-            self.progress(i, total, f"Building {layer.name} layer...")
-            obj = self.buildLayer(layer, settings)
+            progress_start = i / layer_count * 90
+            progress_step = 90 / layer_count
+
+            self.progress(int(progress_start), msg=f"Building {layer.name} layer...")
+
+            def prog(current=0, total=100, msg=""):
+                self.progress(int(progress_start + current / total * progress_step), msg=msg)
+
+            obj = self.buildLayer(layer, settings, prog)
             if obj:
                 layers.append(obj)
 
         return layers
 
-    def buildLayer(self, layer, settings):
+    def buildLayer(self, layer, settings, progress=None):
         title = js_utils.abchex(self.nextLayerIndex())
 
         if settings.localMode:
@@ -435,7 +442,7 @@ class ThreeJSExporter(QObject):
         layer.opt.allMaterials = True
 
         builder_cls = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)
-        builder = builder_cls(layer, settings, self.imageManager, assetDestination, log=self.log)
+        builder = builder_cls(layer, settings, self.imageManager, assetDestination, progress=progress, log=self.log)
         if builder_cls == VectorLayerBuilder:
             self.modelManagers.append(builder.modelManager)
 

@@ -251,7 +251,9 @@ class DEMLayerBuilder(LayerBuilderBase):
         mtlCount = len(materials)
         currentMtlId = self.properties.get("mtlId")
 
-        for blockIndex, tile in enumerate(tileset.iterTiles(minLevel)):
+        tiles = list(tileset.iterTiles(minLevel))
+        tileCount = len(tiles)
+        for i, tile in enumerate(tiles):
             if minLevel is not None:
                 yield TileIdTask(tile)
 
@@ -265,6 +267,8 @@ class DEMLayerBuilder(LayerBuilderBase):
                 self.assetDestination.baseUrl = f"{dest.baseUrl}{self.layer.jsLayerId}/{tile.level}/{tile.x}/"
                 mkpath(self.assetDestination.outputDir)
                 blockIndex = tile.y
+            else:
+                blockIndex = i
 
             # set up material builder for first/current material
             if self.layer.opt.allMaterials and mtlCount:
@@ -287,7 +291,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                     self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId))
                     yield BuildTask(self.mtlBuilder)
 
-            self.progress(blockIndex + 1, tileset.tileShape.cols * tileset.tileShape.rows)
+            self.progress(i + 1, tileCount)
 
         if dest:
             dest.copyTo(self.assetDestination)

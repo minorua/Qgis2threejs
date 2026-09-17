@@ -82,10 +82,9 @@ class DEMMaterialBuilder:
 
                 mi = self.materialManager.getMeshIndex(mt, color, opacity, flat=flat, doubleSide=True)
 
-        # build material
-        _mi_str = "_{}".format(mtlIndex) if mtlIndex else ""
+        mtl_suffix = f"_{mtlIndex}" if mtlIndex else ""
         ext = fmt.lower().replace("jpeg", "jpg")
-        tail = f"{self.blockIndex}{_mi_str}.{ext}"
+        tail = f"{self.blockIndex}{mtl_suffix}.{ext}"
 
         filepath = url = None
         if self.assetDestination:
