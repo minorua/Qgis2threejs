@@ -50,22 +50,22 @@ class DataTask:
         return self.data
 
 
-class BuildTasks:
+class BuildResultSet:
     def __init__(self, discardResult=False):
-        self.tasks = []
+        self.results = {}
         self.discardResult = discardResult
 
-    def addTask(self, task: BuildTask, dataKey=""):
-        self.tasks.append((task, dataKey))
+    def add(self, data, dataKey=""):
+        if not dataKey:
+            return
+
+        if dataKey.endswith("[]"):
+            self.results.setdefault(dataKey[:-2], []).append(data)
+        else:
+            self.results[dataKey] = data
 
     def build(self):
-        d = {}
-        for task, dataKey in self.tasks:
-            data = task.build()
-            if dataKey:
-                d[dataKey] = data
-
-        return None if self.discardResult else d
+        return None if self.discardResult else self.results
 
 
 class DEMLayerBuilder(LayerBuilderBase):
@@ -213,25 +213,25 @@ class DEMLayerBuilder(LayerBuilderBase):
     def _buildTasks_TileExport(self, minLevel=None):
         materials = self.properties.get("materials", [])
         tasksPerSet = 2 + len(materials)
-        taskset = None
+        results = None
 
         for i, task in enumerate(self._buildTasks_Raw(minLevel=minLevel)):
             m = i % tasksPerSet
             if m == 0:
-                if taskset:
-                    yield taskset
+                if results:
+                    yield results
 
-                taskset = BuildTasks()
-                taskset.addTask(task, "tileId")
-            elif m == 1:
-                taskset.addTask(task, "material")
+                results = BuildResultSet()
+                dataKey = "tileId"
             elif m == 2:
-                taskset.addTask(task, "grid")
+                dataKey = "grid"
             else:
-                taskset.addTask(task)
+                dataKey = "materials[]"
 
-        if taskset:
-            yield taskset
+            results.add(task.build(), dataKey)
+
+        if results:
+            yield results
 
     def _buildTasks_Raw(self, segments=128, minLevel=None):
         tileset = self._getTileset(segments)
@@ -239,9 +239,13 @@ class DEMLayerBuilder(LayerBuilderBase):
             logger.error("Failed to create a tileset.")
             return
 
-        dest = self.assetDestination.clone() if self.assetDestination else None
-        if minLevel is not None:
-            self.assetDestination.filePrefix = ""
+        isPreview = self.settings.isPreview
+        if isPreview:
+            dest = None
+        else:
+            dest = self.assetDestination.clone()
+            if minLevel is not None:
+                self.assetDestination.filePrefix = ""
 
         materials = self.properties.get("materials", [])
         mtlCount = len(materials)
@@ -265,9 +269,9 @@ class DEMLayerBuilder(LayerBuilderBase):
             # set up material builder for first/current material
             if self.layer.opt.allMaterials and mtlCount:
                 id = materials[0].get("id")
-                self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, useNow=bool(id == currentMtlId))
+                self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId))
             else:
-                self.mtlBuilder.setup(blockIndex, tileExtent, useNow=True)
+                self.mtlBuilder.setup(blockIndex, tileExtent, asBlock=isPreview, useNow=True)
             yield BuildTask(self.mtlBuilder)
 
             # set up grid builder
@@ -280,7 +284,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             if self.layer.opt.allMaterials:
                 for idx in range(1, mtlCount):
                     id = materials[idx].get("id")
-                    self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, useNow=bool(id == currentMtlId))
+                    self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId))
                     yield BuildTask(self.mtlBuilder)
 
             self.progress(blockIndex + 1, tileset.tileShape.cols * tileset.tileShape.rows)

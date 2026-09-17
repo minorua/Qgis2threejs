@@ -170,7 +170,7 @@ export class Q3DPlugin {
 
         const data = {
             grid: grid,
-            material: content.material.materials[0],
+            material: content.materials[0],
             translate: [
                 extent.cx - this.layer.sceneData.origin.x,
                 extent.cy - this.layer.sceneData.origin.y,
