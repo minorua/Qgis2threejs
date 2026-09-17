@@ -5,8 +5,7 @@
 import math
 import os
 from osgeo import gdal
-from qgis.PyQt.QtCore import QBuffer, QIODevice, QSize
-from qgis.PyQt.QtGui import QImage, QPainter, QFont, QColor
+from qgis.PyQt.QtCore import QSize
 from qgis.core import QgsPoint, QgsProject
 
 from .block_builder import DEMBlockResampBuilder, DEMBlockRawBuilder
@@ -17,7 +16,7 @@ from ..layerbuilderbase import LayerBuilderBase
 from ...const import DEMMtlType
 from ...geometry import dissolvePolygonsWithinExtent
 from ...mapextent import MapExtent, ZRange
-from ....conf import DEF_SETS, GRID_DEM_OUTPUT_MODE
+from ....conf import DEBUG_MODE, DEF_SETS, GRID_DEM_OUTPUT_MODE
 from ....utils.basic import  parseFloat
 from ....utils.file import mkpath
 from ....utils.js import hex_color
@@ -253,9 +252,13 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         tiles = list(tileset.iterTiles(minLevel))
         tileCount = len(tiles)
+        debugText = ""
         for i, tile in enumerate(tiles):
             if minLevel is not None:
                 yield TileIdTask(tile)
+
+            if DEBUG_MODE:
+                debugText = f"{tile.level}/{tile.x}/{tile.y}"
 
             tileExtent = MapExtent.fromRect(tile.rect)
 
@@ -273,12 +276,12 @@ class DEMLayerBuilder(LayerBuilderBase):
             # set up material builder for first/current material
             if self.layer.opt.allMaterials and mtlCount:
                 id = materials[0].get("id")
-                self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId))
+                self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId), debugText=debugText)
             else:
-                self.mtlBuilder.setup(blockIndex, tileExtent, asBlock=isPreview, useNow=True)
+                self.mtlBuilder.setup(blockIndex, tileExtent, asBlock=isPreview, useNow=True, debugText=debugText)
             yield BuildTask(self.mtlBuilder)
 
-            # set up grid builder
+            # set up dem builder
             if not self.layer.opt.onlyMaterial:
                 # DEMBlockRawBuilder
                 self.demBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments, validExtent=validExtent)
@@ -288,7 +291,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             if self.layer.opt.allMaterials:
                 for idx in range(1, mtlCount):
                     id = materials[idx].get("id")
-                    self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId))
+                    self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId), debugText=debugText)
                     yield BuildTask(self.mtlBuilder)
 
             self.progress(i + 1, tileCount)
@@ -393,7 +396,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             self.demBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, validExtent=validExtent)
             data["grid"] = self.demBuilder.build()
 
-        self.mtlBuilder.setup(0, tileExtent, asBlock=False, debugText=f"{level}/{x}/{y}")
+        self.mtlBuilder.setup(0, tileExtent, asBlock=False, debugText=f"{level}/{x}/{y}" if DEBUG_MODE else "")
         data["materials"] = [self.mtlBuilder.build()]
 
         return {
