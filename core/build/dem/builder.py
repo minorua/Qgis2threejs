@@ -278,7 +278,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                 id = materials[0].get("id")
                 self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId), debugText=debugText)
             else:
-                self.mtlBuilder.setup(blockIndex, tileExtent, asBlock=isPreview, useNow=True, debugText=debugText)
+                self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, asBlock=isPreview, useNow=True, debugText=debugText)
             yield BuildTask(self.mtlBuilder)
 
             # set up dem builder
