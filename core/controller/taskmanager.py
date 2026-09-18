@@ -93,7 +93,7 @@ class TaskManager(QObject):
 
     def initialize(self):
         self.taskQueue = []
-        self.resetTaskQueueCounts()
+        self.resetCounters()
 
         self.isTaskRunning = False
         self.runningBuildLayerTask = None
@@ -109,11 +109,11 @@ class TaskManager(QObject):
 
     def clearTaskQueue(self):
         self.taskQueue.clear()
-        self.resetTaskQueueCounts()
+        self.resetCounters()
 
-    def resetTaskQueueCounts(self):
-        self.totalLayerCount = 0
-        self.dequeuedLayerCount = 0
+    def resetCounters(self):
+        self.queuedBuildTaskCounter = 0
+        self.dequeuedBuildTaskCounter = 0
 
     def taskQueueToString(self):
         contents = [str(task) for task in self.taskQueue]
@@ -122,6 +122,7 @@ class TaskManager(QObject):
     def addBuildSceneTask(self, update_all=True):
         self.clearTaskQueue()
         self.taskQueue.append(Task.BUILD_SCENE)
+        self.queuedBuildTaskCounter += 1
         if update_all:
             self.taskQueue.append(Task.UPDATE_SCENE_OPTS)
 
@@ -137,7 +138,7 @@ class TaskManager(QObject):
         for layer in sorted(self.settings.layers(), key=lambda lyr: lyr.type):
             if layer.visible:
                 self.taskQueue.append(BuildLayerTask(layer))
-                self.totalLayerCount += 1
+                self.queuedBuildTaskCounter += 1
 
     def addBuildLayerTask(self, layer, options=None):
         options = options or BuildOptions()
@@ -154,18 +155,17 @@ class TaskManager(QObject):
         # If any removed layer has onlyMaterial=False, propagate it to the new layer.
         new_queue = []
         for task in self.taskQueue:
-            if isinstance(task, BuildLayerTask) and task.layer.layerId == layer.layerId:
+            if isinstance(task, (BuildLayerTask, BuildTileTask)) and task.layer.layerId == layer.layerId:
                 if options and not task.options.onlyMaterial:
                     options.onlyMaterial = False
 
-                self.totalLayerCount -= 1
-                continue
-
-            new_queue.append(task)
+                self.queuedBuildTaskCounter -= 1
+            else:
+                new_queue.append(task)
 
         self.taskQueue = new_queue
         self.taskQueue.append(BuildLayerTask(layer, options))
-        self.totalLayerCount += 1
+        self.queuedBuildTaskCounter += 1
 
         logger.debug(f"Layer build task queued for {layer.name}.")
 
@@ -176,13 +176,18 @@ class TaskManager(QObject):
         if self.runningBuildLayerTask and self.runningBuildLayerTask.layer.layerId == layer.layerId:
             self.abortCurrentTask.emit()
 
-        task_count = len(self.taskQueue)
-        self.taskQueue = [task for task in self.taskQueue if not (isinstance(task, (BuildLayerTask, BuildTileTask)) and task.layer.layerId == layer.layerId)]
-        if len(self.taskQueue) < task_count:
-            self.totalLayerCount -= 1
+        new_queue = []
+        for task in self.taskQueue:
+            if isinstance(task, (BuildLayerTask, BuildTileTask)) and task.layer.layerId == layer.layerId:
+                self.queuedBuildTaskCounter -= 1
+            else:
+                new_queue.append(task)
+
+        self.taskQueue = new_queue
 
     def addBuildTileTask(self, task: BuildTileTask):
         self.taskQueue.append(task)
+        self.queuedBuildTaskCounter += 1
         self.processNextTask()
 
     def addSendDataTask(self, data: dict):
@@ -220,30 +225,30 @@ class TaskManager(QObject):
         if not self.enabled or self.isTaskRunning or not self.taskQueue:
             return
 
-        if DEBUG_MODE:
-            logger.debug(self.taskQueueToString())
+        # logger.debug(self.taskQueueToString())
 
         task = self.taskQueue.pop(0)
         if task == Task.BUILD_SCENE:
             self.taskSequenceStatus.reset()
             self.taskSequenceStatus.buildSceneStarted = True
+            self.dequeuedBuildTaskCounter += 1
 
-        elif isinstance(task, BuildLayerTask):
-            self.dequeuedLayerCount += 1
+        elif isinstance(task, (BuildLayerTask, BuildTileTask)):
+            self.dequeuedBuildTaskCounter += 1
 
         self.isTaskRunning = True
         self.executeTask.emit(task)
 
     @pyqtSlot()
     def taskCompleted(self, _v=None):
-        """Called when a scene or layer build task completes."""
+        """Called when a build task completes."""
         logger.debug("Task completed.")
 
         self.taskFinalized()
 
     @pyqtSlot(str, str)
     def taskFailed(self, target, traceback_str):
-        """Called when a layer build task fails."""
+        """Called when a build task fails."""
         msg = f"Failed to build {target}."
         logger.error(f"{msg}:\n{traceback_str}")
 
@@ -264,7 +269,7 @@ class TaskManager(QObject):
             self.processNextTask()
             return
 
-        self.resetTaskQueueCounts()
+        self.resetCounters()
 
         self.taskSequenceStatus.allTasksFinalized = True
         self.allTasksFinalized.emit()

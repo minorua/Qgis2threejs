@@ -86,7 +86,6 @@ class ThreeJSBuilder(QObject):
     @pyqtSlot(ExportSettings)
     def buildSceneSlot(self, settings):
         self.aborted = False
-        self.progress(0, msg="Building scene...")
 
         try:
             data = self.buildScene(settings)
@@ -103,7 +102,6 @@ class ThreeJSBuilder(QObject):
     @pyqtSlot(Layer, object, ExportSettings)
     def buildLayerSlot(self, layer, buildOptions: BuildDEMOptions | None, settings):
         self.aborted = False
-        self.progress(0, msg=f"Building {layer.name} layer...")
 
         try:
             layerBuilder = self._layerBuilder(layer, settings, buildOptions, self.progress)
@@ -113,8 +111,6 @@ class ThreeJSBuilder(QObject):
                 self.dataReady.emit(data)
 
             for buildTask in layerBuilder.buildTasks():
-                logger.debug("Building a block.")
-
                 if self.aborted:
                     self.taskAborted.emit()
                     return

@@ -265,6 +265,7 @@ class Q3DController(QObject):
             return
 
         self.aborted = False
+        logger.debug(f"Start task - {task}")
 
         try:
             match task:
@@ -318,6 +319,7 @@ class Q3DController(QObject):
     def buildScene(self):
         self.updateSettingsCopyIfNeeded()
         self.buildSceneRequest.emit(self._settingsCopy)
+        self.progress(msg="Building scene...")
 
     def updateSceneOptions(self, callback=None):
         sp = self.settings.sceneProperties()
@@ -379,6 +381,7 @@ class Q3DController(QObject):
     def _buildLayer(self, layer, options):
         self.updateSettingsCopyIfNeeded()
         self.buildLayerRequest.emit(layer, options, self._settingsCopy)
+        self.builderProgressUpdated(0, msg=f"Building {layer.name} layer...")
 
         if len(self.settings.layers(export_only=True)) == 1:
             self.taskManager.addRunScriptTask("adjustCameraPos()")
@@ -393,6 +396,7 @@ class Q3DController(QObject):
 
     def runBuildTileTask(self, task: BuildTileTask):
         self.buildTileRequest.emit(task.url, task.layer, task.level, task.x, task.y, task.onlyMaterial, self._settingsCopy)
+        self.builderProgressUpdated(0, msg=f"Building {task.layer.name} tiles...")
 
     # send queue management
     @pyqtSlot(dict)
@@ -444,12 +448,10 @@ class Q3DController(QObject):
         self.progressUpdated.emit(current, total, msg)
 
     @pyqtSlot(int, int, str)
-    def builderProgressUpdated(self, current, total, msg):
-        # logger.debug(f"{current} / {total} ({msg}) Dequeued: {self.taskManager.dequeuedLayerCount}, Total: {self.taskManager.totalLayerCount}")
-
+    def builderProgressUpdated(self, current, total=100, msg=""):
         total = total or 100
-        if self.taskManager.totalLayerCount:
-            p = int((total * (self.taskManager.dequeuedLayerCount - 1) + current) / (total * self.taskManager.totalLayerCount) * 100)
+        if self.taskManager.queuedBuildTaskCounter:
+            p = int((self.taskManager.dequeuedBuildTaskCounter - 1 + current / total) / self.taskManager.queuedBuildTaskCounter * 100)
         else:
             p = self.currentProgress
 
