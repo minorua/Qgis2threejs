@@ -30,7 +30,7 @@ class ImageSource(NamedTuple):
     width: int | None = None
     height: int | None = None
     extent: MapExtent | None = None
-    validExtent: MapExtent | None = None
+    dataExtent: MapExtent | None = None
     transparent_bg: bool = False
     format: str = "PNG"
     debugText: str = ""
@@ -80,9 +80,9 @@ class ImageManager(DataManager):
         if antialias:
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        if s.validExtent is not None:
-            nx = s.validExtent.width() / s.extent.width()
-            ny = s.validExtent.height() / s.extent.height()
+        if s.dataExtent is not None:
+            nx = s.dataExtent.width() / s.extent.width()
+            ny = s.dataExtent.height() / s.extent.height()
             painter.setClipRect(
                 QRectF(0, (1 - ny) * s.height, nx * s.width, s.height)
             )

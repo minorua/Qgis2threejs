@@ -304,12 +304,12 @@ class DEMBlockResampBuilder(DEMBlockBuilderBase):
 
 class DEMBlockRawBuilder(DEMBlockBuilderBase):
 
-    def setup(self, blockIndex: int, tileExtent: MapExtent, localOrigin: QgsPoint, segments: int, validExtent=None, clip_geometry=None):
+    def setup(self, blockIndex: int, tileExtent: MapExtent, localOrigin: QgsPoint, segments: int, dataExtent=None, clip_geometry=None):
         super().setup(blockIndex, tileExtent, localOrigin)
 
         self.segments = segments
         self.tileSize = tileExtent.width()
-        self.validExtent = validExtent if validExtent else tileExtent
+        self.dataExtent = dataExtent if dataExtent else tileExtent
         self.clip_geometry = clip_geometry
 
     def build(self):
@@ -335,18 +335,18 @@ class DEMBlockRawBuilder(DEMBlockBuilderBase):
 
         else:
             res = self.tileSize / self.segments
-            validExtent = self.validExtent
+            dataExtent = self.dataExtent
 
-            columns = round(validExtent.width() / res) + 1
-            rows = round(validExtent.height() / res) + 1
+            columns = round(dataExtent.width() / res) + 1
+            rows = round(dataExtent.height() / res) + 1
 
-            arr = self.provider.readAsArray(columns, rows, validExtent)
+            arr = self.provider.readAsArray(columns, rows, dataExtent)
 
             if GRID_DEM_OUTPUT_MODE == "mesh":
-                data = self.buildMeshData(arr, validExtent, self.localOrigin, self.provider.nodata, full_extent=self.extent)
+                data = self.buildMeshData(arr, dataExtent, self.localOrigin, self.provider.nodata, full_extent=self.extent)
                 b["translate"] = [0, 0, 0]
             else:   # "grid"
-                data = self.buildGridData(arr, validExtent, self.localOrigin, self.provider.nodata)
+                data = self.buildGridData(arr, dataExtent, self.localOrigin, self.provider.nodata)
 
             b[GRID_DEM_OUTPUT_MODE] = self.buildJSONBinary(data)
 

@@ -262,8 +262,8 @@ class DEMLayerBuilder(LayerBuilderBase):
 
             tileExtent = MapExtent.fromRect(tile.rect)
 
-            validRect = tile.rect.intersect(tileset.boundingRect)
-            validExtent = MapExtent.fromRect(validRect)
+            dataRect = tile.rect.intersect(tileset.boundingRect)
+            dataExtent = MapExtent.fromRect(dataRect)
 
             if dest and minLevel is not None:
                 self.assetDestination.outputDir = os.path.join(*map(str, (dest.outputDir, self.layer.jsLayerId, tile.level, tile.x)))
@@ -276,22 +276,22 @@ class DEMLayerBuilder(LayerBuilderBase):
             # set up material builder for first/current material
             if self.layer.opt.allMaterials and mtlCount:
                 id = materials[0].get("id")
-                self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId), debugText=debugText)
+                self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId), debugText=debugText)
             else:
-                self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, asBlock=isPreview, useNow=True, debugText=debugText)
+                self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, asBlock=isPreview, useNow=True, debugText=debugText)
             yield BuildTask(self.mtlBuilder)
 
             # set up dem builder
             if not self.layer.opt.onlyMaterial:
                 # DEMBlockRawBuilder
-                self.demBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments, validExtent=validExtent)
+                self.demBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments, dataExtent=dataExtent)
                 yield BuildTask(self.demBuilder)
 
             # set up material builder for remaininig materials
             if self.layer.opt.allMaterials:
                 for idx in range(1, mtlCount):
                     id = materials[idx].get("id")
-                    self.mtlBuilder.setup(blockIndex, tileExtent, validExtent=validExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId), debugText=debugText)
+                    self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId), debugText=debugText)
                     yield BuildTask(self.mtlBuilder)
 
             self.progress(i + 1, tileCount)
@@ -348,7 +348,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                                  max(1, base_grid_seg.height() // roughness))
 
             # set up material builder for first/current material
-            if self.layer.opt.allMaterials and len(materials):
+            if self.layer.opt.allMaterials and mtlCount:
                 id = materials[0].get("id")
                 self.mtlBuilder.setup(blockIndex, extent, mtlId=id, useNow=bool(id == currentMtlId))
             else:
@@ -388,12 +388,12 @@ class DEMLayerBuilder(LayerBuilderBase):
         tileRect = tileset.tileRect(level, x, y)
         tileExtent = MapExtent.fromRect(tileRect)
 
-        validRect = tileRect.intersect(tileset.boundingRect)
-        validExtent = MapExtent.fromRect(validRect)
+        dataRect = tileRect.intersect(tileset.boundingRect)
+        dataExtent = MapExtent.fromRect(dataRect)
 
         data = {}
         if not onlyMaterial:
-            self.demBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, validExtent=validExtent)
+            self.demBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, dataExtent=dataExtent)
             data["grid"] = self.demBuilder.build()
 
         self.mtlBuilder.setup(0, tileExtent, asBlock=False, debugText=f"{level}/{x}/{y}" if DEBUG_MODE else "")
