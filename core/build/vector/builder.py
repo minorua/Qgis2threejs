@@ -32,9 +32,9 @@ class VectorLayerBuilder(LayerBuilderBase):
         LayerType.POLYGON: "polygon"
     }
 
-    def __init__(self, layer, settings, imageManager, assetDestination=None, progress=None, log=None):
+    def __init__(self, layer, settings, imageManager, buildOptions=None, assetDestination=None, progress=None, log=None):
         """See `LayerBuilderBase.__init__()` for argument details."""
-        super().__init__(layer, settings, imageManager, assetDestination, progress, log)
+        super().__init__(layer, settings, imageManager, buildOptions, assetDestination, progress, log)
 
         self.materialManager = MaterialManager(imageManager, settings.materialType())
         self.modelManager = ModelManager(settings)

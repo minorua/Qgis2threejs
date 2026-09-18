@@ -14,6 +14,7 @@ from .property_reader import DEMPropertyReader
 from .tileset import Tileset
 from ..layerbuilderbase import LayerBuilderBase
 from ...const import DEMMtlType
+from ...exportsettings import BuildDEMOptions
 from ...geometry import dissolvePolygonsWithinExtent
 from ...mapextent import MapExtent, ZRange
 from ....conf import DEBUG_MODE, DEF_SETS, GRID_DEM_OUTPUT_MODE
@@ -70,12 +71,13 @@ class BuildResultSet:
 class DEMLayerBuilder(LayerBuilderBase):
     """Generates the export data for a DEM layer."""
 
-    def __init__(self, layer, settings, imageManager, assetDestination=None, progress=None, log=None):
+    def __init__(self, layer, settings, imageManager, buildOptions=None, assetDestination=None, progress=None, log=None):
         """See `LayerBuilderBase.__init__()` for argument details."""
-        super().__init__(layer, settings, imageManager, assetDestination, progress, log)
+        super().__init__(layer, settings, imageManager, buildOptions, assetDestination, progress, log)
 
-        self.provider = settings.demProviderByLayerId(layer.layerId)
+        self.buildOptions = self.buildOptions or BuildDEMOptions()
         self.mtlBuilder = DEMMaterialBuilder(layer, settings, imageManager, assetDestination)
+        self.provider = settings.demProviderByLayerId(layer.layerId)
 
         if self.properties.get("radioButton_OriginalValues") or self.properties.get("radioButton_Pyramid"):
             BldClass = DEMBlockRawBuilder
@@ -98,7 +100,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         if self.provider is None:
             return None
 
-        if self.layer.opt.onlyMaterial:
+        if self.buildOptions.onlyMaterial:
             return None     # do not send "layer" data
 
         d = {
@@ -202,7 +204,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         yield from self._buildTasks_Resamp()
 
     def _buildTasks_TilePreview(self, minLevel=None):
-        if self.layer.opt.onlyMaterial:
+        if self.buildOptions.onlyMaterial:
             yield DataTask({
                 "type": "signal",
                 "name": "tileMtlChanged",
@@ -274,7 +276,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                 blockIndex = i
 
             # set up material builder for first/current material
-            if self.layer.opt.allMaterials and mtlCount:
+            if self.buildOptions.allMaterials and mtlCount:
                 id = materials[0].get("id")
                 self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId), debugText=debugText)
             else:
@@ -282,13 +284,13 @@ class DEMLayerBuilder(LayerBuilderBase):
             yield BuildTask(self.mtlBuilder)
 
             # set up dem builder
-            if not self.layer.opt.onlyMaterial:
+            if not self.buildOptions.onlyMaterial:
                 # DEMBlockRawBuilder
                 self.demBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments, dataExtent=dataExtent)
                 yield BuildTask(self.demBuilder)
 
             # set up material builder for remaininig materials
-            if self.layer.opt.allMaterials:
+            if self.buildOptions.allMaterials:
                 for idx in range(1, mtlCount):
                     id = materials[idx].get("id")
                     self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId), debugText=debugText)
@@ -348,7 +350,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                                  max(1, base_grid_seg.height() // roughness))
 
             # set up material builder for first/current material
-            if self.layer.opt.allMaterials and mtlCount:
+            if self.buildOptions.allMaterials and mtlCount:
                 id = materials[0].get("id")
                 self.mtlBuilder.setup(blockIndex, extent, mtlId=id, useNow=bool(id == currentMtlId))
             else:
@@ -356,7 +358,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             yield BuildTask(self.mtlBuilder)
 
             # set up grid builder
-            if not self.layer.opt.onlyMaterial:
+            if not self.buildOptions.onlyMaterial:
                 neighbors = None
                 if is_center:
                     blkBuilder = centerBlk
@@ -374,7 +376,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                 yield BuildTask(blkBuilder)
 
             # set up material builder for remaininig materials
-            if self.layer.opt.allMaterials:
+            if self.buildOptions.allMaterials:
                 for idx in range(1, mtlCount):
                     id = materials[idx].get("id")
                     self.mtlBuilder.setup(blockIndex, extent, mtlId=id, useNow=bool(id == currentMtlId))

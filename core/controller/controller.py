@@ -7,7 +7,7 @@ from functools import wraps
 from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal, pyqtSlot
 from qgis.core import Qgis, QgsProject
 
-from .taskmanager import BuildTileTask, Task, TaskManager
+from .taskmanager import BuildLayerTask, BuildTileTask, Task, TaskManager
 from ..build.builder import ThreeJSBuilder
 from ..const import LayerType, ScriptFile
 from ..exportsettings import ExportSettings, Layer
@@ -35,7 +35,7 @@ class Q3DController(QObject):
 
     # signals - controller to builder
     buildSceneRequest = pyqtSignal(ExportSettings)
-    buildLayerRequest = pyqtSignal(Layer, ExportSettings)
+    buildLayerRequest = pyqtSignal(Layer, object, ExportSettings)
     buildTileRequest = pyqtSignal(str, Layer, int, int, int, bool, ExportSettings)
 
     quitRequest = pyqtSignal()                   # request the builder to move back to the main thread
@@ -268,6 +268,19 @@ class Q3DController(QObject):
 
         try:
             match task:
+                case {"type": "script", "script": script}:      # RUN_SCRIPT
+                    self.runScript(script, callback=self.taskManager.taskFinalized)
+
+                case dict():    # SEND_DATA
+                    self.appendDataToSendQueue(data=task)
+                    self.taskManager.taskFinalized()
+
+                case BuildLayerTask():
+                    self.runBuildLayerTask(task)
+
+                case BuildTileTask():
+                    self.runBuildTileTask(task)
+
                 case Task.RELOAD_PAGE:
                     self.webPage.reload()
 
@@ -276,25 +289,6 @@ class Q3DController(QObject):
 
                 case Task.UPDATE_SCENE_OPTS:
                     self.updateSceneOptions(callback=self.taskManager.taskFinalized)
-
-                case Layer():   # BUILD LAYER
-                    if self.settings.getLayer(task.layerId):
-                        if task.visible:
-                            self.buildLayer(task)
-                        else:
-                            self.hideLayer(task, callback=self.taskManager.taskFinalized)
-                    else:
-                        logger.info(f"Layer {task.layerId} not found in settings. Ignored.")
-
-                case {"type": "script", "script": script}:      # RUN_SCRIPT
-                    self.runScript(script, callback=self.taskManager.taskFinalized)
-
-                case dict():    # SEND_DATA
-                    self.appendDataToSendQueue(data=task)
-                    self.taskManager.taskFinalized()
-
-                case BuildTileTask():
-                    self.buildTile(task)
 
                 case _:
                     logger.warning(f"Unknown task: {task}")
@@ -347,8 +341,17 @@ class Q3DController(QObject):
 
         self.runScript("\n".join(lines), callback=callback)
 
-    def buildLayer(self, layer):
-        self.taskManager.processingLayer = layer
+    def runBuildLayerTask(self, task: BuildLayerTask):
+        layer = task.layer
+        if not self.settings.getLayer(layer.layerId):
+            logger.info(f"Layer {layer.layerId} not found in settings. Ignored.")
+            return
+
+        if not layer.visible:
+            self.hideLayer(layer, callback=self.taskManager.taskFinalized)
+            return
+
+        self.taskManager.runningBuildLayerTask = task
 
         files = []
         if layer.type == LayerType.DEM:
@@ -369,13 +372,13 @@ class Q3DController(QObject):
                     files = [ScriptFile.BUFGEOMUTILS]
 
         if files:
-            self.loadScriptFiles(files, callback=lambda: self._buildLayer(layer))
+            self.loadScriptFiles(files, callback=lambda: self._buildLayer(layer, task.options))
         else:
-            self._buildLayer(layer)
+            self._buildLayer(layer, task.options)
 
-    def _buildLayer(self, layer):
+    def _buildLayer(self, layer, options):
         self.updateSettingsCopyIfNeeded()
-        self.buildLayerRequest.emit(layer, self._settingsCopy)
+        self.buildLayerRequest.emit(layer, options, self._settingsCopy)
 
         if len(self.settings.layers(export_only=True)) == 1:
             self.taskManager.addRunScriptTask("adjustCameraPos()")
@@ -388,8 +391,7 @@ class Q3DController(QObject):
 
         self.runScript(f"hideLayer({layer.jsLayerId}, true)", callback=callback)
 
-    def buildTile(self, task: BuildTileTask):
-        self.taskManager.processingLayer = task.layer
+    def runBuildTileTask(self, task: BuildTileTask):
         self.buildTileRequest.emit(task.url, task.layer, task.level, task.x, task.y, task.onlyMaterial, self._settingsCopy)
 
     # send queue management

@@ -4,6 +4,7 @@
 # begin: 2014-01-16
 
 from copy import deepcopy
+from dataclasses import dataclass
 import json
 import os
 import re
@@ -23,10 +24,15 @@ from ..utils.qgis import getLayersInProject, layerTypeFromMapLayer, settingsFile
 
 
 class BuildOptions:
+    def __getattr__(self, name):
+        return None
 
-    def __init__(self):
-        self.onlyMaterial = False
-        self.allMaterials = False
+
+@dataclass
+class BuildDEMOptions(BuildOptions):
+
+    onlyMaterial: bool = False
+    allMaterials: bool = False
 
 
 class Layer:
@@ -41,7 +47,6 @@ class Layer:
         # internal use
         self.jsLayerId = None
         self.mapLayer = None
-        self.opt = BuildOptions()
 
     def material(self, mtlId):
         for mtl in self.properties.get("materials", []):

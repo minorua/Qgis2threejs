@@ -10,7 +10,7 @@ from qgis.core import QgsApplication
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from ..const import LayerType
-from ..exportsettings import ExportSettings, Layer
+from ..exportsettings import BuildDEMOptions, ExportSettings, Layer
 from .datamanager.image import ImageManager
 from .dem.builder import DEMLayerBuilder
 from .vector.builder import VectorLayerBuilder
@@ -100,13 +100,14 @@ class ThreeJSBuilder(QObject):
 
         self.taskCompleted.emit()
 
-    @pyqtSlot(Layer, ExportSettings)
-    def buildLayerSlot(self, layer, settings):
+    @pyqtSlot(Layer, object, ExportSettings)
+    def buildLayerSlot(self, layer, buildOptions: BuildDEMOptions | None, settings):
         self.aborted = False
         self.progress(0, msg=f"Building {layer.name} layer...")
 
         try:
-            layerBuilder = self._layerBuilder(layer, settings, progress=self.progress)
+            layerBuilder = self._layerBuilder(layer, settings, buildOptions, self.progress)
+
             data = layerBuilder.build()
             if data:
                 self.dataReady.emit(data)
@@ -131,9 +132,9 @@ class ThreeJSBuilder(QObject):
 
     @pyqtSlot(str, Layer, int, int, int, bool, ExportSettings)
     def buildTileSlot(self, url, layer, level, x, y, onlyMaterial, settings):
-        tileBuilder = self._tileBuilder(layer, settings)
+        builder = self._layerBuilder(layer, settings)
 
-        data = tileBuilder.buildTile(url, level, x, y, onlyMaterial)
+        data = builder.buildTile(url, level, x, y, onlyMaterial)
 
         self.dataReady.emit(data)
         self.taskCompleted.emit()
@@ -179,9 +180,6 @@ class ThreeJSBuilder(QObject):
         }
         return obj
 
-    def _layerBuilder(self, layer, settings, progress=None):
+    def _layerBuilder(self, layer, settings, buildOptions=None, progress=None):
         imageManager = ImageManager(settings.mapSettings)
-        return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(layer, settings, imageManager, progress=progress)
-
-    def _tileBuilder(self, layer, settings, progress=None):
-        return self._layerBuilder(layer, settings, progress)
+        return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(layer, settings, imageManager, buildOptions, progress=progress)

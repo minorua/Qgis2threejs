@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from qgis.PyQt.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot
 
-from ..exportsettings import Layer
+from ..exportsettings import BuildOptions, BuildDEMOptions, Layer
 from ...conf import DEBUG_MODE
 from ...utils.logging import logger
 
@@ -16,10 +16,21 @@ class Task:
     BUILD_SCENE = 2                 # build scene, but do not update scene options such asbackground color, coordinates display mode and so on
     UPDATE_SCENE_OPTS = 3           # update scene options
     RELOAD_PAGE = 4
-    # Layer object                          # build layer
+    # BuildLayerTask
     # BUildTileTask                         # build tile
     # {"type": "...", ...}                  # send data
     # {"type": "script", "script": "..."}   # run script
+
+
+@dataclass
+class BuildLayerTask:
+
+    def __init__(self, layer: Layer, options: BuildDEMOptions | None = None):
+        self.layer = layer
+        self.options = options or BuildOptions()
+
+    def __repr__(self):
+        return f"L:{self.layer.name}"
 
 
 @dataclass
@@ -47,7 +58,7 @@ class BuildTileTask:
         return BuildTileTask(url, layer, level, x, y, onlyMaterial)
 
     def __repr__(self):
-        return f'BuildTileTask: {self.url}{" (mtl)" if self.onlyMaterial else ""})'
+        return f'Tile: {self.layer.jsLayerId}/{self.level}/{self.x}/{self.y}{" (mtl)" if self.onlyMaterial else ""})'
 
 
 class TaskSequenceStatus:
@@ -85,7 +96,7 @@ class TaskManager(QObject):
         self.resetTaskQueueCounts()
 
         self.isTaskRunning = False
-        self.processingLayer = None
+        self.runningBuildLayerTask = None
         self.taskSequenceStatus = TaskSequenceStatus()
 
     def teardown(self):
@@ -105,7 +116,7 @@ class TaskManager(QObject):
         self.dequeuedLayerCount = 0
 
     def taskQueueToString(self):
-        contents = ["L:" + item.name if isinstance(item, Layer) else str(item) for item in self.taskQueue]
+        contents = [str(task) for task in self.taskQueue]
         return f"TaskQueue({','.join(contents)})"
 
     def addBuildSceneTask(self, update_all=True):
@@ -125,34 +136,35 @@ class TaskManager(QObject):
     def _addBuildAllLayerTasks(self):
         for layer in sorted(self.settings.layers(), key=lambda lyr: lyr.type):
             if layer.visible:
-                self.taskQueue.append(layer)
+                self.taskQueue.append(BuildLayerTask(layer))
                 self.totalLayerCount += 1
 
-    def addBuildLayerTask(self, layer):
-        # If the layer being processed is the same as the layer to be added, abort processing.
-        if self.processingLayer and self.processingLayer.layerId == layer.layerId:
-            only_material = self.processingLayer.opt.onlyMaterial
-            self.abortCurrentTask.emit()
+    def addBuildLayerTask(self, layer, options=None):
+        options = options or BuildOptions()
 
-            # Inherit onlyMaterial=False from the aborted layer
-            if not only_material:
-                layer.opt.onlyMaterial = False
+        # If the layer being processed is the same as the layer to be added, abort processing.
+        runningTask = self.runningBuildLayerTask
+        if runningTask and runningTask.layer.layerId == layer.layerId:
+            if options and not runningTask.options.onlyMaterial:
+                options.onlyMaterial = False
+
+            self.abortCurrentTask.emit()
 
         # Remove existing Layer with the same layerId from the queue.
         # If any removed layer has onlyMaterial=False, propagate it to the new layer.
         new_queue = []
-        for item in self.taskQueue:
-            if isinstance(item, Layer) and item.layerId == layer.layerId:
-                if not item.opt.onlyMaterial:
-                    layer.opt.onlyMaterial = False
+        for task in self.taskQueue:
+            if isinstance(task, BuildLayerTask) and task.layer.layerId == layer.layerId:
+                if options and not task.options.onlyMaterial:
+                    options.onlyMaterial = False
 
                 self.totalLayerCount -= 1
                 continue
 
-            new_queue.append(item)
+            new_queue.append(task)
 
         self.taskQueue = new_queue
-        self.taskQueue.append(layer)
+        self.taskQueue.append(BuildLayerTask(layer, options))
         self.totalLayerCount += 1
 
         logger.debug(f"Layer build task queued for {layer.name}.")
@@ -161,11 +173,11 @@ class TaskManager(QObject):
 
     def removeBuildLayerTask(self, layer):
         # If the layer being processed is the same as the layer to be removed, abort processing.
-        if self.processingLayer and self.processingLayer.layerId == layer.layerId:
+        if self.runningBuildLayerTask and self.runningBuildLayerTask.layer.layerId == layer.layerId:
             self.abortCurrentTask.emit()
 
         task_count = len(self.taskQueue)
-        self.taskQueue = [i for i in self.taskQueue if not (isinstance(i, Layer) and i.layerId == layer.layerId)]
+        self.taskQueue = [task for task in self.taskQueue if not (isinstance(task, (BuildLayerTask, BuildTileTask)) and task.layer.layerId == layer.layerId)]
         if len(self.taskQueue) < task_count:
             self.totalLayerCount -= 1
 
@@ -211,16 +223,16 @@ class TaskManager(QObject):
         if DEBUG_MODE:
             logger.debug(self.taskQueueToString())
 
-        item = self.taskQueue.pop(0)
-        if item == Task.BUILD_SCENE:
+        task = self.taskQueue.pop(0)
+        if task == Task.BUILD_SCENE:
             self.taskSequenceStatus.reset()
             self.taskSequenceStatus.buildSceneStarted = True
 
-        elif isinstance(item, Layer):
+        elif isinstance(task, BuildLayerTask):
             self.dequeuedLayerCount += 1
 
         self.isTaskRunning = True
-        self.executeTask.emit(item)
+        self.executeTask.emit(task)
 
     @pyqtSlot()
     def taskCompleted(self, _v=None):
@@ -246,7 +258,7 @@ class TaskManager(QObject):
 
     def taskFinalized(self, _=None):
         self.isTaskRunning = False
-        self.processingLayer = None
+        self.runningBuildLayerTask = None
 
         if self.taskQueue:
             self.processNextTask()

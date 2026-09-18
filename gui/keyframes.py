@@ -14,7 +14,7 @@ from .ui.keyframedialog import Ui_KeyframeDialog
 from .webview.const import WebViewType
 from ..conf import DEF_SETS, PLUGIN_NAME
 from ..core.const import DEMMtlType, LayerType, ATConst
-from ..core.exportsettings import Layer
+from ..core.exportsettings import BuildDEMOptions, Layer
 from ..utils.basic import createUid, parseInt, pluginDir
 from ..utils.gui import openHelp, selectImageFile
 from ..utils.logging import logger
@@ -159,14 +159,14 @@ class AnimationPanel(QWidget):
             self.webPage.showMessageBar(msg, timeout_ms)
 
     def _updateLayer(self, layer, trackType):
+        options = None
         if trackType in (ATConst.ITEM_TRK_TEXTURE, ATConst.ITEM_TEXTURE):
             layer = layer.clone()
-            layer.opt.onlyMaterial = True
-            layer.opt.allMaterials = True
+            options = BuildDEMOptions(onlyMaterials=True, allMaterials=True)
 
         tm = self.controller.taskManager
         tm.addRunScriptTask("preview.renderEnabled = false;")
-        tm.addBuildLayerTask(layer)
+        tm.addBuildLayerTask(layer, options)
         tm.addRunScriptTask("preview.renderEnabled = true;")
 
     def _log(self, msg):
@@ -760,8 +760,8 @@ class AnimationTreeWidget(QTreeWidget):
                 if layer:
                     layer = layer.clone()
                     layer.properties["mtlId"] = current.data(0, ATConst.DATA_MTL_ID)
-                    layer.opt.onlyMaterial = True
-                    self.controller.taskManager.addBuildLayerTask(layer)
+
+                    self.controller.taskManager.addBuildLayerTask(layer, BuildDEMOptions(onlyMaterial=True))
 
     def onItemDoubleClicked(self, item=None, column=0):
         item = item or self.currentItem()

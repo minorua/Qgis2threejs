@@ -9,7 +9,7 @@ from ..exportsettings import ExportSettings, Layer
 class LayerBuilderBase:
     """Base class for layer builders that generate layer export data."""
 
-    def __init__(self, layer: Layer, settings: ExportSettings, imageManager, assetDestination=None, progress=None, log=None):
+    def __init__(self, layer: Layer, settings: ExportSettings, imageManager, buildOptions=None, assetDestination=None, progress=None, log=None):
         """
         Args:
             layer: Layer object.
@@ -24,6 +24,7 @@ class LayerBuilderBase:
         self.properties = layer.properties
 
         self.imageManager = imageManager
+        self.buildOptions = buildOptions
         self.assetDestination = assetDestination
         self.progress = progress or noop
         self.log = log or noop
@@ -57,3 +58,6 @@ class LayerBuilderBase:
             "clickable": self.properties.get("checkBox_Clickable", True),
             "visible": self.properties.get("checkBox_Visible", True) or self.settings.isPreview    # always visible in preview
         }
+
+    def setBuildOptions(self, options):
+        self.buildOptions = options

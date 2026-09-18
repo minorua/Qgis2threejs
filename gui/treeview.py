@@ -10,6 +10,7 @@ from qgis.PyQt.QtWidgets import QAction, QMenu, QMessageBox, QTreeView
 from .proppages import DEMPropertyPage
 from ..conf import PLUGIN_NAME
 from ..core.const import LayerType
+from ..core.exportsettings import BuildDEMOptions
 
 
 class Q3DTreeView(QTreeView):
@@ -195,8 +196,7 @@ class Q3DTreeView(QTreeView):
                 layer.properties["mtlId"] = mtlId
 
                 layer = layer.clone()
-                layer.opt.onlyMaterial = True
-                self.controller.taskManager.addBuildLayerTask(layer)
+                self.controller.taskManager.addBuildLayerTask(layer, BuildDEMOptions(onlyMaterial=True))
 
             item = self.model().itemFromIndex(current)
             parent = item.parent()

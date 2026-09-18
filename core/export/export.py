@@ -14,7 +14,7 @@ from ..build.builder import ThreeJSBuilder, LayerBuilderFactory
 from ..build.datamanager.image import ImageManager
 from ..build.vector.builder import VectorLayerBuilder
 from ..const import LayerType, ScriptFile
-from ..exportsettings import ExportSettings
+from ..exportsettings import BuildDEMOptions, ExportSettings
 from ..storagelocation import StorageLocation
 from ..controller.controller import Q3DController
 from ...conf import DEBUG_MODE, PLUGIN_VERSION
@@ -439,10 +439,10 @@ class ThreeJSExporter(QObject):
             )
 
         layer = layer.clone()
-        layer.opt.allMaterials = True
-
         builder_cls = LayerBuilderFactory.get(layer.type, VectorLayerBuilder)
-        builder = builder_cls(layer, settings, self.imageManager, assetDestination, progress=progress, log=self.log)
+        buildOptions = BuildDEMOptions(allMaterials=True)
+
+        builder = builder_cls(layer, settings, self.imageManager, buildOptions, assetDestination, progress=progress, log=self.log)
         if builder_cls == VectorLayerBuilder:
             self.modelManagers.append(builder.modelManager)
 
