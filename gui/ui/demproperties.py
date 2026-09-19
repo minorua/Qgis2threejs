@@ -393,7 +393,7 @@ class Ui_DEMPropertiesWidget(object):
         self.lineEdit_Altitude.setText(_translate("DEMPropertiesWidget", "0"))
         self.groupBoxDEMStructure.setTitle(_translate("DEMPropertiesWidget", "DEM Structure"))
         self.radioButton_Resampling.setText(_translate("DEMPropertiesWidget", "Simple (bilinear resampling)"))
-        self.labelResamp.setText(_translate("DEMPropertiesWidget", "Resampling level"))
+        self.labelResamp.setText(_translate("DEMPropertiesWidget", "Grid resolution"))
         self.labelResampLevel.setText(_translate("DEMPropertiesWidget", "2"))
         self.radioButton_OriginalValues.setText(_translate("DEMPropertiesWidget", "Tiles (single resolution)"))
         self.labelTileSize.setText(_translate("DEMPropertiesWidget", "Tile side segments"))
