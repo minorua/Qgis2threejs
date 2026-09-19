@@ -242,7 +242,9 @@ export function loadScriptFile(path: string, callback?: () => void, isModule = f
 		return;
 	}
 
+	if (path.startsWith("lib/")) path = "./js/" + path;
 	const url = new URL(path, document.baseURI).toString();
+
 	for (const elm of document.head.getElementsByTagName("script")) {
 		if (elm.src == url) {
 			if (callback) callback();
