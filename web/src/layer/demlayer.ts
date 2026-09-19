@@ -26,6 +26,17 @@ export class DEMLayer extends MapLayer {
 
 	declare properties: DEMLayerProperties;
 
+	clearObjects() {
+		super.clearObjects();
+
+		if (this.tilesRenderer) {
+			this.tilesRenderer.plugins[0].pendingRequests.clear();
+			this.removeObject(this.tilesRenderer.group);
+			app.scene.removeTilesRenderer(this.tilesRenderer);
+			this.tilesRenderer = null;
+		}
+	}
+
 	loadLayerData(data: DEMLayerData, scene: Scene): void {
 		this.clearObjects();
 		super.loadLayerData(data, scene);
@@ -63,11 +74,6 @@ export class DEMLayer extends MapLayer {
 			scene.addTilesRenderer(this.tilesRenderer);
 
 			return;
-		}
-
-		if (this.tilesRenderer) {
-			scene.removeTilesRenderer(this.tilesRenderer);
-			this.tilesRenderer = null;
 		}
 
 		if (data.body && data.body.blocks) {

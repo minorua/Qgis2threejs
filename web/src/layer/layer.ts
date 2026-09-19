@@ -48,6 +48,10 @@ export class MapLayer extends THREE.EventDispatcher {
 		}
 	}
 
+	removeObject(object: THREE.Object3D) {
+		this.objectGroup.remove(object);
+	}
+
 	clearObjects() {
 		this.objectGroup.traverse((obj) => {
 			if (obj.geometry) obj.geometry.dispose();
