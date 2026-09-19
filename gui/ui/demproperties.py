@@ -88,7 +88,7 @@ class Ui_DEMPropertiesWidget(object):
         self.spinBox_TileSideSegments.setMinimum(1)
         self.spinBox_TileSideSegments.setMaximum(10000)
         self.spinBox_TileSideSegments.setSingleStep(100)
-        self.spinBox_TileSideSegments.setProperty("value", 500)
+        self.spinBox_TileSideSegments.setProperty("value", 512)
         self.spinBox_TileSideSegments.setObjectName("spinBox_TileSideSegments")
         self.formLayoutOriginalValues.setWidget(0, QtWidgets.QFormLayout.ItemRole.FieldRole, self.spinBox_TileSideSegments)
         self.labelOriginalValues = QtWidgets.QLabel(parent=self.groupBoxDEMStructure)
