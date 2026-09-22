@@ -191,9 +191,9 @@ class DEMLayerBuilder(LayerBuilderBase):
 
             if pyramid:
                 if self.settings.isPreview:
-                    yield from self._buildTasks_TilePreview(minLevel=0)
+                    yield from self._buildTasks_PyramidTilePreview()
                 else:
-                    yield from self._buildTasks_TileExport(minLevel=0)
+                    yield from self._buildTasks_PyramidTileExport()
             else:
                 segments = self.properties.get("spinBox_TileSideSegments", 512)
                 yield from self._buildTasks_Raw(segments)
@@ -203,7 +203,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         self.provider.setResampleAlg(gdal.GRA_Bilinear)
         yield from self._buildTasks_Resamp()
 
-    def _buildTasks_TilePreview(self, minLevel=None):
+    def _buildTasks_PyramidTilePreview(self):
         if self.buildOptions.onlyMaterial:
             yield DataTask({
                 "type": "signal",
@@ -211,7 +211,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                 "layer": self.layer.jsLayerId
             })
 
-    def _buildTasks_TileExport(self, minLevel=None):
+    def _buildTasks_PyramidTileExport(self, minLevel=0):
         """
         @yields {DEMTileEntry} builder
         """
@@ -243,23 +243,26 @@ class DEMLayerBuilder(LayerBuilderBase):
             logger.error("Failed to create a tileset.")
             return
 
-        isPreview = self.settings.isPreview
-        if isPreview:
+        isPyramid = bool(minLevel is not None)
+
+        if self.settings.isPreview:
             dest = None
         else:
             dest = self.assetDestination.clone()
-            if minLevel is not None:
+            if isPyramid:
                 self.assetDestination.filePrefix = ""
 
         materials = self.properties.get("materials", [])
         mtlCount = len(materials)
         currentMtlId = self.properties.get("mtlId")
 
+        asBlock = not isPyramid
+        debugText = ""
+
         tiles = list(tileset.iterTiles(minLevel))
         tileCount = len(tiles)
-        debugText = ""
         for i, tile in enumerate(tiles):
-            if minLevel is not None:
+            if isPyramid:
                 yield TileIdTask(tile)
 
             if DEBUG_MODE:
@@ -270,7 +273,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             dataRect = tile.rect.intersect(tileset.boundingRect)
             dataExtent = MapExtent.fromRect(dataRect)
 
-            if dest and minLevel is not None:
+            if dest and isPyramid:
                 self.assetDestination.outputDir = os.path.join(*map(str, (dest.outputDir, self.layer.jsLayerId, tile.level, tile.x)))
                 self.assetDestination.baseUrl = f"{dest.baseUrl}{self.layer.jsLayerId}/{tile.level}/{tile.x}/"
                 mkpath(self.assetDestination.outputDir)
@@ -281,22 +284,22 @@ class DEMLayerBuilder(LayerBuilderBase):
             # set up material builder for first/current material
             if self.buildOptions.allMaterials and mtlCount:
                 id = materials[0].get("id")
-                self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId), debugText=debugText)
+                self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, asBlock=asBlock, useNow=bool(id == currentMtlId), debugText=debugText)
             else:
-                self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, asBlock=isPreview, useNow=True, debugText=debugText)
+                self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, asBlock=asBlock, useNow=True, debugText=debugText)
             yield BuildTask(self.mtlBuilder)
 
             # set up dem builder
             if not self.buildOptions.onlyMaterial:
                 # DEMRawBuilder
-                self.demBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments, dataExtent=dataExtent)
+                self.demBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments, dataExtent=dataExtent, asBlock=asBlock)
                 yield BuildTask(self.demBuilder)
 
             # set up material builder for remaininig materials
             if self.buildOptions.allMaterials:
                 for idx in range(1, mtlCount):
                     id = materials[idx].get("id")
-                    self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, asBlock=isPreview, useNow=bool(id == currentMtlId), debugText=debugText)
+                    self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, asBlock=asBlock, useNow=bool(id == currentMtlId), debugText=debugText)
                     yield BuildTask(self.mtlBuilder)
 
             self.progress(i + 1, tileCount)
