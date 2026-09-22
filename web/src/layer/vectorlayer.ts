@@ -217,7 +217,7 @@ export class VectorLayer extends MapLayer {
 			this.materials.loadData(data.body.materials);
 		}
 
-		(data.body.blocks || []).forEach((block) => {
+		(data.body.contents || []).forEach((block) => {
 			if (block.url !== undefined) {
 				app.loadJSONFile(block.url);
 			}

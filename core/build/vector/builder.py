@@ -54,11 +54,11 @@ class VectorLayerBuilder(LayerBuilderBase):
                              and self.vlayer.isHeightRelativeToDEM()
                              and self.settings.isPreview)
 
-    def build(self, build_blocks=False):
+    def build(self, build_contents=False):
         """Generate the export data for this vector layer.
 
         Args:
-            build_blocks (bool): If True, construct and return feature blocks under `data['body']['blocks']`.
+            build_contents (bool): If True, construct and return feature blocks.
 
         @returns {VectorLayerData}
         """
@@ -106,8 +106,8 @@ class VectorLayerBuilder(LayerBuilderBase):
                 base64=self.settings.requiresJsonSerializable
             )
 
-        if build_blocks:
-            data["blocks"] = list(self.buildBlocks())
+        if build_contents:
+            data["contents"] = list(self.buildContents())
 
         d = {
             "type": "layer",
@@ -120,7 +120,7 @@ class VectorLayerBuilder(LayerBuilderBase):
 
         return d
 
-    def buildBlocks(self):
+    def buildContents(self):
         nb = nf = 0
         for buildTask in self.buildTasks():
             b = buildTask.build()

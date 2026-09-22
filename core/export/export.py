@@ -446,17 +446,17 @@ class ThreeJSExporter(QObject):
         if builder_cls == VectorLayerBuilder:
             self.modelManagers.append(builder.modelManager)
 
-        obj = builder.build(build_blocks=False)
+        obj = builder.build()
 
-        blocks = []
-        for block in builder.buildBlocks():
+        contents = []
+        for cont in builder.buildContents():
             if self.aborted:
                 raise ExportCancelled()
 
-            if block:
-                blocks.append(block)
+            if cont:
+                contents.append(cont)
 
-        obj.setdefault("body", {})["blocks"] = blocks
+        obj.setdefault("body", {})["contents"] = contents
         return obj
 
 

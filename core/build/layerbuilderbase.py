@@ -29,15 +29,12 @@ class LayerBuilderBase:
         self.progress = progress or noop
         self.log = log or noop
 
-    def build(self, build_blocks=False):
+    def build(self, build_contents=False):
         """Generate the export data structure for this layer.
-
-        Subclasses must implement this and return a dictionary
-        that represents the layer's exportable data structure.
         """
         pass
 
-    def buildBlocks(self):
+    def buildContents(self):
         for buildTask in self.buildTasks():
             yield buildTask.build()
 

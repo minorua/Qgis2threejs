@@ -9,7 +9,7 @@ import { Material } from "../material.js";
 import { createWallGeometry, decodeBase64TypedArrayObject, getBoundaryLines } from "../utils.js";
 import { Q3DPlugin } from "../tiles/q3dplugin.js";
 
-import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, DEMTileData, MapExtent, ParsedGridGeomData, ParsedMeshGeomData, Point3, RuntimeTile, Tileset, Vec3 } from "../types.js";
+import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, DEMTileData, DEMTileEntry, MapExtent, ParsedGridGeomData, ParsedMeshGeomData, Point3, RuntimeTile, Tileset, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
 
 
@@ -55,8 +55,9 @@ export class DEMLayer extends MapLayer {
 			const plugin = new Q3DPlugin();
 			plugin.layer = this;
 			plugin.tileset = data.tileset;
-			if (data.body && data.body.blocks) {
-				plugin.tileEntries = data.body.blocks;
+			if (data.body && data.body.contents) {
+				// export
+				plugin.tileEntries = data.body.contents as DEMTileEntry[];
 			}
 
 			if (conf.tiles.showBoundingBox) {
@@ -76,8 +77,8 @@ export class DEMLayer extends MapLayer {
 			return;
 		}
 
-		if (data.body && data.body.blocks) {
-			data.body.blocks.forEach((block) => this.loadBlockData(block, scene));
+		if (data.body && data.body.contents) {
+			data.body.contents.forEach((block) => this.loadBlockData(block, scene));
 		}
 	}
 

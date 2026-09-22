@@ -88,12 +88,12 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         self._tileset = None
 
-    def build(self, build_blocks=False):
+    def build(self, build_contents=False):
         """
         Generate the export data for this DEM layer.
 
         Args:
-            build_blocks (bool): If True, construct and return DEM blocks under `data['body']['blocks']`.
+            build_contents (bool): If True, construct and return DEM blocks / tiles.
 
         @returns {DEMLayerData}
         """
@@ -119,9 +119,9 @@ class DEMLayerBuilder(LayerBuilderBase):
             else:
                 logger.error("Failed to create a tileset.")
 
-        if build_blocks:
+        if build_contents:
             d["body"] = {
-                "blocks": list(self.buildBlocks())
+                "contents": list(self.buildContents())
             }
 
         # d["PROPERTIES"] = self.properties
@@ -411,5 +411,5 @@ class DEMLayerBuilder(LayerBuilderBase):
             "type": "tile",
             "layer": self.layer.jsLayerId,
             "url": url,
-            "data": data
+            "data": data    # as {DEMTileData}
         }

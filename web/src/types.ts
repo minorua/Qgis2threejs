@@ -149,7 +149,7 @@ export interface BlockData extends BaseData {
 export interface DEMLayerData extends LayerData {
     properties?: DEMLayerProperties;
     body?: {
-        blocks: DEMBlockData[] | DEMTileEntry[];      // export
+        contents: DEMBlockData[] | DEMTileEntry[];      // export
     }
     tileset?: Tileset;
 }
