@@ -135,7 +135,7 @@ export type ModelObject = Collada | GLTF;
 export interface LayerData extends BaseData {
     type: "layer";
     id: number;
-    properties: LayerProperties;
+    properties?: LayerProperties;
 }
 
 export interface BlockData extends BaseData {
@@ -143,6 +143,85 @@ export interface BlockData extends BaseData {
     layer: number;
     block: number;
     progress?: number;
+}
+
+/* DEM layer, block, and tile */
+export interface DEMLayerData extends LayerData {
+    properties?: DEMLayerProperties;
+    body?: {
+        blocks: DEMBlockData[] | DEMTileEntry[];      // export
+    }
+    tileset?: Tileset;
+}
+
+export interface GridGeomData {
+    grid: GridGeomDataB64 | GridGeomDataRef | ParsedGridGeomData;
+    translate: Vec3;
+    zScale: number;
+}
+
+export interface MeshGeomData {
+    mesh: MeshGeomDataB64 | MeshGeomDataRef | ParsedMeshGeomData;
+    translate: Vec3;
+    zScale: number;
+}
+
+export interface DEMMaterialData {
+    materials: MaterialData[];
+}
+
+export interface DEMBlockGridData extends GridGeomData, BlockData {}
+export interface DEMBlockMeshData extends MeshGeomData, BlockData {}
+export interface DEMBlockMaterialData extends DEMMaterialData, BlockData {}
+export type DEMBlockData = DEMBlockGridData | DEMBlockMeshData | DEMBlockMaterialData;
+
+export interface GridGeomDataB64 {
+    array: Base64F32;
+    columns: number;
+    rows: number;
+    extent: MapExtent;
+    nodata?: Base64F32;
+    segments?: number;
+}
+
+export interface GridGeomDataRef {
+    url: string;
+}
+
+export interface ParsedGridGeomData {
+    array: Float32Array;     // DEM values
+    columns: number;         // Number of columns of actual grid data
+    rows: number;            // Number of rows of actual grid data
+    extent: MapExtent;       // Extent of the plane in map coordinates
+    nodata?: Float32Array1;  // No data value
+    segments?: number;       // Segments of a tile side. When supplied, the grid is treated as a square tile.
+}
+
+export interface MeshGeomDataB64 {
+    vertices: Base64F32;
+    indices: Base64I32;
+    uvs?: Base64F32;
+    extent?: MapExtent;     // necessary for uv calculation
+}
+
+export interface MeshGeomDataRef {
+    url: string;
+}
+
+export interface ParsedMeshGeomData {
+    vertices: Float32Array;
+    indices: Uint32Array;
+    uvs?: Float32Array;
+    extent?: MapExtent;     // necessary for uv calculation
+}
+
+export interface DEMTileData {
+    grid?: GridGeomData;
+    materials: MaterialData[];
+}
+
+export interface DEMTileEntry extends DEMTileData {
+    tileId: string;
 }
 
 export interface Tileset {
@@ -153,7 +232,7 @@ export interface Tileset {
     root: Tile;
 }
 
-interface Tile {
+export interface Tile {
     boundingVolume: {
         box: number[];
     };
@@ -166,86 +245,17 @@ interface Tile {
     refine: "REPLACE" | "ADD";
 }
 
-export interface TileInfo {
-    tileId: string;
-    grid: DEMBlockGridData;
-    material: DEMBlockMaterialData;
+export interface RuntimeTile extends Tile {
+    engineData: any;
 }
 
-/* DEM Layer and its Block */
-export interface DEMLayerData extends LayerData {
-    properties: DEMLayerProperties;
-    body?: {
-        blocks: DEMBlockData[] | TileInfo[];    // TODO: refactor
-    }
-    tileset?: Tileset;
-}
-
-export interface DEMBlockDataBase extends BlockData {
-    extent: MapExtent;
-    translate: Vec3;
-    zScale: number;
-    segments: number;
-}
-
-/**
- * DEM block data based on regular grid.
- */
-export interface DEMBlockGridData extends DEMBlockDataBase {
-    grid: DEMGridData | DEMGridDataRef;
-}
-
-export interface DEMBlockMeshData extends DEMBlockDataBase {
-    mesh: DEMMeshData | DEMMeshDataRef;
-}
-
-export interface DEMBlockMaterialData extends BlockData {
-    materials: MaterialData[];
-}
-
-export type DEMBlockData = DEMBlockGridData | DEMBlockMeshData | DEMBlockMaterialData;
-
-export interface DEMGridData {
-    columns: number;
-    rows: number;
-    dem_values: Base64F32;
-    nodata?: Base64F32;
-}
-
-export interface ParsedDEMGridData {
-    columns: number;
-    rows: number;
-    dem_values: Float32Array;
-    nodata?: Float32Array1;
-}
-
-export interface DEMGridDataRef {
-    url: string;
-}
-
-export interface DEMMeshData {
-    vertices: string;
-    indices: string;
-    uvs?: string;
-}
-
-export interface ParsedDEMMeshData {
-    vertices: Float32Array;
-    indices: Uint32Array;
-    uvs?: Float32Array;
-}
-
-export interface DEMMeshDataRef {
-    url: string;
-}
-
-/* Vector Layer and its Block */
+/* Vector layer and block */
 export interface VectorLayerData extends LayerData {
     properties: VectorLayerProperties;
     body: {
+        contents?: FeatureBlockData[] | FeatureBlockDataRef[];
         materials?: MaterialData[];
         models?: ModelData[];
-        blocks?: FeatureBlockData[] | FeatureBlockDataRef[];
     };
 }
 
@@ -310,15 +320,12 @@ export interface MeshData {
     centroids: (Vec3 | 0)[];
 }
 
-/* Tile */
-export interface TileData extends BaseData {
+/* Tile data requested from web side */
+export interface TileDataResponse extends BaseData {
     type: "tile";
     layer: number;
     url: string;
-    data: {
-        grid: DEMGridData;
-        materials: MaterialData[];
-    }
+    data: DEMTileData;
 }
 
 /* Animation */
@@ -406,8 +413,9 @@ export interface SignalData extends BaseData {
 export type AppData =
     SceneData
     | LayerData
-    | BlockData
-    | TileData;
+    | DEMBlockData
+    | FeatureBlockData
+    | TileDataResponse;
 
 export type PreviewData =
     AppData

@@ -39,6 +39,9 @@ class Tileset:
         self.maxLevel = max(0, max(cols, rows) - 1).bit_length()
 
     def metadata(self, asJson=False):
+        """
+        @returns {Tileset}
+        """
         max_level_tile_size = self.gridResolution * self.tileSegments
         max_level_error = self.gridResolution
 
@@ -106,6 +109,9 @@ class Tileset:
         return json.dumps(d, ensure_ascii=True, indent=2) if asJson else d
 
     def build(self):
+        """
+        @returns {DEMLayerData}
+        """
         return {
             "type": "layer",
             "id": self.jsLayerId,

@@ -9,7 +9,7 @@ import { Material } from "../material.js";
 import { createWallGeometry, decodeBase64TypedArrayObject, getBoundaryLines } from "../utils.js";
 import { Q3DPlugin } from "../tiles/q3dplugin.js";
 
-import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, MapExtent, ParsedDEMGridData, ParsedDEMMeshData, Point3, TileInfo, Tileset, Vec3 } from "../types.js";
+import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, DEMTileData, MapExtent, ParsedGridGeomData, ParsedMeshGeomData, Point3, RuntimeTile, Tileset, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
 
 
@@ -56,7 +56,7 @@ export class DEMLayer extends MapLayer {
 			plugin.layer = this;
 			plugin.tileset = data.tileset;
 			if (data.body && data.body.blocks) {
-				plugin.tileInfoList = data.body.blocks;
+				plugin.tileEntries = data.body.blocks;
 			}
 
 			if (conf.tiles.showBoundingBox) {
@@ -281,7 +281,6 @@ class DEMBlockBase {
 	currentMtlIndex: number = 0;
 
 	obj!: THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
-	data!: DEMBlockData;
 
 	loadData(data: DEMBlockData, layer: DEMLayer) {
 		if ("materials" in data === false) return;
@@ -340,8 +339,6 @@ class DEMBlockBase {
 
 class DEMGridBlock extends DEMBlockBase {
 
-	declare data: DEMBlockGridData;
-
 	loadData(data: DEMBlockGridData, layer: DEMLayer): THREE.Mesh | void {
 		super.loadData(data, layer);
 
@@ -354,8 +351,8 @@ class DEMGridBlock extends DEMBlockBase {
 		mesh.position.fromArray(data.translate);
 		layer.addObject(mesh);
 
-		const build = (grid_data: ParsedDEMGridData) => {
-			geom.loadData(grid_data.dem_values, grid_data.columns, grid_data.rows, data.extent, grid_data.nodata, data.segments);
+		const build = (grid_data: ParsedGridGeomData) => {
+			geom.loadData(grid_data);
 			mesh.material.needsUpdate = true;		// update shader after computing vertex normals
 
 			this.buildAuxiliaryObjects(layer, geom, mesh);
@@ -378,8 +375,6 @@ class DEMGridBlock extends DEMBlockBase {
 
 class DEMMeshBlock extends DEMBlockBase {
 
-	declare data: DEMBlockMeshData;
-
 	loadData(data: DEMBlockMeshData, layer: DEMLayer): THREE.Mesh | void {
 		super.loadData(data, layer);
 
@@ -396,10 +391,10 @@ class DEMMeshBlock extends DEMBlockBase {
 
 		this.obj = mesh;
 
-		const build = (mesh_data: ParsedDEMMeshData) => {
+		const build = (mesh_data: ParsedMeshGeomData) => {
 			this.setGeometryData(geom, mesh_data);
-			if (!geom.getAttribute("uv")) {
-				this.calculateUVs(geom, data.extent, layer.sceneData.origin);
+			if (!geom.getAttribute("uv") && mesh_data.extent) {
+				this.calculateUVs(geom, mesh_data.extent, layer.sceneData.origin);
 			}
 			this.buildAuxiliaryObjects(layer, geom, mesh);
 
@@ -416,7 +411,7 @@ class DEMMeshBlock extends DEMBlockBase {
 		return mesh;
 	}
 
-	setGeometryData(geom: THREE.BufferGeometry, data: ParsedDEMMeshData) {
+	setGeometryData(geom: THREE.BufferGeometry, data: ParsedMeshGeomData) {
 		geom.setAttribute("position", new THREE.Float32BufferAttribute(data.vertices, 3));
 
 		geom.setIndex(new THREE.Uint32BufferAttribute(data.indices, 1));
@@ -474,17 +469,13 @@ function createBlock(layer: DEMLayer) {
 export class GridGeometry extends THREE.BufferGeometry {
 
 	/**
-	 * @param array      - DEM values
-	 * @param columns    - Number of columns of actual grid data
-	 * @param rows       - Number of rows of actual grid data
-	 * @param extent     - Extent of the plane
-	 * @param nodata     - No data value
-	 * @param segments	 - Segments of a tile side. When supplied, the grid is treated as a square tile.
+	 * @param data
 	 * @param skirtDepth - Depth of the skirt. 0 disables the skirt, a positive value specifies the skirt depth,
 	 * 					   and -1 uses an automatically calculated depth.
 	 */
-	loadData(array: Float32Array, columns: number, rows: number, extent: MapExtent, nodata?: number | Float32Array, segments?: number, skirtDepth: number = 0) {
-		if (nodata instanceof Float32Array) nodata = nodata[0];
+	loadData(data: ParsedGridGeomData, skirtDepth: number = 0) {
+		const { array, columns, rows, extent, nodata: nodata_raw, segments } = data;
+		const nodata = (nodata_raw instanceof Float32Array) ? nodata_raw[0] : nodata_raw;
 
 		const { width, height }  = extent;
 		const isTileMode = (segments !== undefined);
@@ -638,19 +629,23 @@ export class GridGeometry extends THREE.BufferGeometry {
 	}
 }
 
-export async function buildTile(layer, data, tile, showBoundingBox = false, showBoundingVolume = false) {
+export async function buildTile(layer: DEMLayer, data: DEMTileData, tile: RuntimeTile, showBoundingBox = false, showBoundingVolume = false) {
 	const material = new Material();
 	material.loadData(data.materials[layer.currentMtlIndex]);
 	layer.materials.add(material);
 
+	const grid_geom = (data.grid as DEMBlockGridData).grid as ParsedGridGeomData;
+	const origin = layer.sceneData.origin;
+
 	const geometry = new GridGeometry();
 	const mesh = new THREE.Mesh(geometry, material.mtl);
+	mesh.position.set(grid_geom.extent.cx - origin.x, grid_geom.extent.cy - origin.y, 0);
+
+	geometry.loadData(grid_geom, -1);
+	mesh.material.needsUpdate = true;		// update shader after computing vertex normals
+
 	mesh.userData.layerId = layer.id;
 	mesh.userData.materials = data.materials;
-
-	const geom_data = data.grid;
-	const origin = layer.sceneData.origin;
-	mesh.position.set(geom_data.extent.cx - origin.x, geom_data.extent.cy - origin.y, 0);
 
 	const { engineData } = tile;
 	engineData.materials = [material.mtl];
@@ -658,11 +653,6 @@ export async function buildTile(layer, data, tile, showBoundingBox = false, show
 	engineData.textures = (material.mtl.map) ? [material.mtl.map] : [];
 	engineData.scene = mesh;
 	engineData.metadata = null;
-
-	const grid_data = geom_data.grid;
-	geometry.loadData(grid_data.dem_values, grid_data.columns, grid_data.rows, geom_data.extent, grid_data.nodata, geom_data.segments, -1);
-
-	mesh.material.needsUpdate = true;		// update shader after computing vertex normals
 
 	if (showBoundingBox) {
 		const helper = new THREE.Box3Helper(

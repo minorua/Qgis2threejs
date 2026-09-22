@@ -8,7 +8,7 @@ from osgeo import gdal
 from qgis.PyQt.QtCore import QSize
 from qgis.core import QgsPoint, QgsProject
 
-from .block_builder import DEMBlockResampBuilder, DEMBlockRawBuilder
+from .dem_builder import DEMResampBuilder, DEMRawBuilder
 from .material_builder import DEMMaterialBuilder
 from .property_reader import DEMPropertyReader
 from .tileset import Tileset
@@ -80,9 +80,9 @@ class DEMLayerBuilder(LayerBuilderBase):
         self.provider = settings.demProviderByLayerId(layer.layerId)
 
         if self.properties.get("radioButton_OriginalValues") or self.properties.get("radioButton_Pyramid"):
-            BldClass = DEMBlockRawBuilder
+            BldClass = DEMRawBuilder
         else:
-            BldClass = DEMBlockResampBuilder
+            BldClass = DEMResampBuilder
 
         self.demBuilder = BldClass(layer, settings, self.provider, self.mtlBuilder.materialManager, self.assetDestination)
 
@@ -212,6 +212,9 @@ class DEMLayerBuilder(LayerBuilderBase):
             })
 
     def _buildTasks_TileExport(self, minLevel=None):
+        """
+        @yields {DEMTileEntry} builder
+        """
         materials = self.properties.get("materials", [])
         tasksPerSet = 2 + len(materials)
         results = None
@@ -285,7 +288,7 @@ class DEMLayerBuilder(LayerBuilderBase):
 
             # set up dem builder
             if not self.buildOptions.onlyMaterial:
-                # DEMBlockRawBuilder
+                # DEMRawBuilder
                 self.demBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments, dataExtent=dataExtent)
                 yield BuildTask(self.demBuilder)
 
@@ -329,7 +332,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         size = self.properties.get("spinBox_Size", 1) if tiles else 1
         size2 = size * size
 
-        centerBlk = DEMBlockResampBuilder(self.layer, self.settings, self.provider, self.mtlBuilder.materialManager, self.assetDestination)
+        centerBlk = DEMResampBuilder(self.layer, self.settings, self.provider, self.mtlBuilder.materialManager, self.assetDestination)
         blks = []
         for i in range(size2):
             sx = i % size - (size - 1) // 2
@@ -367,7 +370,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                     if sx * sx <= 1 and sy * sy <= 1:
                         neighbors = [(sx, sy, centerBlk, 1)]
 
-                # DEMBlockResampBuilder
+                # DEMResampBuilder
                 blkBuilder.setup(blockIndex, extent, self.settings.mapTo3d().origin, grid_seg,
                                  roughness=1 if is_center else roughness,
                                  edgeRoughness=roughness if is_center else 1,
@@ -385,6 +388,9 @@ class DEMLayerBuilder(LayerBuilderBase):
             self.progress(i + 1, size2)
 
     def buildTile(self, url, level, x, y, onlyMaterial=False):
+        """
+        @returns {TileDataResponse}
+        """
         tileset = self._getTileset()
 
         tileRect = tileset.tileRect(level, x, y)
@@ -395,7 +401,7 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         data = {}
         if not onlyMaterial:
-            self.demBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, dataExtent=dataExtent)
+            self.demBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, dataExtent=dataExtent, asBlock=False)
             data["grid"] = self.demBuilder.build()
 
         self.mtlBuilder.setup(0, tileExtent, asBlock=False, debugText=f"{level}/{x}/{y}" if DEBUG_MODE else "")

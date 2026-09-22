@@ -9,8 +9,9 @@ import { Material } from "../material.js";
 import { decodeBase64TypedArrayObject } from "../utils.js";
 
 import type { TilesRenderer } from "lib/3d-tiles-renderer/3d-tiles-renderer.js";
-import type { DEMBlockGridData, ParsedDEMGridData, Tileset } from "../types.js";
+import type { GridGeomData, GridGeomDataRef, ParsedGridGeomData, Tileset, Tile, DEMTileData, DEMTileEntry } from "../types.js";
 import type { MapLayer } from "../layer/layer.js";
+import type { DEMLayer } from "../layer/demlayer.js";
 
 
 export class Q3DPlugin {
@@ -19,7 +20,7 @@ export class Q3DPlugin {
     priority: number = 0;
     tiles: typeof TilesRenderer;
     tileset: Tileset;
-    tileInfoList = [];
+    tileEntries: DEMTileEntry[] = [];
     pendingRequests = new Map();
     layer: MapLayer;
     showBoundingBox = false;
@@ -118,10 +119,10 @@ export class Q3DPlugin {
         if (typeof window.requestTileData !== "function") {
             const tileId = url.split("/").slice(-3).join("/").replace(".tile", "")
 
-            const tileInfo = this.tileInfoList.find(info => info.tileId === tileId);
-            if (tileInfo) return tileInfo;
+            const tileEntry = this.tileEntries.find(entry => entry.tileId === tileId);
+            if (tileEntry) return tileEntry;
 
-            throw new Error("Tile info not found");
+            throw new Error("Tile entry not found");
         }
 
         // preview
@@ -144,7 +145,7 @@ export class Q3DPlugin {
     /**
      * Called from Scene.loadTileData() in preview mode
      */
-    dataReceived(url, data) {
+    dataReceived(url, data: DEMTileData) {
         const pending = this.pendingRequests.get(url);
         if (!pending) return;
 
@@ -159,30 +160,15 @@ export class Q3DPlugin {
      * @param {Tile} tile
      * @param {string} extension
      */
-	async parseTile(content, tile, extension, url, abortSignal) {
-        if (content.tileId === undefined) {     // preview
-            const geom_data = content.grid;
-            geom_data.grid = await decodeBase64TypedArrayObject(geom_data.grid) as ParsedDEMGridData;
-            return buildTile(this.layer, content, tile, this.showBoundingBox, this.showBoundingVolume);
+	async parseTile(content: DEMTileEntry | DEMTileData, tile, extension, url, abortSignal) {
+        const grid_data = content.grid as GridGeomData;
+        if ("tileId" in content) {     // export
+            grid_data.grid = await app.loadJSONBinaryFile((grid_data.grid as GridGeomDataRef).url) as ParsedGridGeomData;
         }
-
-        const grid = content.grid as DEMBlockGridData;
-        grid.grid = await app.loadJSONBinaryFile(grid.grid.url) as ParsedDEMGridData;
-
-        const extent = grid.extent;
-        const data = {
-            grid: grid,
-            materials: content.materials,
-            translate: [
-                extent.cx - this.layer.sceneData.origin.x,
-                extent.cy - this.layer.sceneData.origin.y,
-                0
-            ]
-        };
-
-        buildTile(this.layer, data, tile, this.showBoundingBox, this.showBoundingVolume);
-
-		return true;
+        else {
+            grid_data.grid = await decodeBase64TypedArrayObject(grid_data.grid) as ParsedGridGeomData;
+        }
+        return buildTile(this.layer as DEMLayer, content, tile, this.showBoundingBox, this.showBoundingVolume);
 	}
 
     /**

@@ -6,6 +6,7 @@ import { THREE } from "../three.js";
 import { conf, Group } from "../core.js";
 import { Materials } from "../material.js";
 
+import type { TilesRenderer } from "lib/3d-tiles-renderer/3d-tiles-renderer.js";
 import type { BlockData, LayerData, LayerType, LayerProperties, ObjectEventMap, SceneProperties } from "../types.js";
 import type { Scene } from "../scene.js";
 
@@ -20,6 +21,7 @@ export class MapLayer extends THREE.EventDispatcher {
 	declare materials: Materials;
 	declare objectGroup: Group;
 	declare sceneData: SceneProperties;
+	declare tilesRenderer: typeof TilesRenderer;
 	declare addEventListener: THREE.EventDispatcher<ObjectEventMap>["addEventListener"];
 	declare dispatchEvent: THREE.EventDispatcher<ObjectEventMap>["dispatchEvent"];
 

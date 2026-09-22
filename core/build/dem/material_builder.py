@@ -32,7 +32,7 @@ class DEMMaterialBuilder:
 
     def build(self):
         """
-        @returns {DEMMaterialBlockData}
+        @returns {DEMMaterialBlockData} if self.asBlock else {MaterialData}
         """
         mtlId = self.mtlId or self.layer.properties.get("mtlId")
         m = self.layer.material(mtlId)

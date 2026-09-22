@@ -9,7 +9,7 @@ import { PointLayer } from "./layer/pointlayer.js";
 import { LineLayer } from "./layer/linelayer.js";
 import { PolygonLayer } from "./layer/polygonlayer.js";
 
-import type { AppData, BlockData, LayerData, SceneData, SceneEventMap, SceneProperties, TileData } from "./types.js";
+import type { AppData, BlockData, LayerData, SceneData, SceneEventMap, SceneProperties, TileDataResponse } from "./types.js";
 import type { MapLayer } from "./layer/layer.js";
 
 export class Scene extends THREE.Scene {
@@ -128,6 +128,7 @@ export class Scene extends THREE.Scene {
 		if (layer === undefined) {
 			layer = createLayer(data);
 			if (!layer) return;
+
 			layer.addEventListener("renderRequest", () => this.requestRender());
 
 			this.mapLayers[data.id] = layer;
@@ -148,7 +149,7 @@ export class Scene extends THREE.Scene {
 		this.requestRender();
 	}
 
-	loadTileData(data: TileData) {
+	loadTileData(data: TileDataResponse) {
 		const layer = this.mapLayers[data.layer];
 		if (layer === undefined || layer.tilesRenderer === undefined) return;
 
