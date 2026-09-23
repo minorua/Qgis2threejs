@@ -20,7 +20,6 @@ export class DEMLayer extends MapLayer {
 	sideVisible: boolean = false;
 	auxiliaryMtl: Partial<Record<"sides", Material>> = {};
 	tilesRenderer = null;
-	_mtlIndex = 0;
 
 	anim?: any[];
 
@@ -125,13 +124,13 @@ export class DEMLayer extends MapLayer {
 	}
 
 	get currentMtlIndex(): number {
-		return this._mtlIndex;
+		return this.properties.mtlIdx || 0;
 	}
 
 	set currentMtlIndex(mtlIndex: number) {
-		this.materials.removeItemsByGroupId(this._mtlIndex);
+		this.materials.removeItemsByGroupId(this.currentMtlIndex);
 
-		this._mtlIndex = mtlIndex;
+		this.properties.mtlIdx = mtlIndex;
 
 		if (this.tilesRenderer) {
 			this.tilesRenderer.plugins[0].setTileMaterialUpdaters(mtlIndex);
