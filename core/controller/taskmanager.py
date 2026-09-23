@@ -58,7 +58,7 @@ class BuildTileTask:
         return BuildTileTask(url, layer, level, x, y, onlyMaterial)
 
     def __repr__(self):
-        return f'Tile: {self.layer.jsLayerId}/{self.level}/{self.x}/{self.y}{" (mtl)" if self.onlyMaterial else ""})'
+        return f'Tile: {self.layer.jsLayerId}/{self.level}/{self.x}/{self.y}{" (mtl)" if self.onlyMaterial else ""}'
 
 
 class TaskSequenceStatus:
@@ -186,6 +186,9 @@ class TaskManager(QObject):
         self.taskQueue = new_queue
 
     def addBuildTileTask(self, task: BuildTileTask):
+        if self.runningBuildLayerTask and self.runningBuildLayerTask.layer.layerId == task.layer.layerId:
+            return
+
         self.taskQueue.append(task)
         self.queuedBuildTaskCounter += 1
         self.processNextTask()
