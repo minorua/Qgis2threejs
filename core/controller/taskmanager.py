@@ -146,7 +146,7 @@ class TaskManager(QObject):
         # If the layer being processed is the same as the layer to be added, abort processing.
         runningTask = self.runningBuildLayerTask
         if runningTask and runningTask.layer.layerId == layer.layerId:
-            if options and not runningTask.options.onlyMaterial:
+            if not runningTask.options.onlyMaterial:
                 options.onlyMaterial = False
 
             self.abortCurrentTask.emit()
@@ -156,7 +156,7 @@ class TaskManager(QObject):
         new_queue = []
         for task in self.taskQueue:
             if isinstance(task, (BuildLayerTask, BuildTileTask)) and task.layer.layerId == layer.layerId:
-                if options and not task.options.onlyMaterial:
+                if isinstance(task, BuildLayerTask) and not task.options.onlyMaterial:
                     options.onlyMaterial = False
 
                 self.queuedBuildTaskCounter -= 1
