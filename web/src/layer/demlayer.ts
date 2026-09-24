@@ -128,8 +128,6 @@ export class DEMLayer extends MapLayer {
 	}
 
 	set currentMtlIndex(mtlIndex: number) {
-		this.materials.removeItemsByGroupId(this.currentMtlIndex);
-
 		this.properties.mtlIndex = mtlIndex;
 
 		if (this.tilesRenderer) {
@@ -137,13 +135,16 @@ export class DEMLayer extends MapLayer {
 			return;
 		}
 
-		for (const b of this.blocks) {
-			const m = b.materials[mtlIndex];
-			if (m) {
-				b.currentMtlIndex = mtlIndex;
-				b.obj.material = m.mtl;
-				this.materials.add(m);
-			}
+		for (const block of this.blocks) {
+			const mesh = block.obj;
+			const material = block.materials[mtlIndex];
+			if (!mesh || !material) continue;
+
+			if (mesh.material) this.materials.removeItem(mesh.material, true);
+
+			mesh.material = material.mtl;
+
+			this.materials.add(material);
 		}
 		this.requestRender();
 	}
@@ -278,8 +279,6 @@ export class DEMLayer extends MapLayer {
 class DEMBlockBase {
 
 	materials: Material[] = [];
-	currentMtlIndex: number = 0;
-
 	obj!: THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
 
 	loadData(data: DEMBlockData, layer: DEMLayer) {
@@ -345,7 +344,7 @@ class DEMGridBlock extends DEMBlockBase {
 		if (data.grid === undefined) return;
 
 		const geom = new GridGeometry();
-		const material = (this.materials[this.currentMtlIndex] || {}).mtl;
+		const material = (this.materials[layer.currentMtlIndex] || {}).mtl;
 		const mesh = new THREE.Mesh(geom, material);
 		mesh.scale.z = data.zScale;
 		mesh.position.fromArray(data.translate);
@@ -382,7 +381,7 @@ class DEMMeshBlock extends DEMBlockBase {
 		if (mesh_data === undefined) return;
 
 		const geom = new THREE.BufferGeometry();
-		const material = (this.materials[this.currentMtlIndex] || {}).mtl;
+		const material = (this.materials[layer.currentMtlIndex] || {}).mtl;
 
 		const mesh = new THREE.Mesh(geom, material);
 		mesh.position.fromArray(data.translate);
