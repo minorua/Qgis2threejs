@@ -254,7 +254,6 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         materials = self.properties.get("materials", [])
         mtlCount = len(materials)
-        currentMtlId = self.properties.get("mtlId")
 
         asBlock = not isPyramid
         debugText = ""
@@ -284,9 +283,9 @@ class DEMLayerBuilder(LayerBuilderBase):
             # set up material builder for first/current material
             if self.buildOptions.allMaterials and mtlCount:
                 id = materials[0].get("id")
-                self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, asBlock=asBlock, useNow=bool(id == currentMtlId), debugText=debugText)
+                self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, asBlock=asBlock, debugText=debugText)
             else:
-                self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, asBlock=asBlock, useNow=True, debugText=debugText)
+                self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, asBlock=asBlock, debugText=debugText)
             yield BuildTask(self.mtlBuilder)
 
             # set up dem builder
@@ -299,7 +298,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             if self.buildOptions.allMaterials:
                 for idx in range(1, mtlCount):
                     id = materials[idx].get("id")
-                    self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, asBlock=asBlock, useNow=bool(id == currentMtlId), debugText=debugText)
+                    self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, asBlock=asBlock, debugText=debugText)
                     yield BuildTask(self.mtlBuilder)
 
             self.progress(i + 1, tileCount)
@@ -310,7 +309,6 @@ class DEMLayerBuilder(LayerBuilderBase):
     def _buildTasks_Resamp(self):
         materials = self.properties.get("materials", [])
         mtlCount = len(materials)
-        currentMtlId = self.properties.get("mtlId")
 
         be = self.settings.baseExtent()
         if self.mtlBuilder.currentMtlType() in (DEMMtlType.LAYER, DEMMtlType.MAPCANVAS):
@@ -358,9 +356,9 @@ class DEMLayerBuilder(LayerBuilderBase):
             # set up material builder for first/current material
             if self.buildOptions.allMaterials and mtlCount:
                 id = materials[0].get("id")
-                self.mtlBuilder.setup(blockIndex, extent, mtlId=id, useNow=bool(id == currentMtlId))
+                self.mtlBuilder.setup(blockIndex, extent, mtlId=id)
             else:
-                self.mtlBuilder.setup(blockIndex, extent, useNow=True)
+                self.mtlBuilder.setup(blockIndex, extent)
             yield BuildTask(self.mtlBuilder)
 
             # set up grid builder
@@ -385,7 +383,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             if self.buildOptions.allMaterials:
                 for idx in range(1, mtlCount):
                     id = materials[idx].get("id")
-                    self.mtlBuilder.setup(blockIndex, extent, mtlId=id, useNow=bool(id == currentMtlId))
+                    self.mtlBuilder.setup(blockIndex, extent, mtlId=id)
                     yield BuildTask(self.mtlBuilder)
 
             self.progress(i + 1, size2)

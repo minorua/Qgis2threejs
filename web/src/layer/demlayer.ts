@@ -285,21 +285,21 @@ class DEMBlockBase {
 	loadData(data: DEMBlockData, layer: DEMLayer) {
 		if ("materials" in data === false) return;
 
-		// load material
+		const mesh = this.obj;
 		for (const m of data.materials) {
-			const mtl = new Material();
-			mtl.loadData(m, () => layer.requestRender());
-			this.materials[m.mtlIndex] = mtl;
+			if (!m) continue;
 
-			if (m.useNow) {
-				this.currentMtlIndex = m.mtlIndex;
-				if (this.obj) {
-					layer.materials.removeItem(this.obj.material, true);
+			const material = new Material();
+			material.loadData(m, () => layer.requestRender());
+			this.materials[m.mtlIndex] = material;
 
-					this.obj.material = mtl.mtl;
-					layer.requestRender();
-				}
-				layer.materials.add(mtl);
+			if (mesh && m.mtlIndex === layer.currentMtlIndex) {		// current material changed in preview
+				if (mesh.material) layer.materials.removeItem(mesh.material, true);
+
+				mesh.material = material.mtl;
+
+				layer.materials.add(material);
+				layer.requestRender();
 			}
 		}
 	}
