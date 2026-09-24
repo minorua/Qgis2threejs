@@ -313,7 +313,7 @@ gui.layerPanel = {
                 for (var i = 0; i < p.mtlNames.length; i++) {
                     CE("option", select, p.mtlNames[i]).setAttribute("value", i);
                 }
-                select.value = p.mtlIdx;
+                select.value = p.mtlIndex;
             }
 
             // opacity slider

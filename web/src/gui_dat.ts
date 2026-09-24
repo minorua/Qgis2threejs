@@ -75,7 +75,7 @@ d.initLayersFolder = (scene) => {
 			for (let i = 0; i < mtlNames.length; i++) {
 				items[mtlNames[i]] = i;
 			}
-			mtls = folder.add(params.lyr[layerId], 'm', items).name('Material').setValue(p.mtlIdx);
+			mtls = folder.add(params.lyr[layerId], 'm', items).name('Material').setValue(p.mtlIndex);
 		}
 
 		const op = folder.add(params.lyr[layerId], 'o').min(0).max(1).name('Opacity').onChange((value) => {

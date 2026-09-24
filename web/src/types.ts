@@ -58,7 +58,7 @@ export interface DEMLayerProperties extends LayerProperties {
     type: "dem";
     dataType: "grid" | "mesh";
     mtlNames: string[];
-    mtlIdx: number;
+    mtlIndex: number;
     sides?: {
         mtl: MaterialData;
         bottom: number;

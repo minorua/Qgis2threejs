@@ -136,7 +136,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         p["type"] = "dem"
         p["dataType"] = "mesh" if self.properties.get("radioButton_ClipPolygon") else GRID_DEM_OUTPUT_MODE
         p["mtlNames"] = [mtl.get("name", "") for mtl in self.properties.get("materials", [])]
-        p["mtlIdx"] = self.layer.mtlIndex(self.properties.get("mtlId"))
+        p["mtlIndex"] = self.layer.mtlIndex(self.properties.get("mtlId"))
 
         # auxiliary objects
         opacity = DEMPropertyReader.opacity(self.properties)

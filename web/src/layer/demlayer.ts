@@ -124,13 +124,13 @@ export class DEMLayer extends MapLayer {
 	}
 
 	get currentMtlIndex(): number {
-		return this.properties.mtlIdx || 0;
+		return this.properties.mtlIndex || 0;
 	}
 
 	set currentMtlIndex(mtlIndex: number) {
 		this.materials.removeItemsByGroupId(this.currentMtlIndex);
 
-		this.properties.mtlIdx = mtlIndex;
+		this.properties.mtlIndex = mtlIndex;
 
 		if (this.tilesRenderer) {
 			this.tilesRenderer.plugins[0].setTileMaterialUpdaters(mtlIndex);
