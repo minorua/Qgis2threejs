@@ -631,7 +631,7 @@ export class GridGeometry extends THREE.BufferGeometry {
 
 export async function buildTile(layer: DEMLayer, data: DEMTileData, tile: RuntimeTile, showBoundingBox = false, showBoundingVolume = false) {
 	const material = new Material();
-	material.loadData(data.materials[layer.currentMtlIndex]);
+	material.loadData(("material" in data) ? data.material : data.materials[layer.currentMtlIndex]);
 	layer.materials.add(material);
 
 	const grid_geom = (data.grid as DEMBlockGridData).grid as ParsedGridGeomData;

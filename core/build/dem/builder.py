@@ -408,7 +408,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             data["grid"] = self.demBuilder.build()
 
         self.mtlBuilder.setup(0, tileExtent, asBlock=False, debugText=f"{level}/{x}/{y}" if DEBUG_MODE else "")
-        data["materials"] = [self.mtlBuilder.build()]
+        data["material"] = self.mtlBuilder.build()
 
         return {
             "type": "tile",

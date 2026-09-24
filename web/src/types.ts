@@ -217,7 +217,8 @@ export interface ParsedMeshGeomData {
 
 export interface DEMTileData {
     grid?: GridGeomData;
-    materials: MaterialData[];
+    material?: MaterialData;        // preview
+    materials?: MaterialData[];     // export
 }
 
 export interface DEMTileEntry extends DEMTileData {

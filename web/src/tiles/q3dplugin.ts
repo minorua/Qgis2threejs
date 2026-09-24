@@ -116,7 +116,7 @@ export class Q3DPlugin {
      * @param options
      */
     async fetchData(url, options) {
-        if (typeof window.requestTileData !== "function") {
+        if (window.requestTileData === undefined) {
             const tileId = url.split("/").slice(-3).join("/").replace(".tile", "")
 
             const tileEntry = this.tileEntries.find(entry => entry.tileId === tileId);
@@ -180,22 +180,25 @@ export class Q3DPlugin {
 
     setTileMaterialUpdaters(mtlIndex: number) {
         const noop = () => {};
+        const layer = this.layer as DEMLayer;
 
         for (const tile of this.tiles.lruCache.itemList) {
             const mesh = tile.engineData.scene;
             if (!mesh) continue;
 
-            if (mtlIndex !== undefined) {
-                this.layer.materials.remove(mesh.material, true);
+            const engineData = tile.engineData;
+            if (window.requestTileData === undefined) {
+                layer.materials.removeItem(mesh.material, true);
 
                 const material = new Material();
-                material.loadData(mesh.userData.materials[mtlIndex], () => this.layer.requestRender());
-                this.layer.materials.add(material);
+                material.loadData(mesh.userData.materials[mtlIndex], () => layer.requestRender());
+                layer.materials.add(material);
 
                 const mtl = material.mtl;
-                tile.engineData.materials = [mtl];
-        		tile.engineData.textures = (mtl.map) ? [mtl.map] : [];
                 mesh.material = mtl;
+
+                engineData.materials = [mtl];
+        		engineData.textures = (mtl.map) ? [mtl.map] : [];
             }
             else {      // preview
                 mesh.onBeforeRender = (renderer, object, camera, geometry, material, group) => {
@@ -210,19 +213,17 @@ export class Q3DPlugin {
                         resolve = res;
                         reject = rej;
                     }).then((content) => {
-                        const material = new Material();
-                        material.loadData(content.materials[0], () => this.layer.requestRender());
-                        this.layer.materials.add(material);
+                        layer.materials.removeItem(mesh.material, true);
 
-                        const engineData = tile.engineData;
-                        for (const mtl of engineData.materials) {
-                            this.layer.materials.removeItem(mtl, true);
-                        }
+                        const material = new Material();
+                        material.loadData(content.material, () => layer.requestRender());
+                        layer.materials.add(material);
 
                         const mtl = material.mtl;
+                        mesh.material = mtl;
+
                         engineData.materials = [mtl];
                         engineData.textures = (mtl.map) ? [mtl.map] : [];
-                        engineData.scene.material = mtl;
                     });
 
                     this.pendingRequests.set(uri, { promise, resolve, reject });
