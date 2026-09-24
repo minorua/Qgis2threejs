@@ -408,6 +408,7 @@ export interface SignalData extends BaseData {
     is_scene?: boolean;
 
     layer?: number;
+    mtlIndex?: number;
 }
 
 export type AppData =

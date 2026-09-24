@@ -101,7 +101,13 @@ class DEMLayerBuilder(LayerBuilderBase):
             return None
 
         if self.buildOptions.onlyMaterial:
-            return None     # do not send "layer" data
+            d = {
+                "type": "signal",
+                "name": "demMtlChanged",
+                "layer": self.layer.jsLayerId,
+                "mtlIndex": self.layer.mtlIndex(self.properties.get("mtlId"))
+            }
+            return d
 
         d = {
             "type": "layer",
@@ -204,12 +210,8 @@ class DEMLayerBuilder(LayerBuilderBase):
         yield from self._buildTasks_Resamp()
 
     def _buildTasks_PyramidTilePreview(self):
-        if self.buildOptions.onlyMaterial:
-            yield DataTask({
-                "type": "signal",
-                "name": "tileMtlChanged",
-                "layer": self.layer.jsLayerId
-            })
+        return
+        yield
 
     def _buildTasks_PyramidTileExport(self, minLevel=0):
         """
