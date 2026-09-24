@@ -10,19 +10,18 @@ import { decodeBase64TypedArrayObject } from "../utils.js";
 
 import type { TilesRenderer } from "lib/3d-tiles-renderer/3d-tiles-renderer.js";
 import type { GridGeomData, GridGeomDataRef, ParsedGridGeomData, Tileset, Tile, DEMTileData, DEMTileEntry } from "../types.js";
-import type { MapLayer } from "../layer/layer.js";
 import type { DEMLayer } from "../layer/demlayer.js";
 
 
-export class Q3DPlugin {
+export class DEMPlugin {
 
-    name: string = "Q3D_PLUGIN";
+    name: string = "DEMPLUGIN";
     priority: number = 0;
     tiles: typeof TilesRenderer;
     tileset: Tileset;
     tileEntries: Map<string, DEMTileData> = new Map();
     pendingRequests = new Map();
-    layer: MapLayer;
+    layer: DEMLayer;
     showBoundingBox = false;
     showBoundingVolume = false;
 
@@ -168,7 +167,7 @@ export class Q3DPlugin {
         else {
             grid_data.grid = await decodeBase64TypedArrayObject(grid_data.grid) as ParsedGridGeomData;
         }
-        return buildTile(this.layer as DEMLayer, content, tile, this.showBoundingBox, this.showBoundingVolume);
+        return buildTile(this.layer, content, tile, this.showBoundingBox, this.showBoundingVolume);
 	}
 
     /**
@@ -180,7 +179,7 @@ export class Q3DPlugin {
 
     setTileMaterialUpdaters(mtlIndex: number) {
         const noop = () => {};
-        const layer = this.layer as DEMLayer;
+        const layer = this.layer;
 
         for (const tile of this.tiles.lruCache.itemList) {
             const mesh = tile.engineData.scene;

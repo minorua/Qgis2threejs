@@ -7,7 +7,7 @@ import { app, conf, modules, LayerType } from "../core.js";
 import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
 import { createWallGeometry, decodeBase64TypedArrayObject, getBoundaryLines } from "../utils.js";
-import { Q3DPlugin } from "../tiles/q3dplugin.js";
+import { DEMPlugin } from "../tiles/demplugin.js";
 
 import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, DEMTileData, DEMTileEntry, MapExtent, ParsedGridGeomData, ParsedMeshGeomData, Point3, RuntimeTile, Tileset, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
@@ -51,7 +51,7 @@ export class DEMLayer extends MapLayer {
 			const mod = modules["3d-tiles-renderer"];
 			if (!mod) return;
 
-			const plugin = new Q3DPlugin();
+			const plugin = new DEMPlugin();
 			plugin.layer = this;
 			plugin.tileset = data.tileset;
 			if (data.body && data.body.contents) {
