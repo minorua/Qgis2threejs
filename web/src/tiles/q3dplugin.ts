@@ -20,7 +20,7 @@ export class Q3DPlugin {
     priority: number = 0;
     tiles: typeof TilesRenderer;
     tileset: Tileset;
-    tileEntries: DEMTileEntry[] = [];
+    tileEntries: Map<string, DEMTileData> = new Map();
     pendingRequests = new Map();
     layer: MapLayer;
     showBoundingBox = false;
@@ -119,8 +119,8 @@ export class Q3DPlugin {
         if (window.requestTileData === undefined) {
             const tileId = url.split("/").slice(-3).join("/").replace(".tile", "")
 
-            const tileEntry = this.tileEntries.find(entry => entry.tileId === tileId);
-            if (tileEntry) return tileEntry;
+            const entry = this.tileEntries[tileId];
+            if (entry) return entry;
 
             throw new Error("Tile entry not found");
         }
