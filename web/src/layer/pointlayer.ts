@@ -234,7 +234,7 @@ class BillboardBuilder extends Builder {
         };
 
         features.forEach((f, fidx) => {
-            const material = (f.mtl) ? materials.get(f.mtl.idx) : errMtl;
+            const material = (f.mtl) ? materials.array[f.mtl.idx] : errMtl;
             const mtl = material.mtl as THREE.SpriteMaterial;
 
             if (!f.mtl) {

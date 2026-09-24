@@ -167,16 +167,19 @@ export class Materials extends THREE.EventDispatcher {
 		}
 	}
 
+	get(material: THREE.Material) {
+		for (const m of this.array) {
+			if (m.mtl === material) return m;
+		}
+		return null;
+	}
+
 	remove(material: Material, dispose: boolean = false) {
 		this.removeItem(material.mtl);
 
 		if (dispose) {
 			material.dispose();
 		}
-	}
-
-	get(index: number) {
-		return this.array[index];
 	}
 
 	mtl(index: number) {
