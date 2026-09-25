@@ -153,25 +153,30 @@ export interface DEMLayerData extends LayerData {
     tileset?: Tileset;
 }
 
-export interface GridGeomData {
+export interface DEMGridData {
     grid: GridGeomDataB64 | GridGeomDataRef | ParsedGridGeomData;
     translate: Vec3;
     zScale: number;
 }
 
-export interface MeshGeomData {
+export interface DEMMeshData {
     mesh: MeshGeomDataB64 | MeshGeomDataRef | ParsedMeshGeomData;
     translate: Vec3;
     zScale: number;
 }
 
-export interface DEMMaterialData {
+export interface DEMBlockGridData extends BlockData {
+    geometry: DEMGridData;
+}
+
+export interface DEMBlockMeshData extends BlockData {
+    geometry: DEMMeshData;
+}
+
+export interface DEMBlockMaterialData extends BlockData {
     materials: MaterialData[];
 }
 
-export interface DEMBlockGridData extends GridGeomData, BlockData {}
-export interface DEMBlockMeshData extends MeshGeomData, BlockData {}
-export interface DEMBlockMaterialData extends DEMMaterialData, BlockData {}
 export type DEMBlockData = DEMBlockGridData | DEMBlockMeshData | DEMBlockMaterialData;
 
 export interface GridGeomDataB64 {
@@ -215,7 +220,7 @@ export interface ParsedMeshGeomData {
 }
 
 export interface DEMTileData {
-    grid?: GridGeomData;
+    geometry?: DEMGridData;
     material?: MaterialData;        // preview
     materials?: MaterialData[];     // export
 }

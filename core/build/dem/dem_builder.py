@@ -151,7 +151,7 @@ class DEMResampBuilder(DEMBuilderBase):
 
     def build(self):
         """
-        @returns {DEMBlockGridData | DEMBlockMeshData} if self.asBlock else {GridGeomData | MeshGeomData}
+        @returns {DEMBlockGridData | DEMBlockMeshData} if self.asBlock else {DEMGridData | DEMMeshData}
         """
         b = super().build()
 

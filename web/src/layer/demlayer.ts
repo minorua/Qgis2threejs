@@ -9,7 +9,7 @@ import { Material } from "../material.js";
 import { createWallGeometry, decodeBase64TypedArrayObject, getBoundaryLines } from "../utils.js";
 import { DEMPlugin } from "../tiles/demplugin.js";
 
-import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, DEMTileData, DEMTileEntry, MapExtent, ParsedGridGeomData, ParsedMeshGeomData, Point3, RuntimeTile, Tileset, Vec3 } from "../types.js";
+import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, DEMTileData, DEMTileEntry, MapExtent, DEMGridData, ParsedGridGeomData, ParsedMeshGeomData, Point3, RuntimeTile, Tileset, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
 
 
@@ -343,13 +343,14 @@ class DEMGridBlock extends DEMBlockBase {
 	loadData(data: DEMBlockGridData, layer: DEMLayer): THREE.Mesh | void {
 		super.loadData(data, layer);
 
-		if (data.grid === undefined) return;
+		const grid_geom = data.geometry;
+		if (grid_geom === undefined) return;
 
 		const geom = new GridGeometry();
 		const material = (this.materials[layer.currentMtlIndex] || {}).mtl;
 		const mesh = new THREE.Mesh(geom, material);
-		mesh.scale.z = data.zScale;
-		mesh.position.fromArray(data.translate);
+		mesh.scale.z = grid_geom.zScale;
+		mesh.position.fromArray(grid_geom.translate);
 		layer.addObject(mesh);
 
 		const build = (grid_data: ParsedGridGeomData) => {
@@ -361,12 +362,12 @@ class DEMGridBlock extends DEMBlockBase {
 			layer.requestRender();
 		};
 
-		const grid = data.grid;
-		if ("url" in grid) {
-			app.loadJSONBinaryFile(grid.url).then(build);
+		const grid_data = grid_geom.grid;
+		if ("url" in grid_data) {
+			app.loadJSONBinaryFile(grid_data.url).then(build);
 		}
 		else {
-			decodeBase64TypedArrayObject(grid).then(build);
+			decodeBase64TypedArrayObject(grid_data).then(build);
 		}
 
 		this.obj = mesh;
@@ -379,18 +380,16 @@ class DEMMeshBlock extends DEMBlockBase {
 	loadData(data: DEMBlockMeshData, layer: DEMLayer): THREE.Mesh | void {
 		super.loadData(data, layer);
 
-		const mesh_data = data.mesh;
-		if (mesh_data === undefined) return;
+		const mesh_geom = data.geometry;
+		if (mesh_geom === undefined) return;
 
 		const geom = new THREE.BufferGeometry();
 		const material = (this.materials[layer.currentMtlIndex] || {}).mtl;
 
 		const mesh = new THREE.Mesh(geom, material);
-		mesh.position.fromArray(data.translate);
-		mesh.scale.z = data.zScale;
+		mesh.position.fromArray(mesh_geom.translate);
+		mesh.scale.z = mesh_geom.zScale;
 		layer.addObject(mesh);
-
-		this.obj = mesh;
 
 		const build = (mesh_data: ParsedMeshGeomData) => {
 			this.setGeometryData(geom, mesh_data);
@@ -402,6 +401,7 @@ class DEMMeshBlock extends DEMBlockBase {
 			layer.requestRender();
 		};
 
+		const mesh_data = mesh_geom.mesh;
 		if ("url" in mesh_data) {
 			app.loadJSONBinaryFile(mesh_data.url).then(build);
 		}
@@ -409,6 +409,7 @@ class DEMMeshBlock extends DEMBlockBase {
 			decodeBase64TypedArrayObject(mesh_data).then(build);
 		}
 
+		this.obj = mesh;
 		return mesh;
 	}
 
@@ -635,7 +636,7 @@ export async function buildTile(layer: DEMLayer, data: DEMTileData, tile: Runtim
 	material.loadData(("material" in data) ? data.material : data.materials[layer.currentMtlIndex]);
 	layer.materials.add(material);
 
-	const grid_geom = (data.grid as DEMBlockGridData).grid as ParsedGridGeomData;
+	const grid_geom = (data.geometry as DEMGridData).grid as ParsedGridGeomData;
 	const origin = layer.sceneData.origin;
 
 	const geometry = new GridGeometry();

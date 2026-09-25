@@ -235,7 +235,7 @@ class DEMLayerBuilder(LayerBuilderBase):
                 if isinstance(task.builder, DEMMaterialBuilder):
                     dataKey = "materials[]"
                 else:
-                    dataKey = "grid"
+                    dataKey = "geometry"
             else:
                 continue
 
@@ -410,7 +410,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         data = {}
         if not onlyMaterial:
             self.demBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, dataExtent=dataExtent, asBlock=False)
-            data["grid"] = self.demBuilder.build()
+            data["geometry"] = self.demBuilder.build()
 
         self.mtlBuilder.setup(0, tileExtent, asBlock=False, debugText=f"{level}/{x}/{y}" if DEBUG_MODE else "")
         data["material"] = self.mtlBuilder.build()

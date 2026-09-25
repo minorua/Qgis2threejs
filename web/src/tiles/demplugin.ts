@@ -9,7 +9,7 @@ import { Material } from "../material.js";
 import { decodeBase64TypedArrayObject } from "../utils.js";
 
 import type { TilesRenderer } from "lib/3d-tiles-renderer/3d-tiles-renderer.js";
-import type { GridGeomData, GridGeomDataRef, ParsedGridGeomData, Tileset, Tile, DEMTileData, DEMTileEntry } from "../types.js";
+import type { DEMGridData, GridGeomDataRef, ParsedGridGeomData, Tileset, Tile, DEMTileData, DEMTileEntry } from "../types.js";
 import type { DEMLayer } from "../layer/demlayer.js";
 
 
@@ -160,7 +160,7 @@ export class DEMPlugin {
      * @param {string} extension
      */
 	async parseTile(content: DEMTileEntry | DEMTileData, tile, extension, url, abortSignal) {
-        const grid_data = content.grid as GridGeomData;
+        const grid_data = content.geometry as DEMGridData;
         if ("tileId" in content) {     // export
             grid_data.grid = await app.loadJSONBinaryFile((grid_data.grid as GridGeomDataRef).url) as ParsedGridGeomData;
         }
