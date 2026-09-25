@@ -34,12 +34,16 @@ class BuildTask:
         return None if self.discardResult else data
 
 
-class TileIdTask:
-    def __init__(self, tile):
-        self.tile = tile
+class ContentIdTask:
+    def __init__(self, id):
+        self.id = id
 
     def build(self):
-        return f"{self.tile.level}/{self.tile.x}/{self.tile.y}"
+        return self.id
+
+    @classmethod
+    def fromTile(cls, tile):
+        return cls({"tileId": f"{tile.level}/{tile.x}/{tile.y}"})
 
 
 class DataTask:
@@ -55,11 +59,13 @@ class BuildResultSet:
         self.results = {}
         self.discardResult = discardResult
 
-    def add(self, data, dataKey=""):
-        if not dataKey:
-            return
-
-        if dataKey.endswith("[]"):
+    def add(self, data, dataKey=None):
+        if dataKey is None:
+            if isinstance(data, dict):
+                self.results.update(data)
+            else:
+                return
+        elif dataKey.endswith("[]"):
             self.results.setdefault(dataKey[:-2], []).append(data)
         else:
             self.results[dataKey] = data
@@ -217,22 +223,21 @@ class DEMLayerBuilder(LayerBuilderBase):
         """
         @yields {DEMTileEntry} builder
         """
-        materials = self.properties.get("materials", [])
-        tasksPerSet = 2 + len(materials)
         results = None
-
-        for i, task in enumerate(self._buildTasks_Raw(minLevel=minLevel)):
-            m = i % tasksPerSet
-            if m == 0:
+        for task in self._buildTasks_Raw(minLevel=minLevel):
+            if isinstance(task, ContentIdTask):
                 if results:
                     yield results
 
                 results = BuildResultSet()
-                dataKey = "tileId"
-            elif m == 2:
-                dataKey = "grid"
+                dataKey = None
+            elif isinstance(task, BuildTask):
+                if isinstance(task.builder, DEMMaterialBuilder):
+                    dataKey = "materials[]"
+                else:
+                    dataKey = "grid"
             else:
-                dataKey = "materials[]"
+                continue
 
             results.add(task.build(), dataKey)
 
@@ -264,7 +269,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         tileCount = len(tiles)
         for i, tile in enumerate(tiles):
             if isPyramid:
-                yield TileIdTask(tile)
+                yield ContentIdTask.fromTile(tile)
 
             if DEBUG_MODE:
                 debugText = f"{tile.level}/{tile.x}/{tile.y}"
