@@ -42,8 +42,18 @@ class ContentIdTask:
         return self.id
 
     @classmethod
+    def fromBlockIndex(cls, layer, blockIndex):
+        return cls({
+            "type": "block",
+            "layer": layer.jsLayerId,
+            "block": blockIndex
+        })
+
+    @classmethod
     def fromTile(cls, tile):
-        return cls({"tileId": f"{tile.level}/{tile.x}/{tile.y}"})
+        return cls({
+            "tileId": f"{tile.level}/{tile.x}/{tile.y}"
+        })
 
 
 class DataTask:
@@ -200,31 +210,58 @@ class DEMLayerBuilder(LayerBuilderBase):
                 return
 
             self.provider.setResampleAlg(gdal.GRA_NearestNeighbour)
-
             if pyramid:
-                if self.settings.isPreview:
-                    yield from self._buildTasks_PyramidTilePreview()
-                else:
-                    yield from self._buildTasks_PyramidTileExport()
+                yield from self._buildTasks_PyramidTiles()
             else:
-                segments = self.properties.get("spinBox_TileSideSegments", 512)
-                yield from self._buildTasks_Raw(segments)
+                yield from self._buildTasks_Tiles()
 
+        else:
+            self.provider.setResampleAlg(gdal.GRA_Bilinear)
+            yield from self._buildTasks_Simple()
+
+    def _buildTasks_Simple(self):
+        tasks = self._buildTasks_Resamp()
+
+        if self.settings.isPreview:
+            yield from self._attachContentId(tasks)
+        else:
+            yield from self._collectTaskResults(tasks)
+
+    def _buildTasks_Tiles(self):
+        segments = self.properties.get("spinBox_TileSideSegments", 512)
+        tasks = self._buildTasks_Raw(segments)
+
+        if self.settings.isPreview:
+            yield from self._attachContentId(tasks)
+        else:
+            yield from self._collectTaskResults(tasks)
+
+    def _buildTasks_PyramidTiles(self, minLevel=0):
+        """
+        @yields {DEMTileEntry} builder if not isPreview
+        """
+        if self.settings.isPreview:
             return
 
-        self.provider.setResampleAlg(gdal.GRA_Bilinear)
-        yield from self._buildTasks_Resamp()
+        tasks = self._buildTasks_Raw(minLevel=minLevel)
+        yield from self._collectTaskResults(tasks)
 
-    def _buildTasks_PyramidTilePreview(self):
-        return
-        yield
+    def _attachContentId(self, tasks):
+        contentId = None
+        for task in tasks:
+            if isinstance(task, ContentIdTask):
+                contentId = task.build()
+            elif isinstance(task, BuildTask) and contentId:
+                data = contentId.copy()
+                if isinstance(task.builder, DEMMaterialBuilder):
+                    data["materials"] = [task.build()]
+                else:
+                    data["geometry"] = task.build()
+                yield DataTask(data)
 
-    def _buildTasks_PyramidTileExport(self, minLevel=0):
-        """
-        @yields {DEMTileEntry} builder
-        """
+    def _collectTaskResults(self, tasks):
         results = None
-        for task in self._buildTasks_Raw(minLevel=minLevel):
+        for task in tasks:
             if isinstance(task, ContentIdTask):
                 if results:
                     yield results
@@ -262,15 +299,11 @@ class DEMLayerBuilder(LayerBuilderBase):
         materials = self.properties.get("materials", [])
         mtlCount = len(materials)
 
-        asBlock = not isPyramid
         debugText = ""
 
         tiles = list(tileset.iterTiles(minLevel))
         tileCount = len(tiles)
         for i, tile in enumerate(tiles):
-            if isPyramid:
-                yield ContentIdTask.fromTile(tile)
-
             if DEBUG_MODE:
                 debugText = f"{tile.level}/{tile.x}/{tile.y}"
 
@@ -287,26 +320,26 @@ class DEMLayerBuilder(LayerBuilderBase):
             else:
                 blockIndex = i
 
-            # set up material builder for first/current material
-            if self.buildOptions.allMaterials and mtlCount:
-                id = materials[0].get("id")
-                self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, asBlock=asBlock, debugText=debugText)
+            if isPyramid:
+                yield ContentIdTask.fromTile(tile)
             else:
-                self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, asBlock=asBlock, debugText=debugText)
-            yield BuildTask(self.mtlBuilder)
+                yield ContentIdTask.fromBlockIndex(self.layer, blockIndex)
 
-            # set up dem builder
+            # material builder
+            if self.buildOptions.allMaterials and mtlCount:
+                for idx in range(mtlCount):
+                    id = materials[idx].get("id")
+                    self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, debugText=debugText)
+                    yield BuildTask(self.mtlBuilder)
+            else:
+                self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, debugText=debugText)
+                yield BuildTask(self.mtlBuilder)
+
+            # dem builder
             if not self.buildOptions.onlyMaterial:
                 # DEMRawBuilder
-                self.demBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments, dataExtent=dataExtent, asBlock=asBlock)
+                self.demBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments, dataExtent=dataExtent)
                 yield BuildTask(self.demBuilder)
-
-            # set up material builder for remaininig materials
-            if self.buildOptions.allMaterials:
-                for idx in range(1, mtlCount):
-                    id = materials[idx].get("id")
-                    self.mtlBuilder.setup(blockIndex, tileExtent, dataExtent=dataExtent, mtlId=id, asBlock=asBlock, debugText=debugText)
-                    yield BuildTask(self.mtlBuilder)
 
             self.progress(i + 1, tileCount)
 
@@ -360,38 +393,35 @@ class DEMLayerBuilder(LayerBuilderBase):
                 grid_seg = QSize(max(1, base_grid_seg.width() // roughness),
                                  max(1, base_grid_seg.height() // roughness))
 
-            # set up material builder for first/current material
+            yield ContentIdTask.fromBlockIndex(self.layer, blockIndex)
+
+            # material builder
             if self.buildOptions.allMaterials and mtlCount:
-                id = materials[0].get("id")
-                self.mtlBuilder.setup(blockIndex, extent, mtlId=id)
+                for idx in range(mtlCount):
+                    id = materials[idx].get("id")
+                    self.mtlBuilder.setup(blockIndex, extent, mtlId=id)
+                    yield BuildTask(self.mtlBuilder)
             else:
                 self.mtlBuilder.setup(blockIndex, extent)
-            yield BuildTask(self.mtlBuilder)
+                yield BuildTask(self.mtlBuilder)
 
-            # set up grid builder
+            # dem builder
             if not self.buildOptions.onlyMaterial:
                 neighbors = None
                 if is_center:
-                    blkBuilder = centerBlk
+                    demBuilder = centerBlk
                 else:
-                    blkBuilder = self.demBuilder
+                    demBuilder = self.demBuilder
                     if sx * sx <= 1 and sy * sy <= 1:
                         neighbors = [(sx, sy, centerBlk, 1)]
 
                 # DEMResampBuilder
-                blkBuilder.setup(blockIndex, extent, self.settings.mapTo3d().origin, grid_seg,
+                demBuilder.setup(blockIndex, extent, self.settings.mapTo3d().origin, grid_seg,
                                  roughness=1 if is_center else roughness,
                                  edgeRoughness=roughness if is_center else 1,
                                  clip_geometry=clip_geometry if is_center else None,
                                  neighbors=neighbors)
-                yield BuildTask(blkBuilder)
-
-            # set up material builder for remaininig materials
-            if self.buildOptions.allMaterials:
-                for idx in range(1, mtlCount):
-                    id = materials[idx].get("id")
-                    self.mtlBuilder.setup(blockIndex, extent, mtlId=id)
-                    yield BuildTask(self.mtlBuilder)
+                yield BuildTask(demBuilder)
 
             self.progress(i + 1, size2)
 
@@ -409,10 +439,10 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         data = {}
         if not onlyMaterial:
-            self.demBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, dataExtent=dataExtent, asBlock=False)
+            self.demBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, dataExtent=dataExtent)
             data["geometry"] = self.demBuilder.build()
 
-        self.mtlBuilder.setup(0, tileExtent, asBlock=False, debugText=f"{level}/{x}/{y}" if DEBUG_MODE else "")
+        self.mtlBuilder.setup(0, tileExtent, debugText=f"{level}/{x}/{y}" if DEBUG_MODE else "")
         data["material"] = self.mtlBuilder.build()
 
         return {

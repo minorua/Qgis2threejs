@@ -27,24 +27,15 @@ class DEMBuilderBase:
 
         self.assetDestination = assetDestination
 
-    def setup(self, blockIndex, extent: MapExtent, localOrigin: QgsPoint, asBlock=True):
+    def setup(self, blockIndex, extent: MapExtent, localOrigin: QgsPoint):
         self.blockIndex = blockIndex
         self.extent = extent
         self.localOrigin = localOrigin
-        self.asBlock = asBlock
 
     def build(self):
-        if self.asBlock:
-            d = {
-                "type": "block",
-                "layer": self.layer.jsLayerId,
-                "block": self.blockIndex,
-            }
-        else:
-            d = {}
-
-        d["zScale"] = self.settings.mapTo3d().zScale
-        return d
+        return {
+            "zScale": self.settings.mapTo3d().zScale
+        }
 
     def buildGridData(self, z_arr, nodata=None, segments=None, full_extent: MapExtent=None):
         """
@@ -138,8 +129,8 @@ class DEMBuilderBase:
 
 class DEMResampBuilder(DEMBuilderBase):
 
-    def setup(self, blockIndex, extent: MapExtent, localOrigin: QgsPoint, grid_seg: QSize, roughness=1, edgeRoughness=1, clip_geometry=None, neighbors=None, asBlock=True):
-        super().setup(blockIndex, extent, localOrigin, asBlock)
+    def setup(self, blockIndex, extent: MapExtent, localOrigin: QgsPoint, grid_seg: QSize, roughness=1, edgeRoughness=1, clip_geometry=None, neighbors=None):
+        super().setup(blockIndex, extent, localOrigin)
 
         self.grid_seg = grid_seg
         self.roughness = roughness
@@ -151,7 +142,7 @@ class DEMResampBuilder(DEMBuilderBase):
 
     def build(self):
         """
-        @returns {DEMBlockGridData | DEMBlockMeshData} if self.asBlock else {DEMGridData | DEMMeshData}
+        @returns {DEMGridData | DEMMeshData}
         """
         b = super().build()
 
@@ -319,8 +310,8 @@ class DEMResampBuilder(DEMBuilderBase):
 
 class DEMRawBuilder(DEMBuilderBase):
 
-    def setup(self, blockIndex: int, tileExtent: MapExtent, localOrigin: QgsPoint, segments: int, dataExtent=None, clip_geometry=None, asBlock=True):
-        super().setup(blockIndex, tileExtent, localOrigin, asBlock)
+    def setup(self, blockIndex: int, tileExtent: MapExtent, localOrigin: QgsPoint, segments: int, dataExtent=None, clip_geometry=None):
+        super().setup(blockIndex, tileExtent, localOrigin)
 
         self.segments = segments
         self.tileSize = tileExtent.width()

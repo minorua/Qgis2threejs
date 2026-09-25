@@ -21,17 +21,16 @@ class DEMMaterialBuilder:
 
         self.mtlId = None
 
-    def setup(self, blockIndex, extent, dataExtent=None, mtlId=None, asBlock=True, debugText=""):
+    def setup(self, blockIndex, extent, dataExtent=None, mtlId=None, debugText=""):
         self.blockIndex = blockIndex
         self.extent = extent
         self.dataExtent = dataExtent
         self.mtlId = mtlId
-        self.asBlock = asBlock
         self.debugText = debugText
 
     def build(self):
         """
-        @returns {DEMMaterialBlockData} if self.asBlock else {MaterialData}
+        @returns {MaterialData}
         """
         mtlId = self.mtlId or self.layer.properties.get("mtlId")
         m = self.layer.material(mtlId)
@@ -92,13 +91,6 @@ class DEMMaterialBuilder:
 
         d = self.materialManager.build(mi, filepath, url, self.settings.requiresJsonSerializable)
         d["mtlIndex"] = mtlIndex
-        if self.asBlock:
-            return {
-                "type": "block",
-                "layer": self.layer.jsLayerId,
-                "block": self.blockIndex,
-                "materials": [d]
-            }
         return d
 
     def currentMtl(self):
