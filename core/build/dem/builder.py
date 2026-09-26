@@ -134,10 +134,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         if self.properties.get("radioButton_Pyramid"):
             tileset = self._getTileset()
             if tileset:
-                d["tileset"] = tileset.metadata()
-
-                # with open("D:/tileset.json", "w", encoding="ascii") as f:
-                #     f.write(tileset.metadata(asJson=True))
+                d["tilesetParams"] = tileset.tilesetParams()
             else:
                 logger.error("Failed to create a tileset.")
 

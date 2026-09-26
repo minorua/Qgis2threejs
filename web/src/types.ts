@@ -150,7 +150,7 @@ export interface DEMLayerData extends LayerData {
     body?: {
         contents: DEMBlockData[] | DEMTileEntry[];      // export
     }
-    tileset?: Tileset;
+    tilesetParams?: TilesetParams;
 }
 
 export interface DEMGridData {
@@ -229,6 +229,18 @@ export interface DEMTileEntry extends DEMTileData {
     tileId: string;
 }
 
+export interface TilesetParams {
+    boundingBox: {
+        min: Vec3;
+        max: Vec3;
+    };
+    gridResolution: number;
+    gridCols: number;
+    gridRows: number;
+    maxLevel: number;
+    tileSegments: number;
+}
+
 export interface Tileset {
     asset: {
         version: string;
@@ -242,8 +254,8 @@ export interface Tile {
         box: number[];
     };
     geometricError: number;
-    parent: Tile | null;
-    children: Tile[];
+    parent?: Tile | null;
+    children?: Tile[];
     content: {
         uri: string;
     }

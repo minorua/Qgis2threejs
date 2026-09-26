@@ -7,7 +7,7 @@ import { app, conf, modules, LayerType } from "../core.js";
 import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
 import { createWallGeometry, decodeBase64TypedArrayObject, getBoundaryLines } from "../utils.js";
-import { DEMPlugin } from "../tiles/demplugin.js";
+import { buildTileset, DEMPlugin } from "../tiles/demplugin.js";
 
 import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, DEMTileData, DEMTileEntry, MapExtent, DEMGridData, ParsedGridGeomData, ParsedMeshGeomData, Point3, RuntimeTile, Tileset, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
@@ -47,13 +47,12 @@ export class DEMLayer extends MapLayer {
 		}
 
 		// tiles renderer
-		if (data.tileset) {
+		if (data.tilesetParams) {
 			const mod = modules["3d-tiles-renderer"];
 			if (!mod) return;
 
-			const plugin = new DEMPlugin();
-			plugin.layer = this;
-			plugin.tileset = data.tileset;
+			const plugin = new DEMPlugin(this);
+			plugin.tileset = buildTileset(data.tilesetParams, this);
 			if (data.body && data.body.contents) {
 				// export
 				for (const entry of data.body.contents as DEMTileEntry[]) {

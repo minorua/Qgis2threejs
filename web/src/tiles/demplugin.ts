@@ -9,7 +9,7 @@ import { Material } from "../material.js";
 import { decodeBase64TypedArrayObject } from "../utils.js";
 
 import type { TilesRenderer } from "lib/3d-tiles-renderer/3d-tiles-renderer.js";
-import type { DEMGridData, GridGeomDataRef, ParsedGridGeomData, Tileset, Tile, DEMTileData, DEMTileEntry } from "../types.js";
+import type { DEMGridData, GridGeomDataRef, ParsedGridGeomData, TilesetParams, Tileset, Tile, DEMTileData, DEMTileEntry } from "../types.js";
 import type { DEMLayer } from "../layer/demlayer.js";
 
 
@@ -25,14 +25,16 @@ export class DEMPlugin {
     showBoundingBox = false;
     showBoundingVolume = false;
 
+    constructor(layer: DEMLayer) {
+        this.layer = layer;
+    }
+
     /**
      * Plugin has been registered.
      * @param tiles the caller
      */
 	init(tiles: typeof TilesRenderer) {
-
         this.tiles = tiles;
-
     }
 
     /**
@@ -233,4 +235,78 @@ export class DEMPlugin {
             }
         }
     }
+}
+
+
+function obbData(xmin: number, ymin: number, zmin: number, xmax: number, ymax: number, zmax: number): number[] {
+    const hx = (xmax - xmin) / 2;
+    const hy = (ymax - ymin) / 2;
+    const hz = (zmax - zmin) / 2;
+    return [
+        xmin + hx, ymin + hy, zmin + hz,
+        hx, 0, 0,
+        0, hy, 0,
+        0, 0, hz
+    ];
+}
+
+
+export function buildTileset(input: TilesetParams, layer: DEMLayer): Tileset {
+    const { boundingBox, gridResolution, maxLevel, tileSegments } = input;
+
+    const tileCols = Math.ceil((input.gridCols - 1) / tileSegments);
+    const tileRows = Math.ceil((input.gridRows - 1) / tileSegments);
+
+    const [ xmin, ymin, zmin ] = boundingBox.min;
+    const [ xmax, ymax, zmax ] = boundingBox.max;
+    const width = xmax - xmin;
+    const height = ymax - ymin;
+
+    const maxLevelTileSize = gridResolution * tileSegments;
+    const maxLevelError = gridResolution;
+
+    const tileNode = (level: number, x: number, y: number): Tile | null => {
+        const levelScale = 2 ** (maxLevel - level);
+        const tileSize = maxLevelTileSize * levelScale;
+        const geometricError = maxLevelError * levelScale;
+
+        const tileXminRel = tileSize * x;
+        const tileYminRel = tileSize * y;
+        if (tileXminRel >= width || tileYminRel >= height) {
+            return null;
+        }
+
+        const tileXmin = xmin + tileXminRel;
+        const tileYmin = ymin + tileYminRel;
+        const tileXmax = tileXmin + tileSize;
+        const tileYmax = tileYmin + tileSize;
+
+        const node: Tile = {
+            boundingVolume: {
+                box: obbData(tileXmin, tileYmin, zmin, Math.min(tileXmax, xmax), Math.min(tileYmax, ymax), zmax)
+            },
+            geometricError: geometricError,
+            refine: "REPLACE",
+            content: { uri: `dem/${layer.id}/${level}/${x}/${y}.tile` }
+        };
+
+        if (level < maxLevel) {
+            const children: Tile[] = [];
+            for (let cy = y * 2; cy < Math.min(y * 2 + 2, tileRows); cy++) {
+                for (let cx = x * 2; cx < Math.min(x * 2 + 2, tileCols); cx++) {
+                    const child = tileNode(level + 1, cx, cy);
+                    if (child) children.push(child);
+                }
+            }
+            if (children.length) node.children = children;
+        }
+
+        return node;
+    };
+
+    return {
+        asset: { version: "1.0" },
+        geometricError: maxLevelError * (2 ** maxLevel),
+        root: tileNode(0, 0, 0)!
+    };
 }
