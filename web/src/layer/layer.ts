@@ -97,11 +97,11 @@ export class MapLayer extends THREE.EventDispatcher {
 	}
 
 	get opacity() {
-		return this.materials.opacity();
+		return this.materials.opacity;
 	}
 
 	set opacity(value) {
-		this.materials.setOpacity(value);
+		this.materials.opacity = value;
 		this.requestRender();
 	}
 

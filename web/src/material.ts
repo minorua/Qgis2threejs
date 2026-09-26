@@ -224,7 +224,7 @@ export class Materials extends THREE.EventDispatcher {
 		}
 	}
 
-	opacity() {
+	get opacity(): number {
 		if (this.array.length == 0) return 1;
 
 		let sum = 0;
@@ -234,7 +234,7 @@ export class Materials extends THREE.EventDispatcher {
 		return sum / this.array.length;
 	}
 
-	setOpacity(opacity: number) {
+	set opacity(opacity: number) {
 		for (const m of this.array) {
 			m.mtl.opacity = opacity;
 

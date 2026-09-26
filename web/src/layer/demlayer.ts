@@ -111,7 +111,7 @@ export class DEMLayer extends MapLayer {
 			const m = b.materials[this.currentMtlIndex];
 			return (m.mtl) ? m.mtl.opacity : 1;
 		}
-		return this.materials.opacity();
+		return this.materials.opacity;
 	}
 
 	set opacity(value: number) {
