@@ -118,7 +118,7 @@ export class DEMPlugin {
         if (window.requestTileData === undefined) {
             const tileId = url.split("/").slice(-3).join("/").replace(".tile", "")
 
-            const entry = this.tileEntries[tileId];
+            const entry = this.tileEntries.get(tileId);
             if (entry) return entry;
 
             throw new Error("Tile entry not found");

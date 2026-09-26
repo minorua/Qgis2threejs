@@ -56,8 +56,8 @@ export class DEMLayer extends MapLayer {
 			plugin.tileset = data.tileset;
 			if (data.body && data.body.contents) {
 				// export
-				for (const { tileId, ...tileData } of data.body.contents as DEMTileEntry[]) {
- 					plugin.tileEntries.set(tileId, tileData);
+				for (const entry of data.body.contents as DEMTileEntry[]) {
+					plugin.tileEntries.set(entry.tileId, entry);
 				}
 			}
 
