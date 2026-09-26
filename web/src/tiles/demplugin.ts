@@ -125,7 +125,8 @@ export class DEMPlugin {
         }
 
         // preview
-        const pending = this.pendingRequests.get(url);
+        const customUrl = "dem://" + url.split("/").slice(-4).join("/");
+        const pending = this.pendingRequests.get(customUrl);
         if (pending) return pending.promise;
 
         let resolve, reject;
@@ -134,10 +135,10 @@ export class DEMPlugin {
             reject = rej;
         });
 
-        console.debug("Requesting tile data...", url, options);
-        window.requestTileData(url);
+        console.debug("Requesting tile data.", customUrl, options);
+        window.requestTileData(customUrl);
 
-        this.pendingRequests.set(url, { promise, resolve, reject });
+        this.pendingRequests.set(customUrl, { promise, resolve, reject });
         return promise;
     }
 
