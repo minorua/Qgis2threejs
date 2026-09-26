@@ -12,7 +12,7 @@ export class Material {
 	loaded = false;
 
 	mtl!: THREE.Material;
-	origProp!: MaterialData | Record<string, never>;
+	origTransparent!: boolean;
 	groupId!: number;
 
 	private _updateAspect?: () => void = null;
@@ -20,7 +20,7 @@ export class Material {
 
 	set(material: THREE.Material) {
 		this.mtl = material;
-		this.origProp = {};
+		this.origTransparent = false;
 		return this;
 	}
 
@@ -29,10 +29,10 @@ export class Material {
 	 * @param callback Called after material data has been completely loaded.
 	 */
 	loadData(data: MaterialData, callback?: () => void) {
-		this.origProp = data;
-		this.groupId = data.mtlIndex;
-
 		const m = data;
+		this.origTransparent = Boolean(m.t);
+		this.groupId = m.mtlIndex;
+
 		const opt: any = {};
 		let defer = false;
 
@@ -238,7 +238,7 @@ export class Materials extends THREE.EventDispatcher {
 		for (const m of this.array) {
 			m.mtl.opacity = opacity;
 
-			const t = Boolean(m.origProp.t) || (opacity < 1);
+			const t = m.origTransparent || (opacity < 1);
 			if (m.mtl.transparent !== t) {
 				m.mtl.transparent = t;
 				m.mtl.needsUpdate = true;
