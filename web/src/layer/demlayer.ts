@@ -331,8 +331,8 @@ class DEMBlockBase {
 	buildBottom(surfaceGeom: THREE.BufferGeometry, z0: number, material: THREE.Material): THREE.Mesh {
 		// TODO: back side material
 		const bottom = new THREE.Mesh(surfaceGeom, material);
-		bottom.position.z = z0;
 		bottom.scale.z = 0;
+		bottom.position.z = z0;
 		return bottom;
 	}
 }
@@ -387,8 +387,8 @@ class DEMMeshBlock extends DEMBlockBase {
 		const material = (this.materials[layer.currentMtlIndex] || {}).mtl;
 
 		const mesh = new THREE.Mesh(geom, material);
-		mesh.position.fromArray(mesh_geom.translate);
 		mesh.scale.z = mesh_geom.zScale;
+		mesh.position.fromArray(mesh_geom.translate);
 		layer.addObject(mesh);
 
 		const build = (mesh_data: ParsedMeshGeomData) => {
@@ -636,15 +636,14 @@ export async function buildTile(layer: DEMLayer, data: DEMTileData, tile: Runtim
 	material.loadData(("material" in data) ? data.material : data.materials[layer.currentMtlIndex]);
 	layer.materials.add(material);
 
-	const grid_geom = (data.geometry as DEMGridData).grid as ParsedGridGeomData;
-	const origin = layer.sceneData.origin;
+	const grid_geom = data.geometry;
 
 	const geometry = new GridGeometry();
-	const mesh = new THREE.Mesh(geometry, material.mtl);
-	mesh.position.set(grid_geom.extent.cx - origin.x, grid_geom.extent.cy - origin.y, 0);
+	geometry.loadData(grid_geom.grid as ParsedGridGeomData, -1);
 
-	geometry.loadData(grid_geom, -1);
-	mesh.material.needsUpdate = true;		// update shader after computing vertex normals
+	const mesh = new THREE.Mesh(geometry, material.mtl);
+	mesh.scale.z = grid_geom.zScale;
+	mesh.position.fromArray(grid_geom.translate);
 
 	mesh.userData.layerId = layer.id;
 	mesh.userData.materials = data.materials;
