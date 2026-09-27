@@ -259,6 +259,7 @@ class ThreeJSExporter(QObject):
             if layer.type == LayerType.DEM:
                 if layer.properties.get("radioButton_Pyramid"):
                     files.append({"dirs": [LIB + "/3d-tiles-renderer"]})
+                    files.append({"files": [THREE + "/utils/BufferGeometryUtils.js"], "dest": "three/utils"})
 
             elif layer.type == LayerType.LINESTRING:
                 match layer.properties.get("comboBox_ObjectType"):
