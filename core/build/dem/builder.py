@@ -95,7 +95,7 @@ class DEMLayerBuilder(LayerBuilderBase):
         self.mtlBuilder = DEMMaterialBuilder(layer, settings, imageManager, assetDestination)
         self.provider = settings.demProviderByLayerId(layer.layerId)
 
-        if self.properties.get("radioButton_OriginalValues") or self.properties.get("radioButton_Pyramid"):
+        if self.properties.get("radioButton_Tiles") or self.properties.get("radioButton_Pyramid"):
             BldClass = DEMRawBuilder
         else:
             BldClass = DEMResampBuilder
@@ -199,7 +199,7 @@ class DEMLayerBuilder(LayerBuilderBase):
     def buildTasks(self):
         """Yield build tasks that produce DEM tiles and materials."""
         pyramid = self.properties.get("radioButton_Pyramid")
-        tiles = self.properties.get("radioButton_OriginalValues")
+        tiles = self.properties.get("radioButton_Tiles")
 
         if pyramid or tiles:
             if not self.provider.CanUseOriginalValues:

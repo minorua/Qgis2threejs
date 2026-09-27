@@ -100,13 +100,16 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_5">
               <item>
-               <widget class="QRadioButton" name="radioButton_Resampling">
+               <widget class="QRadioButton" name="radioButton_Simple">
                 <property name="text">
                  <string>Simple (bilinear resampling)</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
                 </property>
+                <attribute name="buttonGroup">
+                 <string notr="true">buttonGroupDEM</string>
+                </attribute>
                </widget>
               </item>
               <item>
@@ -198,10 +201,13 @@
                </layout>
               </item>
               <item>
-               <widget class="QRadioButton" name="radioButton_OriginalValues">
+               <widget class="QRadioButton" name="radioButton_Tiles">
                 <property name="text">
                  <string>Tiles (single resolution)</string>
                 </property>
+                <attribute name="buttonGroup">
+                 <string notr="true">buttonGroupDEM</string>
+                </attribute>
                </widget>
               </item>
               <item>
@@ -245,6 +251,9 @@
                 <property name="text">
                  <string>Pyramid tiles (multi-resolution)</string>
                 </property>
+                <attribute name="buttonGroup">
+                 <string notr="true">buttonGroupDEM</string>
+                </attribute>
                </widget>
               </item>
              </layout>
@@ -801,9 +810,9 @@
  <tabstops>
   <tabstop>scrollArea</tabstop>
   <tabstop>lineEdit_Altitude</tabstop>
-  <tabstop>radioButton_Resampling</tabstop>
+  <tabstop>radioButton_Simple</tabstop>
   <tabstop>horizontalSlider_DEMSize</tabstop>
-  <tabstop>radioButton_OriginalValues</tabstop>
+  <tabstop>radioButton_Tiles</tabstop>
   <tabstop>spinBox_TileSideSegments</tabstop>
   <tabstop>radioButton_Pyramid</tabstop>
   <tabstop>radioButton_ClipBaseExtent</tabstop>
@@ -921,7 +930,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>radioButton_Resampling</sender>
+   <sender>radioButton_Simple</sender>
    <signal>toggled(bool)</signal>
    <receiver>groupBoxTiles</receiver>
    <slot>setEnabled(bool)</slot>
@@ -985,4 +994,7 @@
    </hints>
   </connection>
  </connections>
+ <buttongroups>
+  <buttongroup name="buttonGroupDEM"/>
+ </buttongroups>
 </ui>

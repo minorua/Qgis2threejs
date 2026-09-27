@@ -422,7 +422,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         if self.isPlane:
             widgets += [self.lineEdit_Altitude]
         else:
-            widgets += [self.radioButton_OriginalValues, self.spinBox_TileSideSegments, self.radioButton_Pyramid]
+            widgets += [self.radioButton_Tiles, self.spinBox_TileSideSegments, self.radioButton_Pyramid]
             widgets += [self.horizontalSlider_DEMSize, self.spinBox_Roughening]
             widgets += [self.radioButton_ClipPolygon, self.comboBox_ClipLayer, self.radioButton_NoClip]
 
@@ -447,7 +447,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
             if reason:
                 self.labelOrigValsIcon.setPixmap(warningIcon().pixmap(16, 16))
                 self.labelOrigVals.setText("The following modes are unavailable because " + reason)
-                self.setWidgetsEnabled([self.radioButton_OriginalValues, self.radioButton_Pyramid, self.radioButton_NoClip], False)
+                self.setWidgetsEnabled([self.radioButton_Tiles, self.radioButton_Pyramid, self.radioButton_NoClip], False)
                 self.setWidgetsVisible([self.labelTileSize, self.spinBox_TileSideSegments], False)
             else:
                 self.setWidgetsVisible([self.labelOrigValsIcon, self.labelOrigVals], False)
@@ -457,7 +457,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
             self.spinBox_Size.findChild(QLineEdit).setReadOnly(True)
             self.spinBox_Roughening.findChild(QLineEdit).setReadOnly(True)
 
-            self.radioButton_Resampling.toggled.connect(self.resamplingMethodChanged)
+            self.buttonGroupDEM.buttonToggled.connect(self.demModeChanged)
             self.horizontalSlider_DEMSize.valueChanged.connect(self.resolutionSliderChanged)
 
             self.lineEdit_Name.setPlaceholderText(layer.mapLayer.name() if layer.mapLayer else layer.name)
@@ -529,7 +529,7 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
             self.altitudeChanged(self.lineEdit_Altitude.text())
 
         # set enabled and visible state of widgets
-        self.resamplingMethodChanged(self.radioButton_Resampling.isChecked())
+        self.demModeChanged()
         self.tilesToggled(self.checkBox_Tiles.isChecked())
         if not self.checkBox_Sides.isChecked():
             self.label_Bottom.setVisible(False)
@@ -566,17 +566,23 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
     def altitudeChanged(self, alt):
         self.lineEdit_Name.setPlaceholderText("Flat Plane" + ("" if alt == "0" or alt == "" else f" ({alt})"))
 
-    def resamplingMethodChanged(self, checked):
-        resamp = checked
-        self.setLayoutEnabled(self.formLayoutOriginalValues, not resamp)
-        self.setLayoutEnabled(self.horizontalLayoutResamp, resamp)
-        self.radioButton_ClipPolygon.setEnabled(resamp)
-        self.radioButton_NoClip.setEnabled(not resamp)
+    def demModeChanged(self, button=None, checked=True):
+        if not checked:
+            return
 
-        if not resamp and self.radioButton_ClipPolygon.isChecked():
+        simple = self.radioButton_Simple.isChecked()
+        tiles = self.radioButton_Tiles.isChecked()
+
+        self.setLayoutEnabled(self.horizontalLayoutResamp, simple)
+        self.setLayoutEnabled(self.formLayoutOriginalValues, tiles)
+
+        self.radioButton_ClipPolygon.setEnabled(simple)
+        self.radioButton_NoClip.setEnabled(not simple)
+
+        if not simple and self.radioButton_ClipPolygon.isChecked():
             self.radioButton_ClipBaseExtent.setChecked(True)
 
-        if resamp and self.radioButton_NoClip.isChecked():
+        if simple and self.radioButton_NoClip.isChecked():
             self.radioButton_ClipBaseExtent.setChecked(True)
 
     def resolutionSliderChanged(self, v):
@@ -597,7 +603,7 @@ Grid Spacing: {3:.5f} x {4:.5f}{5}"""
 
     def tilesToggled(self, checked):
         self.setLayoutEnabled(self.gridLayoutTiles, checked)
-        self.radioButton_ClipPolygon.setEnabled(not checked and self.radioButton_Resampling.isChecked() and self.hasPolygonLayer)
+        self.radioButton_ClipPolygon.setEnabled(not checked and self.radioButton_Simple.isChecked() and self.hasPolygonLayer)
 
         if checked and self.radioButton_ClipPolygon.isChecked():
             self.radioButton_ClipBaseExtent.setChecked(True)
