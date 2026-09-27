@@ -2,9 +2,11 @@
 # (C) 2022 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import os
 from qgis.PyQt.QtCore import QDir, QUrl
 from qgis.PyQt.QtGui import QDesktopServices, QIcon
-from qgis.PyQt.QtWidgets import QFileDialog
+from qgis.PyQt.QtWidgets import QFileDialog, QStyle
+from qgis.core import QgsApplication
 
 from .basic import pluginIconPath
 from ..conf import HELP_URL_BASE, PLUGIN_VERSION
@@ -35,6 +37,13 @@ def openHelp(queryString=""):
         url += "&" + queryString
 
     return openUrl(QUrl(url))
+
+
+def warningIcon():
+    if os.name == "nt":
+        return QgsApplication.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxWarning)
+
+    return QgsApplication.getThemeIcon("mIconWarning.svg")
 
 
 def pluginIcon():

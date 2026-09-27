@@ -27,7 +27,7 @@ from ..core.controller.controller import Q3DController
 from ..core.exportsettings import Layer
 from ..core.plugin.pluginmanager import pluginManager
 from ..utils.basic import createUid
-from ..utils.gui import openHelp, pluginIcon
+from ..utils.gui import openHelp, pluginIcon, warningIcon
 from ..utils.js import hex_color, js_bool
 from ..utils.logging import logger
 
@@ -376,10 +376,7 @@ class Q3DWindow(QMainWindow):
             if self.ui.toolButtonConsoleStatus.isVisible():
                 return
 
-            if os.name == "nt":
-                icon = QgsApplication.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxWarning)
-            else:
-                icon = QgsApplication.getThemeIcon("mIconWarning.svg")
+            icon = warningIcon()
 
         self.ui.toolButtonConsoleStatus.setIcon(icon)
         self.ui.toolButtonConsoleStatus.show()

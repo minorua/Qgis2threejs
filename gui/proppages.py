@@ -35,7 +35,7 @@ from ..core.exportsettings import calculateGridSegments
 from ..core.mapextent import MapExtent
 from ..core.plugin.pluginmanager import pluginManager
 from ..utils.basic import createUid
-from ..utils.gui import selectImageFile
+from ..utils.gui import selectImageFile, warningIcon
 from ..utils.js import hex_color
 from ..utils.logging import logger
 from ..utils.qgis import getDEMLayersInProject, getLayersInProject, selectColor, shortTextFromSelectedLayerIds
@@ -443,13 +443,14 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
         else:
             self.setLayoutVisible(self.formLayout_Altitude, False)
 
-            err_msg = self.origValuesErrorMsg()
-            if err_msg:
-                self.labelOriginalValues.setText("This option is disabled because " + err_msg)
+            reason = self.demModeUnavailableReason()
+            if reason:
+                self.labelOrigValsIcon.setPixmap(warningIcon().pixmap(16, 16))
+                self.labelOrigVals.setText("The following modes are unavailable because " + reason)
                 self.setWidgetsEnabled([self.radioButton_OriginalValues, self.radioButton_Pyramid, self.radioButton_NoClip], False)
                 self.setWidgetsVisible([self.labelTileSize, self.spinBox_TileSideSegments], False)
             else:
-                self.labelOriginalValues.hide()
+                self.setWidgetsVisible([self.labelOrigValsIcon, self.labelOrigVals], False)
 
             self.initLayerComboBox()
 
@@ -534,27 +535,20 @@ class DEMPropertyPage(PropertyPage, Ui_DEMPropertiesWidget):
             self.label_Bottom.setVisible(False)
             self.lineEdit_Bottom.setVisible(False)
 
-    def origValuesErrorMsg(self):
+    def demModeUnavailableReason(self):
         mapLayer = self.layer.mapLayer
         if not mapLayer:
-            return "the map layer doesn't exist."
-
-        if not math.isclose(mapLayer.rasterUnitsPerPixelX(), mapLayer.rasterUnitsPerPixelY()):
-            return "pixel size is different in X and Y directions."
+            return "the dem provider doesn't support them."
 
         crs1 = mapLayer.crs()
         crs2 = self.mapSettings.destinationCrs()
-
-        if crs1 == crs2:
-            return None
-
         proj1 = crs1.toProj()
         proj2 = crs2.toProj()
+        if crs1 != crs2 and proj1 != proj2:
+            return "the layer's CRS does not match the project's CRS."
 
-        if proj1 == proj2:
-            return None
-
-        return "layer CRS differs from project CRS."
+        if not math.isclose(mapLayer.rasterUnitsPerPixelX(), mapLayer.rasterUnitsPerPixelY()):
+            return "pixel size is different in X and Y directions."
 
     def initLayerComboBox(self):
         # polygon layers
