@@ -116,10 +116,6 @@ function _init(off_screen) {
 		pyObj.emitAnimationStopped();
 	});
 
-	if (conf.debugMode) {
-		showTriangleCount();
-	}
-
 	if (conf.preview.showFPS) {
 		showFPS();
 	}
@@ -330,18 +326,6 @@ function updateProgressBar(loaded: number, total: number = 100) {
 	}
 }
 
-let lastTriangleCount = -1;
-
-function showTriangleCount() {
-	window.setInterval(function () {
-		const triangles = app.renderer.info.render.triangles;
-		if (triangles != lastTriangleCount) {
-			E("triangles").innerHTML = "Triangles: " + app.renderer.info.render.triangles.toLocaleString();
-			lastTriangleCount = triangles;
-		}
-	}, 1000);
-}
-
 function showFPS() {
 	lastFPSTime = Date.now();
 
@@ -351,7 +335,7 @@ function showFPS() {
 		const fps = Math.round(tickCount / elapsed * 1000);
 
 		if (fps != lastFPS) {
-			E("fps").innerHTML = "FPS: " + fps;
+			E("fps").innerText = "[FPS] " + fps;
 			lastFPS = fps;
 		}
 

@@ -9,15 +9,6 @@
   pointer-events: none;
 }
 
-#indicator {
-  position: absolute;
-  left: 5px;
-  bottom: 20px;
-  font-size: xx-small;
-  background-color: rgba(255, 255, 255, 0.7);
-  padding: 1px 2px;
-}
-
 #msgbar {
   display: none;
   position: fixed;
