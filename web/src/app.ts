@@ -562,7 +562,7 @@ app.buildCamera = (is_ortho) => {
 };
 
 // adjusts camera's near and far based on the scene's bounding sphere
-app.adjustCameraNearFar = (updateSphere=true) => {
+app.adjustCameraNearFar = (updateSphere = true, debugCallback?) => {
     if (updateSphere) app.scene.calculateBoundingSphere();
 
     const sphere = app.scene.boundingSphere();
@@ -573,9 +573,14 @@ app.adjustCameraNearFar = (updateSphere=true) => {
     app.camera.far = Math.max(cameraDistance + sphere.radius + margin, 1000 * app.camera.near);
     app.camera.updateProjectionMatrix();
 
-    if (conf.debugMode) {
-        console.debug("[camera] radius: " + sphere.radius + ", dist: " + cameraDistance + ", near: " + app.camera.near + ", far: " + app.camera.far);
-    }
+    if (!debugCallback) return;
+
+    debugCallback({
+        radius: sphere.radius,
+        dist: cameraDistance,
+        near: app.camera.near,
+        far: app.camera.far
+    });
 };
 
 // moves camera target to center of scene

@@ -1,11 +1,10 @@
 #debug {
-  background-color: rgba(0, 0, 0, 0);
   font-size: xx-small;
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
+  left: 5px;
+  bottom: 2px;
+  padding: 1px 2px;
+  background-color: rgba(255, 255, 255, 0.7);
   pointer-events: none;
 }
 

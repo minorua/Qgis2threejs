@@ -14,7 +14,9 @@ import type { DEMLayer } from "./layer/demlayer.js";
 
 conf.preview = {
 
-	showFPS: false
+	showFPS: false,
+
+	showCameraInfo: conf.debugMode
 
 };
 
@@ -654,6 +656,7 @@ export function copyCanvasToClipboard(width, height) {
 const _initLoadingManager = app.initLoadingManager.bind(app);
 const _render = app.render.bind(app);
 const _saveCanvasImage = app.saveCanvasImage.bind(app);
+const _adjustCameraNearFar = app.adjustCameraNearFar.bind(app);
 
 app.initLoadingManager = () => {
 	_initLoadingManager();
@@ -681,4 +684,14 @@ app.saveCanvasImage = (width, height, fill_background) => {
 		gui.popup.hide();
 	};
 	_saveCanvasImage(width, height, fill_background, saveCanvasImage);
+};
+
+app.adjustCameraNearFar = (updateSphere) => {
+	let callback;
+	if (conf.preview.showCameraInfo) {
+		callback = (info) => {
+			E("cameraInfo").innerText = "[camera] radius: " + info.radius.toFixed(3) + ", dist: " + info.dist.toFixed(3) + ", near: " + info.near.toFixed(3) + ", far: " + info.far.toFixed(3);
+		};
+	}
+	_adjustCameraNearFar(updateSphere, callback);
 };
