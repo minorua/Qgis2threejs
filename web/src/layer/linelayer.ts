@@ -3,7 +3,7 @@
 
 import { THREE } from "../three.js";
 
-import { modules, Group, LayerType, UV } from "../core.js";
+import { modules, LayerType, UV } from "../core.js";
 import { BuilderBase, VectorLayer } from "./vectorlayer.js";
 import { Materials } from "../material.js";
 import { createWallGeometry } from "../utils.js";
@@ -150,7 +150,7 @@ export class LineLayer extends VectorLayer {
 
 class Builder extends BuilderBase {
 
-    createObjects(f: FeatureData): THREE.Mesh[] | THREE.Line[] | Group[] {
+    createObjects(f: FeatureData): THREE.Mesh[] | THREE.Line[] | THREE.Group[] {
         const { lines } = f.geom as GeomData;
 
         const objs = [];
@@ -163,8 +163,8 @@ class Builder extends BuilderBase {
         return objs;
     }
 
-    createObject(f: FeatureData, vertices: number[] | Vec3[]): THREE.Mesh | THREE.Line | Group {
-        return new Group();
+    createObject(f: FeatureData, vertices: number[] | Vec3[]): THREE.Mesh | THREE.Line | THREE.Group {
+        return new THREE.Group();
     }
 
 }
@@ -216,7 +216,7 @@ class CylinderBuilderBase extends Builder {
         const { r } = f.geom as GeomData;
         const axis = UV.j;
 
-        const group = new Group();
+        const group = new THREE.Group();
         const material = materials.mtl(f.mtl.idx);
 
         pt0.fromArray(vertices[0]);

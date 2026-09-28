@@ -3,7 +3,7 @@
 
 import { THREE } from "./three.js";
 
-import { app, conf, deg2rad, gui, modules, Group, LayerType } from "./core.js";
+import { app, conf, deg2rad, gui, modules, LayerType } from "./core.js";
 import { Scene } from "./scene.js";
 import { E, decompress, transformObjectValues } from "./utils.js";
 
@@ -1077,9 +1077,9 @@ app.saveCanvasImage = (width, height, fill_background = true, saveImageFunc) => 
 
                 const lineOpt = conf.measure.line;
                 this.lineMtl = new THREE.LineBasicMaterial({ color: lineOpt.color });
-                this.markerGroup = new Group();
+                this.markerGroup = new THREE.Group();
                 this.markerGroup.name = "measure marker";
-                this.lineGroup = new Group();
+                this.lineGroup = new THREE.Group();
                 this.lineGroup.name = "measure line";
             }
 

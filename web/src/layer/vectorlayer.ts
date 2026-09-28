@@ -3,7 +3,7 @@
 
 import { THREE } from "../three.js";
 
-import { app, conf, Group } from "../core.js";
+import { app, conf } from "../core.js";
 import { MapLayer } from "./layer.js";
 
 import type { Feature, FeatureBlockData, FeatureData, RenderableObject, VectorLayerData, VectorLayerProperties } from "../types.js";
@@ -15,8 +15,8 @@ export class VectorLayer extends MapLayer {
 	builder: BuilderBase | null = null;
 	features: Feature[] = [];
 	labels: THREE.Sprite[] = [];
-	labelGroup: Group;
-	labelConnectorGroup: Group;
+	labelGroup: THREE.Group;
+	labelConnectorGroup: THREE.Group;
 
 	declare properties: VectorLayerProperties;
 	declare BuilderFactory: Record<string, BuilderConstructor>;
@@ -197,14 +197,14 @@ export class VectorLayer extends MapLayer {
 
 		if (this.properties.label !== undefined) {
 			if (this.labelGroup === undefined) {
-				this.labelGroup = new Group();
+				this.labelGroup = new THREE.Group();
 				this.labelGroup.userData.layerId = this.id;
 				this.labelGroup.visible = this.visible;
 				scene.labelGroup.add(this.labelGroup);
 			}
 
 			if (this.labelConnectorGroup === undefined) {
-				this.labelConnectorGroup = new Group();
+				this.labelConnectorGroup = new THREE.Group();
 				this.labelConnectorGroup.userData.layerId = this.id;
 				this.labelConnectorGroup.visible = this.visible;
 				scene.labelConnectorGroup.add(this.labelConnectorGroup);

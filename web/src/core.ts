@@ -82,14 +82,3 @@ export const UV = {
 	k: new THREE.Vector3(0, 0, 1)
 
 };
-
-
-export class Group extends THREE.Group {
-
-	add(object) {
-		super.add(object);
-		object.updateMatrixWorld();
-		return this;
-	}
-
-}

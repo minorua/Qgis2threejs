@@ -3,7 +3,7 @@
 
 import { THREE } from "./three.js";
 
-import { conf, deg2rad, Group, NODATA_Z_THRESHOLD, UV } from "./core.js";
+import { conf, deg2rad, NODATA_Z_THRESHOLD, UV } from "./core.js";
 import { DEMLayer } from "./layer/demlayer.js";
 import { PointLayer } from "./layer/pointlayer.js";
 import { LineLayer } from "./layer/linelayer.js";
@@ -17,9 +17,9 @@ export class Scene extends THREE.Scene {
 	mapLayers: Record<number, MapLayer> = {};		// key is layerId
 	tilesRenderers = [];
 
-	declare lightGroup: Group;
-	declare labelGroup: Group;
-	declare labelConnectorGroup: Group;
+	declare lightGroup: THREE.Group;
+	declare labelGroup: THREE.Group;
+	declare labelConnectorGroup: THREE.Group;
 	declare userData: SceneProperties;
 	declare addEventListener: THREE.EventDispatcher<SceneEventMap>["addEventListener"];
 	declare dispatchEvent: THREE.EventDispatcher<SceneEventMap>["dispatchEvent"];
@@ -27,15 +27,15 @@ export class Scene extends THREE.Scene {
 	constructor() {
 		super();
 
-		this.lightGroup = new Group();
+		this.lightGroup = new THREE.Group();
 		this.lightGroup.name = "light";
 		this.add(this.lightGroup);
 
-		this.labelGroup = new Group();
+		this.labelGroup = new THREE.Group();
 		this.labelGroup.name = "label";
 		this.add(this.labelGroup);
 
-		this.labelConnectorGroup = new Group();
+		this.labelConnectorGroup = new THREE.Group();
 		this.labelConnectorGroup.name = "label connector";
 		this.add(this.labelConnectorGroup);
 	}

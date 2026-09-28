@@ -3,7 +3,7 @@
 
 import { THREE } from "../three.js";
 
-import { deg2rad, Group, LayerType, UV } from "../core.js";
+import { deg2rad, LayerType, UV } from "../core.js";
 import { BuilderBase, VectorLayer } from "./vectorlayer.js";
 import { Models } from "../model.js";
 
@@ -298,7 +298,7 @@ class ModelBuilder extends Builder {
 
             const groups = [];
             for (const pt of pts as Vec3[]) {
-                const group = new Group();
+                const group = new THREE.Group();
 
                 group.position.fromArray(pt);
                 group.scale.set(1, 1, this.zScale);
