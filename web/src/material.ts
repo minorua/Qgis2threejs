@@ -224,24 +224,25 @@ export class Materials extends THREE.EventDispatcher {
 		}
 	}
 
-	get opacity(): number {
-		if (this.array.length == 0) return 1;
-
-		let sum = 0;
+	getOpacity(groupId?: number): number {
 		for (const m of this.array) {
-			sum += m.mtl.opacity;
+			if (groupId === undefined || m.groupId === groupId) {
+				return m.mtl.opacity;
+			}
 		}
-		return sum / this.array.length;
+		return 1;
 	}
 
-	set opacity(opacity: number) {
+	setOpacity(opacity: number, groupId?: number) {
 		for (const m of this.array) {
-			m.mtl.opacity = opacity;
+			if (groupId === undefined || m.groupId === groupId) {
+				m.mtl.opacity = opacity;
 
-			const t = m.origTransparent || (opacity < 1);
-			if (m.mtl.transparent !== t) {
-				m.mtl.transparent = t;
-				m.mtl.needsUpdate = true;
+				const t = m.origTransparent || (opacity < 1);
+				if (m.mtl.transparent !== t) {
+					m.mtl.transparent = t;
+					m.mtl.needsUpdate = true;
+				}
 			}
 		}
 	}

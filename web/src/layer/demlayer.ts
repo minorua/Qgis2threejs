@@ -105,22 +105,11 @@ export class DEMLayer extends MapLayer {
 	}
 
 	get opacity() {
-		const b = this.blocks[0];
-		if (b && b.materials[this.currentMtlIndex]) {
-			const m = b.materials[this.currentMtlIndex];
-			return (m.mtl) ? m.mtl.opacity : 1;
-		}
-		return this.materials.opacity;
+		return this.materials.getOpacity(this.currentMtlIndex);
 	}
 
 	set opacity(value: number) {
-		for (const b of this.blocks) {
-			const m = b.materials[this.currentMtlIndex];
-			if (m && m.mtl) {
-				m.mtl.opacity = value;
-				m.mtl.transparent = (value < 1);
-			}
-		}
+		this.materials.setOpacity(value, this.currentMtlIndex);
 		this.requestRender();
 	}
 
