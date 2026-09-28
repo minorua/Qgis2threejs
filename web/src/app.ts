@@ -206,7 +206,10 @@ app.setupControls = (name: string) => {
             return;
         }
         app.controls.listenToKeyEvents(window);
-        app.controls.addEventListener("change", () => app.render());
+        app.controls.addEventListener("change", () => {
+            app.adjustCameraNearFar(false);
+            app.render();
+        });
     }
     app.controls.update();
 };
@@ -241,11 +244,11 @@ function setupEventListeners() {
     app.addEventListener("sceneLoaded", () => {
         E("progressbar").classList.add("fadeout");
 
-        app.adjustCameraNearFar();
-
         if (conf.viewpoint.preset === null && conf.autoAdjustCameraPos) {
             app.adjustCameraPosition();
         }
+
+        app.adjustCameraNearFar(true);
         app.render();
 
         if (conf.animation.enabled) {
@@ -558,21 +561,21 @@ app.buildCamera = (is_ortho) => {
     }
 };
 
-// adjusts camera's near and far based on the scene's XY bounding box
-app.adjustCameraNearFar = () => {
-    const bbox = app.scene.boundingBox();
-    if (bbox.isEmpty()) return;
+// adjusts camera's near and far based on the scene's bounding sphere
+app.adjustCameraNearFar = (updateSphere=true) => {
+    if (updateSphere) app.scene.calculateBoundingSphere();
 
-    const radius = 0.5 * Math.hypot(
-        bbox.max.x - bbox.min.x,
-        bbox.max.y - bbox.min.y
-    );
+    const sphere = app.scene.boundingSphere();
+    const cameraDistance = app.camera.position.distanceTo(sphere.center);
+    const margin = Math.max(0.01 * sphere.radius, 0.1);
 
-    app.camera.near = (app.camera.isOrthographicCamera) ? 0 : 0.001 * radius;
-    app.camera.far = 50 * radius;
+    app.camera.near = (app.camera.isOrthographicCamera) ? 0 : Math.max(cameraDistance - sphere.radius - margin, 0.1);
+    app.camera.far = Math.max(cameraDistance + sphere.radius + margin, 1000 * app.camera.near);
     app.camera.updateProjectionMatrix();
 
-    console.debug("[camera] near: " + app.camera.near + ", far: " + app.camera.far);
+    if (conf.debugMode) {
+        console.debug("[camera] radius: " + sphere.radius + ", dist: " + cameraDistance + ", near: " + app.camera.near + ", far: " + app.camera.far);
+    }
 };
 
 // moves camera target to center of scene
@@ -584,7 +587,7 @@ app.adjustCameraPosition = (force) => {
         const r = app.renderer.info.render;
         if (r.triangles + r.points + r.lines) return;
     }
-    const bbox = app.scene.boundingBox(true);
+    const bbox = app.scene.boundingBox();
     if (bbox.isEmpty()) return;
 
     bbox.getCenter(_v);
@@ -709,11 +712,13 @@ app.animate = () => {
         app.viewHelper.update(app.anim_timer.getDelta());
     }
 
+    app.adjustCameraNearFar(false);
     app.render(true);
 };
 
 app.updateControlsAndRender = () => {
     app.controls.update();
+    app.adjustCameraNearFar(false);
     app.render();
 };
 

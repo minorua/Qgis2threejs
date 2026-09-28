@@ -17,6 +17,9 @@ export class Scene extends THREE.Scene {
 	mapLayers: Record<number, MapLayer> = {};		// key is layerId
 	tilesRenderers = [];
 
+	_boundingBox: THREE.Box3;
+	_boundingSphere: THREE.Sphere;
+
 	declare lightGroup: THREE.Group;
 	declare labelGroup: THREE.Group;
 	declare labelConnectorGroup: THREE.Group;
@@ -232,7 +235,12 @@ export class Scene extends THREE.Scene {
 	}
 
 	// return bounding box in 3d world coordinates
-	boundingBox(onlyVisible = false) {
+	boundingBox() {
+		if (!this._boundingBox) this.calculateBoundingBox();
+		return this._boundingBox;
+	}
+
+	calculateBoundingBox(onlyVisible = true) {
 		const box = new THREE.Box3();
 		for (const id in this.mapLayers) {
 			if (onlyVisible && !this.mapLayers[id].visible) continue;
@@ -245,7 +253,17 @@ export class Scene extends THREE.Scene {
 				box.union(b);
 			}
 		}
-		return box;
+		this._boundingBox = box;
+	}
+
+	boundingSphere() {
+		if (!this._boundingSphere) this.calculateBoundingSphere();
+		return this._boundingSphere;
+	}
+
+	calculateBoundingSphere(onlyVisible = true) {
+		this.calculateBoundingBox(onlyVisible);
+		this._boundingSphere = this._boundingBox.getBoundingSphere(new THREE.Sphere());
 	}
 
 	// 3d tiles renderer

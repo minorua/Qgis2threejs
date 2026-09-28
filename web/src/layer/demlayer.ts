@@ -9,7 +9,7 @@ import { Material } from "../material.js";
 import { createWallGeometry, decodeBase64TypedArrayObject, getBoundaryLines } from "../utils.js";
 import { buildTileset, DEMPlugin } from "../tiles/demplugin.js";
 
-import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, DEMTileData, DEMTileEntry, MapExtent, DEMGridData, ParsedGridGeomData, ParsedMeshGeomData, Point3, RuntimeTile, Tileset, Vec3 } from "../types.js";
+import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, DEMTileData, DEMTileEntry, MapExtent, ParsedGridGeomData, ParsedMeshGeomData, Point3, RuntimeTile, Tileset, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
 
 
@@ -347,6 +347,7 @@ class DEMGridBlock extends DEMBlockBase {
 
 			this.buildAuxiliaryObjects(layer, geom, mesh);
 
+			app.adjustCameraNearFar(true);		// TODO: async then
 			layer.requestRender();
 		};
 
@@ -386,6 +387,7 @@ class DEMMeshBlock extends DEMBlockBase {
 			}
 			this.buildAuxiliaryObjects(layer, geom, mesh);
 
+			app.adjustCameraNearFar(true);		// TODO: async then
 			layer.requestRender();
 		};
 

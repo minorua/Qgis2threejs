@@ -83,7 +83,7 @@ function _init(off_screen) {
 		const renderOffscreen = app.render;
 		app.render = () => { };		// No need to render the scene before it has fully loaded.
 		app.addEventListener("sceneLoaded", () => {
-			app.adjustCameraNearFar();
+			app.adjustCameraNearFar(true);
 
 			app.render = renderOffscreen;
 			app.render(true);
@@ -318,7 +318,7 @@ function tasksAndLoadingFinalized(success: boolean, is_scene: boolean) {
 		}, 0);
 	}
 	else {
-		app.adjustCameraNearFar();
+		app.adjustCameraNearFar(true);
 	}
 }
 
