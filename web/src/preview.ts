@@ -16,7 +16,7 @@ conf.preview = {
 
 	showFPS: false,
 
-	showCameraInfo: conf.debugMode
+	showCameraInfo: true
 
 };
 
@@ -688,7 +688,7 @@ app.saveCanvasImage = (width, height, fill_background) => {
 
 app.adjustCameraNearFar = (updateSphere) => {
 	let callback;
-	if (conf.preview.showCameraInfo) {
+	if (conf.debugMode && conf.preview.showCameraInfo) {
 		callback = (info) => {
 			E("cameraInfo").innerText = "[camera] radius: " + info.radius.toFixed(3) + ", dist: " + info.dist.toFixed(3) + ", near: " + info.near.toFixed(3) + ", far: " + info.far.toFixed(3);
 		};

@@ -1,7 +1,7 @@
 #debug {
   font-size: xx-small;
   position: absolute;
-  left: 5px;
+  right: 5px;
   bottom: 2px;
   padding: 1px 2px;
   background-color: rgba(255, 255, 255, 0.7);
