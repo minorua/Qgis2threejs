@@ -735,10 +735,6 @@ app.updateControlsAndRender = () => {
             return;
         }
 
-        if (app.camera.parent) {
-            app.camera.updateMatrixWorld();
-        }
-
         for (const tilesRenderer of app.scene.tilesRenderers) {
             tilesRenderer.update();
         }
