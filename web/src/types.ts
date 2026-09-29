@@ -618,6 +618,8 @@ export interface Gui {
 export interface Modules {
     THREE;
     BufferGeometryUtils;
+    MapControls;
+    OrbitControls;
     ColladaLoader;
     GLTFLoader;
     OutlineEffect;

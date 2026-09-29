@@ -222,8 +222,6 @@ class Q3DController(QObject):
         if ctrl == "Map":
             mods = [ScriptFile.FILES[ScriptFile.ORBITCONTROLS][0],
                     ScriptFile.FILES[ScriptFile.MAPCONTROLS][0]]
-        elif ctrl == "Env":
-            mods = [ScriptFile.FILES[ScriptFile.ENVIRONMENTCONTROLS][0]]
         else:
             mods = [ScriptFile.FILES[ScriptFile.ORBITCONTROLS][0]]
 

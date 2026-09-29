@@ -184,33 +184,24 @@ function setupScene() {
 
 app.setupControls = (name: string) => {
     if (!name) {
-        if ("EnvironmentControls" in modules) name = "Env";
-        else if ("MapControls" in modules) name = "Map";
+        if ("MapControls" in modules) name = "Map";
         else if ("OrbitControls" in modules) name = "Orb";
     }
 
-    if (name == "Env") {
-        app.controls = new modules.EnvironmentControls(app.scene, app.camera, app.renderer.domElement);
-        app.controls.up.set(0, 0, 1);
-        app.controls.fallbackPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-        app.controls.addEventListener("change", () => app.updateControlsAndRender());
+    if (name == "Map") {
+        app.controls = new modules.MapControls(app.camera, app.renderer.domElement);
+    }
+    else if (name == "Orb") {
+        app.controls = new modules.OrbitControls(app.camera, app.renderer.domElement);
     }
     else {
-        if (name == "Map") {
-            app.controls = new modules.MapControls(app.camera, app.renderer.domElement);
-        }
-        else if (name == "Orb") {
-            app.controls = new modules.OrbitControls(app.camera, app.renderer.domElement);
-        }
-        else {
-            return;
-        }
-        app.controls.listenToKeyEvents(window);
-        app.controls.addEventListener("change", () => {
-            app.adjustCameraNearFar(false);
-            app.render();
-        });
+        return;
     }
+    app.controls.listenToKeyEvents(window);
+    app.controls.addEventListener("change", () => {
+        app.adjustCameraNearFar(false);
+        app.render();
+    });
     app.controls.update();
 };
 

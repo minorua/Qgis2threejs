@@ -141,9 +141,8 @@
      <property name="title">
       <string>Controls</string>
      </property>
-     <addaction name="actionOrbitControls"/>
      <addaction name="actionMapControls"/>
-     <addaction name="actionEnvironmentControls"/>
+     <addaction name="actionOrbitControls"/>
     </widget>
     <addaction name="menuCamera"/>
     <addaction name="menuControls"/>
@@ -382,7 +381,7 @@
     <string>three.js JSON (.json)...</string>
    </property>
   </action>
-  <action name="actionOrbitControls">
+  <action name="actionMapControls">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -390,23 +389,15 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>OrbitControls</string>
-   </property>
-  </action>
-  <action name="actionMapControls">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
     <string>MapControls</string>
    </property>
   </action>
-  <action name="actionEnvironmentControls">
+  <action name="actionOrbitControls">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>EnvironmentControls</string>
+    <string>OrbitControls</string>
    </property>
   </action>
  </widget>

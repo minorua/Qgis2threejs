@@ -243,15 +243,11 @@ class Q3DWindow(QMainWindow):
         ui.actionOrthographic.setChecked(self.settings.isOrthoCamera())
 
         ui.actionGroupControls = QActionGroup(self)
-        ui.actionOrbitControls.setActionGroup(ui.actionGroupControls)
         ui.actionMapControls.setActionGroup(ui.actionGroupControls)
-        ui.actionEnvironmentControls.setActionGroup(ui.actionGroupControls)
+        ui.actionOrbitControls.setActionGroup(ui.actionGroupControls)
 
-        match self.settings.controls():
-            case "Map":
-                ui.actionMapControls.setChecked(True)
-            case "Env":
-                ui.actionEnvironmentControls.setChecked(True)
+        if self.settings.controls() == "Orb":
+            ui.actionOrbitControls.setChecked(True)
 
         ui.actionNavigationWidget.setChecked(self.settings.isNavigationEnabled())
 
@@ -735,8 +731,6 @@ class Q3DWindow(QMainWindow):
     def controlsChanged(self, action):
         if action == self.ui.actionOrbitControls:
             name = "Orb"
-        elif action == self.ui.actionEnvironmentControls:
-            name = "Env"
         else:
             name = "Map"
         self.settings.setControls(name)
