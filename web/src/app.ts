@@ -559,9 +559,10 @@ app.adjustCameraNearFar = (updateSphere = true, debugCallback?) => {
     const sphere = app.scene.boundingSphere();
     const cameraDistance = app.camera.position.distanceTo(sphere.center);
     const margin = Math.max(0.01 * sphere.radius, 0.1);
+    const maxRatio = 1e5;
 
-    app.camera.near = (app.camera.isOrthographicCamera) ? 0 : Math.max(cameraDistance - sphere.radius - margin, 0.1);
-    app.camera.far = Math.max(cameraDistance + sphere.radius + margin, 1000 * app.camera.near);
+    app.camera.far = Math.max(cameraDistance + sphere.radius + margin, 1);
+    app.camera.near = (app.camera.isOrthographicCamera) ? 0 : Math.max(cameraDistance - sphere.radius - margin, app.camera.far / maxRatio, 0.001);
     app.camera.updateProjectionMatrix();
 
     if (!debugCallback) return;
