@@ -1,7 +1,7 @@
 // (C) 2017 Minoru Akagi
 // SPDX-License-Identifier: MIT
 
-import { app, conf, gui, modules, E } from "./Qgis2threejs.js";
+import { app, conf, debugLog, gui, modules, E } from "./Qgis2threejs.js";
 const THREE = modules.THREE;
 export { app, conf, gui, modules, THREE }
 
@@ -139,17 +139,14 @@ function loadModules(module_paths: string[]): Promise<void> {
  * @returns true if no error occurs.
  */
 function loadData(data: PreviewData, viaQueue: boolean): boolean {
-	let result = true;
-
-	if (conf.debugMode) {
-		console.debug("Loading " + (data.type || "unknown") + " data...");
-	}
+	debugLog("Loading data.", data.type || "unknown");
 
 	if (viaQueue) {
 		preview.isDataLoading = true;
 		app.loadingManager.itemStart("data");
 	}
 
+	let result = true;
 	switch (data.type) {
 		case "scene":
 			if (data.properties !== undefined) {
@@ -162,7 +159,7 @@ function loadData(data: PreviewData, viaQueue: boolean): boolean {
 			result = app.loadData(data);
 
 			if ("progress" in data) {
-				console.debug("Progress: " + data.progress);
+				debugLog("Progress:", data.progress);
 				updateProgressBar(data.progress);
 			}
 			break;

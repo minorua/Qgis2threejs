@@ -3,7 +3,7 @@
 
 import { THREE } from "./three.js";
 
-import { conf, deg2rad, NODATA_Z_THRESHOLD, UV } from "./core.js";
+import { conf, debugLog, deg2rad, NODATA_Z_THRESHOLD, UV } from "./core.js";
 import { DEMLayer } from "./layer/demlayer.js";
 import { PointLayer } from "./layer/pointlayer.js";
 import { LineLayer } from "./layer/linelayer.js";
@@ -246,11 +246,21 @@ export class Scene extends THREE.Scene {
 			if (onlyVisible && !this.mapLayers[id].visible) continue;
 
 			const b = this.mapLayers[id].boundingBox();
-			if (b && b.max.z >= NODATA_Z_THRESHOLD) {
+			if (b.isEmpty()) {
+				debugLog("Empty BBox.", this.mapLayers[id].properties.name);
+				continue;
+			}
+
+			if (b.max.z >= NODATA_Z_THRESHOLD) {
 				if (b.min.z < NODATA_Z_THRESHOLD) {
 					b.min.z = b.max.z;
+
+					console.debug("[Bounding box] min.z is derived from NODATA.", this.mapLayers[id].properties.name);
 				}
 				box.union(b);
+			}
+			else {
+				console.debug("[Bounding box] max.z is derived from NODATA.", this.mapLayers[id].properties.name);
 			}
 		}
 		this._boundingBox = box;

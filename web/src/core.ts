@@ -4,9 +4,11 @@
 
 import { THREE } from "./three.js";
 
+import { conf } from "./conf.js";
+
 import type { App, Gui, Modules, Tweens } from "./types.js";
 
-export { conf } from "./conf.js";
+export { conf };
 
 export const app = {} as App;
 
@@ -82,3 +84,7 @@ export const UV = {
 	k: new THREE.Vector3(0, 0, 1)
 
 };
+
+export function debugLog(...args: any[]) {
+	if (conf.debugMode) console.debug(...args);
+}

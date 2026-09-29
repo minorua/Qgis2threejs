@@ -3,7 +3,7 @@
 
 // https://github.com/NASA-AMMOS/3DTilesRendererJS/blob/master/src/core/renderer/API.md
 
-import { app } from "../core.js"
+import { app, debugLog } from "../core.js"
 import { buildTile } from "../layer/demlayer.js";
 import { Material } from "../material.js";
 import { decodeBase64TypedArrayObject } from "../utils.js";
@@ -137,7 +137,7 @@ export class DEMPlugin {
             reject = rej;
         });
 
-        console.debug("Requesting tile data.", customUrl, options);
+        debugLog("Requesting tile data.", customUrl, options);
         window.requestTileData(customUrl);
 
         this.pendingRequests.set(customUrl, { promise, resolve, reject });
@@ -151,7 +151,7 @@ export class DEMPlugin {
         const pending = this.pendingRequests.get(url);
         if (!pending) return;
 
-        console.debug("Tile data received: ", url, data);
+        debugLog("Tile data received: ", url, data);
 
         pending.resolve(data);
         this.pendingRequests.delete(url);
@@ -177,7 +177,7 @@ export class DEMPlugin {
      * @param {Tile} tile
      */
 	disposeTile(tile) {
-        console.debug("disposeTile", tile.content.uri);
+        debugLog("disposeTile", tile.content.uri);
     }
 
     setTileMaterialUpdaters(mtlIndex: number) {
