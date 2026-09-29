@@ -162,7 +162,7 @@ class AnimationPanel(QWidget):
         options = None
         if trackType in (ATConst.ITEM_TRK_TEXTURE, ATConst.ITEM_TEXTURE):
             layer = layer.clone()
-            options = BuildDEMOptions(onlyMaterials=True, allMaterials=True)
+            options = BuildDEMOptions(onlyMaterial=True, allMaterials=True)
 
         tm = self.controller.taskManager
         tm.addRunScriptTask("preview.renderEnabled = false;")
