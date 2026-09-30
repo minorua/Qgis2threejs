@@ -1775,7 +1775,7 @@
   },
   "Template": "3DViewer(dat-gui).html",
   "Title": "testproject1",
-  "Version": 20904,
+  "Version": 30201,
   "WIDGETS": {
     "Label": {
       "Footer": "",

@@ -83,12 +83,12 @@ function assertBox3(testName, box1, box2, precision) {
 	if (box2 === undefined) {
 
 		box2 = new THREE.Box3().setFromObject(app.scene);
-		msg = "a box and scene bbox";
+		msg = "A box and scene bbox";
 
 	}
 	else {
 
-		msg = "two boxes";
+		msg = "Two boxes";
 
 	}
 
@@ -97,15 +97,15 @@ function assertBox3(testName, box1, box2, precision) {
 	if (result) {
 
 		result = true;
-		msg += " are same.";
+		msg += " are same. ";
 
 	}
 	else {
 
-		msg += " are not same.";
+		msg += " are not same. ";
 
 	}
-	msg += Box3ToString(box1) + ", " + Box3ToString(box2) + " (" + precision + ")";
+	msg += Box3ToString(box2) + ", Expected: " + Box3ToString(box1) + (precision !== undefined ? " (" + precision + ")" : "");
 
 	pyObj.sendTestResult(testName, result, msg);
 
@@ -119,14 +119,14 @@ function assertZRange(testName, obj, min, max, precision) {
 	if (min !== undefined && !floatEquals(min, box.min.z, precision)) {
 
 		result = false;
-		msg += "bottom z is different from expected. (" + box.min.z + ", exptected: " + min + ", (" + precision + "))"
+		msg += "Bottom z is different from expected. " + box.min.z + ", Exptected: " + min + (precision !== undefined ? " (" + precision + ")" : "");
 
 	}
 
 	if (max !== undefined && !floatEquals(max, box.max.z, precision)) {
 
 		result = false;
-		msg += "top z is different from expected. (" + box.max.z + ", exptected: " + max + ", (" + precision + "))";
+		msg += "Top z is different from expected. " + box.max.z + ", Exptected: " + max + (precision !== undefined ? " (" + precision + ")" : "");
 
 	}
 

@@ -2032,7 +2032,7 @@
     "slider_Fog": 54
   },
   "Template": "3DViewer(dat-gui).html",
-  "Version": 20902,
+  "Version": 30201,
   "WIDGETS": {
     "Label": {
       "Footer": "",

@@ -108,10 +108,6 @@
         "enabled": true,
         "tracks": []
       },
-      "pc:potree16260303094523": {
-        "enabled": true,
-        "tracks": []
-      },
       "plugin:gsielevtile": {
         "enabled": true,
         "tracks": []
@@ -152,27 +148,6 @@
     "repeat": false
   },
   "LAYERS": [
-    {
-      "geomType": 4,
-      "layerId": "pc:potree16260303094523",
-      "name": "potree16",
-      "properties": {
-        "checkBox_BoxVisible": true,
-        "checkBox_Clickable": true,
-        "checkBox_Visible": true,
-        "colorButton_Color": [
-          0,
-          0,
-          0,
-          255
-        ],
-        "comboBox_ColorType": "RGB",
-        "lineEdit_Name": "potree16",
-        "spinBox_Opacity": 100,
-        "url": "https://raw.githubusercontent.com/minorua/Qgis2threejs/refs/heads/master/tests/data/testproject2/potree16/cloud.js"
-      },
-      "visible": true
-    },
     {
       "geomType": 1,
       "layerId": "pt120150915163204544",
@@ -625,5 +600,5 @@
     "radioButton_FixedExtent": true,
     "slider_Fog": 41
   },
-  "Version": 20903
+  "Version": 30201
 }
