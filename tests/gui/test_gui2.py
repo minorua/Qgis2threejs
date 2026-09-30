@@ -20,6 +20,31 @@ class TestScene(GUITestBase):
         self.assertBox3("Origin shift - Off: origin of map coordinates", Box3((405, 305, 0), (495, 395, 9)))
 
 
+class TestDEMLayer(LayerTestBase):
+
+    LAYER_ID = "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147"
+    PYRAMID_DEM_ID = "srtm_62ffafc6_c8b2_4e32_8882_137d6e1bbe4c"
+
+    def test01_showAndZoomToPyramidDEM(self):
+        self.loadSettings(TEST_DIR, "scene2_g2")
+
+        self.setVisible(True, self.PYRAMID_DEM_ID)
+        self.zoomTo(self.PYRAMID_DEM_ID)
+        self.sleep(2000)
+
+    def test02_zoomFurtherIntoPyramidDEM(self):
+        CAMERA_STATE = {
+            'lookAt': {'x': -68000, 'y': -80000, 'z': 800},
+            'pos': {'x': -95000, 'y': -80000, 'z': 5000}
+        }
+        self.WND.controller.setCameraState(CAMERA_STATE)
+        self.sleep(5000)
+
+    def test03_returnToAsciiDEM(self):
+        self.zoomTo(self.LAYER_ID)
+        self.setVisible(False, self.PYRAMID_DEM_ID)
+
+
 class TestPointLayer(LayerTestBase):
 
     LAYER_ID = "points_230791f1_2e27_4a9d_b5e4_f137f118f216"
@@ -68,6 +93,7 @@ class TestWebExport(GUITestBase):
 
         self.sleep(5000)
         dlg.close()
+
 
 class TestGLTFExport(GUITestBase):
 

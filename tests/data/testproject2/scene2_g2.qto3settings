@@ -37,10 +37,6 @@
         "enabled": true,
         "tracks": []
       },
-      "pointcloud_d87d4a8e_453c_4f82_8cf9_ef2a3d340be4": {
-        "enabled": true,
-        "tracks": []
-      },
       "points_230791f1_2e27_4a9d_b5e4_f137f118f216": {
         "enabled": true,
         "tracks": [
@@ -69,6 +65,10 @@
             "type": 65
           }
         ]
+      },
+      "srtm_62ffafc6_c8b2_4e32_8882_137d6e1bbe4c": {
+        "enabled": true,
+        "tracks": []
       }
     },
     "repeat": false
@@ -226,27 +226,13 @@
       "name": "ascii_dem",
       "properties": {
         "checkBox_Clickable": true,
-        "checkBox_Frame": false,
         "checkBox_Sides": false,
         "checkBox_Tiles": false,
         "checkBox_Visible": true,
-        "checkBox_Wireframe": false,
-        "colorButton_Edge": [
-          0,
-          0,
-          0,
-          255
-        ],
         "colorButton_Side": [
           204,
           187,
           170,
-          255
-        ],
-        "colorButton_Wireframe": [
-          0,
-          0,
-          0,
           255
         ],
         "comboBox_ClipLayer": null,
@@ -258,9 +244,18 @@
             "id": "d193e314",
             "name": "map (canvas)",
             "properties": {
+              "checkBox_FlatShading": false,
               "checkBox_Shading": true,
               "checkBox_TransparentBackground": false,
+              "colorButton_Color": [
+                0,
+                0,
+                0,
+                255
+              ],
               "comboBox_TextureSize": "1024",
+              "layerIds": [],
+              "lineEdit_ImageFile": "",
               "radioButton_PNG": true,
               "spinBox_Opacity": 100
             },
@@ -268,19 +263,63 @@
           }
         ],
         "mtlId": "d193e314",
-        "radioButton_OriginalValues": true,
+        "radioButton_Tiles": true,
         "spinBox_Roughening": 1,
         "spinBox_Size": 3,
-        "spinBox_TileSideSegments": 100
+        "spinBox_TileSideSegments": 10
       },
       "visible": true
     },
     {
-      "geomType": 4,
-      "layerId": "pointcloud_d87d4a8e_453c_4f82_8cf9_ef2a3d340be4",
-      "name": "pointcloud",
+      "geomType": 0,
+      "layerId": "srtm_62ffafc6_c8b2_4e32_8882_137d6e1bbe4c",
+      "name": "srtm",
       "properties": {
-        "url": "file:///D:/Users/minorua/QGIS/plugins/Qgis2threejs/tests/data/testproject2/ept_pointcloud/ept.json"
+        "checkBox_Clickable": true,
+        "checkBox_Sides": false,
+        "checkBox_Tiles": false,
+        "checkBox_Visible": true,
+        "colorButton_Side": [
+          204,
+          187,
+          170,
+          255
+        ],
+        "comboBox_ClipLayer": null,
+        "horizontalSlider_DEMSize": 2,
+        "lineEdit_Bottom": "0",
+        "lineEdit_Name": "",
+        "materials": [
+          {
+            "id": "94ea33b6",
+            "name": "srtm",
+            "properties": {
+              "checkBox_FlatShading": false,
+              "checkBox_Shading": true,
+              "checkBox_TransparentBackground": false,
+              "colorButton_Color": [
+                0,
+                0,
+                0,
+                255
+              ],
+              "comboBox_TextureSize": "1024",
+              "layerIds": [
+                "srtm_62ffafc6_c8b2_4e32_8882_137d6e1bbe4c"
+              ],
+              "lineEdit_ImageFile": "",
+              "radioButton_WebP": true,
+              "spinBox_Opacity": 100
+            },
+            "type": 1
+          }
+        ],
+        "mtlId": "94ea33b6",
+        "radioButton_NoClip": true,
+        "radioButton_Pyramid": true,
+        "spinBox_Roughening": 1,
+        "spinBox_Size": 3,
+        "spinBox_TileSideSegments": 512
       },
       "visible": false
     },
@@ -325,5 +364,5 @@
     "lineEdit_zFactor": "1.0",
     "slider_Fog": 41
   },
-  "Version": 20903
+  "Version": 30201
 }
