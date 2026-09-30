@@ -6,6 +6,7 @@ import logging
 from dataclasses import dataclass
 from qgis.PyQt.QtCore import QEventLoop, QTimer, QUrl
 from qgis.PyQt.QtGui import QImage, QPainter
+from qgis.PyQt.QtTest import QSignalSpy
 from qgis.PyQt.QtWebEngineWidgets import QWebEngineView
 
 from .cli.utils import logger
@@ -94,14 +95,13 @@ class WebPageCheckerBase(QWebEngineView):
         self._loadPage()
 
     def _loadPage(self):
-        loop = QEventLoop()
-        self.loadFinished.connect(loop.quit)
+        spy = QSignalSpy(self.loadFinished)
 
         self.setUrl(self._url)
-        QTimer.singleShot(10000, loop.quit)
-        loop.exec()
-
-        logger.debug("Page load finished.")
+        if spy.wait(10000):
+            logger.debug("Page load finished.")
+        else:
+            logger.error("Time out while loading page.")
 
     def runScript(self, string, wait=True):
         return self._page.runScript(string, wait=wait)

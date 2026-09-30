@@ -30,8 +30,7 @@ class TestPointLayer(LayerTestBase):
         self.assertZRange("points", min=0, max=30)
 
     def test02_opacityAnimation(self):
-        self.WND.ui.animationPanel.playAnimation()
-        self.sleep(2000)
+        self.playAnimation(5000)
         self.setVisible(False)
 
 
@@ -46,8 +45,7 @@ class TestLineLayer(LayerTestBase):
         self.assertZRange("linestrings", min=0, max=50)
 
     def test02_lineGrowingAnimation(self):
-        self.playAnimation()
-        self.sleep(1000 * 4 + 500)
+        self.playAnimation(10000)
 
     def test03_loadScene2_2(self):
         """Thick line"""
@@ -56,8 +54,7 @@ class TestLineLayer(LayerTestBase):
         self.assertZRange("linestrings", min=0, max=50)
 
     def test04_lineGrowingAnimation(self):
-        self.playAnimation()
-        self.sleep(2500)
+        self.playAnimation(10000)
 
 
 class TestWebExport(GUITestBase):

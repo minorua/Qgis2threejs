@@ -2,11 +2,8 @@
 # (C) 2023 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from qgis.PyQt.QtCore import Qt, QEvent, QEventLoop, QPoint, QPointF, QTimer
-from qgis.PyQt.QtGui import QKeyEvent
-from qgis.PyQt.QtWidgets import QWidget
-from qgis.PyQt.QtTest import QTest
-from qgis.core import QgsApplication
+from qgis.PyQt.QtCore import Qt, QEventLoop, QTimer
+from qgis.PyQt.QtTest import QSignalSpy
 from qgis.testing import unittest
 
 from Qgis2threejs.core.const import ScriptFile
@@ -45,11 +42,7 @@ class GUITestBase(unittest.TestCase):
 
     @classmethod
     def runScript(cls, script):
-        cls.WND.runScript(script)
-
-    @classmethod
-    def playAnimation(cls):
-        cls.WND.ui.animationPanel.playAnimation()
+        cls.WND.runScript(script, wait=True)
 
     @classmethod
     def assertBox3(cls, testName, box1, box2=UNDEF, precision=UNDEF):
@@ -71,7 +64,6 @@ class GUITestBase(unittest.TestCase):
     @classmethod
     def mouseClick(cls, x, y):
         cls.runScript(f"showMarker({x}, {y}, 400)")
-        cls.sleep(300)
         cls.runScript(f"emulateClick({x}, {y})")
         cls.sleep(500)
 
@@ -96,11 +88,20 @@ class GUITestBase(unittest.TestCase):
     def tearDown(self):
         self.sleep()
 
-    def updateTestLabels(self):
+    def playAnimation(self, timeout=5000):
+        spy = QSignalSpy(self.WND.webPage.bridge.animationStopped)
+
+        self.updateTestLabels(animating=True)
+        self.WND.ui.animationPanel.playAnimation()
+
+        self.assertTrue(spy.wait(timeout), "Timed out waiting for animation to finish.")
+        self.updateTestLabels(animating=False)
+
+    def updateTestLabels(self, animating=False):
         testname = self.id().split(".")[-1]
         desc = self.shortDescription() or ""
-        if testname.endswith("Animation"):
-            desc += "<br>Animation Running..."
+        if animating:
+            desc += "<br>Animation in progress..."
 
         self.WND.controller.updateWidget("Label", {
             "Header": f"{self.__class__.__name__} - {testname}",
@@ -108,21 +109,20 @@ class GUITestBase(unittest.TestCase):
         })
 
     def loadSettings(self, testDir, filename, useTestLabels=True):
-        loop = QEventLoop()
-        self.WND.webPage.bridge.sceneLoaded.connect(loop.quit)
-
         if not filename.endswith(".qto3settings"):
             filename += ".qto3settings"
         filename = dataPath(testDir, filename)
 
-        self.WND.loadSettings(filename)     # page will be reloaded
+        spy = QSignalSpy(self.WND.webPage.bridge.sceneLoaded)
 
-        loop.exec()
+        self.WND.loadSettings(filename)     # this reloads the page
+
+        self.assertTrue(spy.wait(), "Time out while loading settings and scene.")
 
         if useTestLabels:
             self.updateTestLabels()
 
-        # load test script after page is loaded
+        # Load test script after the page finishes loading.
         self.WND.webPage.loadScriptFile(ScriptFile.TEST, wait=True)
 
 
@@ -143,11 +143,6 @@ class LayerTestBase(GUITestBase):
         super().tearDownClass()
 
     @classmethod
-    def waitBC(cls):
-        """wait for build to complete"""
-        cls.sleep(400)
-
-    @classmethod
     def setVisible(cls, visible, layerId=None):
         cls.TREE.itemFromLayerId(layerId if layerId else cls.LAYER_ID).setCheckState(Qt.CheckState.Checked if visible else Qt.CheckState.Unchecked)
-        cls.waitBC()
+        cls.sleep(400)  # TODO

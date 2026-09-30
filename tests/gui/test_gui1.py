@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import os
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtTest import QSignalSpy
 from qgis.PyQt.QtWidgets import QDialogButtonBox
 from qgis.core import QgsRectangle
 
@@ -44,12 +44,15 @@ class TestDEMLayer(LayerDialogTestBase):
 class VLayerTestBase(LayerDialogTestBase):
 
     def test01_propertiesdialog(self):
+        spy = QSignalSpy(self.WND.webPage.bridge.dataLoaded)
+
         dlg = self.showDialog()
         combo = dlg.page.comboBox_ObjectType
         for i in reversed(range(combo.count())):
             combo.setCurrentIndex(i)
             dlg.ui.buttonBox.button(QDialogButtonBox.StandardButton.Apply).click()
-            self.waitBC()
+            spy.wait(1000)
+
         dlg.close()
 
 
@@ -157,8 +160,7 @@ class TestKeyboardInteraction(GUITestBase):
 class TestCameraAnimation(GUITestBase):
 
     def test01_cameraAnimation(self):
-        self.playAnimation()
-        self.sleep(8000 + 500)
+        self.playAnimation(10000)
 
 
 class DialogLayoutCheck(GUITestBase):
