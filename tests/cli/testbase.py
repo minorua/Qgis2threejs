@@ -2,6 +2,10 @@
 # (C) 2026 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from ... import conf
+conf.IS_TESTING = True
+conf.VALIDATE_DATA = True
+
 from osgeo import gdal
 gdal.UseExceptions()
 

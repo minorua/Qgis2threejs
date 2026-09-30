@@ -5,7 +5,7 @@
 
 from qgis.testing import unittest
 
-from .testbase import CLITestBase
+from .testbase import CLITestBase   # Enable test mode before importing plugin's other modules
 from .utils import logger
 from ..utils import dataPath
 

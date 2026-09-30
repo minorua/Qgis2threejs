@@ -10,7 +10,7 @@ from qgis.PyQt.QtCore import QFileInfo, QSize
 from qgis.PyQt.QtGui import QImage
 from qgis.testing import unittest
 
-from .testbase import CLITestBase, MANUAL_IMAGE_CHECK, OUT_WIDTH, OUT_HEIGHT
+from .testbase import CLITestBase, MANUAL_IMAGE_CHECK, OUT_WIDTH, OUT_HEIGHT    # Enable test mode before importing plugin's other modules
 from .utils import loadProject, logger
 from ..utils import dataPath, expectedDataPath, assertMessagesAppearInOrder
 from ...core.export.export import ImageExporter, ModelExporter

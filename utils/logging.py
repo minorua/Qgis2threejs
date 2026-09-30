@@ -83,7 +83,7 @@ def getLogger(name=PLUGIN_NAME, stream=False, qgis_log=False, filepath="", list_
     return logger
 
 
-logger = web_logger = None          # NoopClass()
+logger = web_logger = NoopClass() if IS_TESTING else None
 
 def configureLoggers(is_test=False, log_to_stream=False):
     """Configure the loggers. The loggers are created if not created yet."""
