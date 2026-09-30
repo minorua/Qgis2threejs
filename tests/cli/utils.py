@@ -2,22 +2,15 @@
 # (C) 2025 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from ... import conf
-conf.IS_TESTING = True
-conf.VALIDATE_DATA = True
-
 import os
 import sys
 
 from qgis.PyQt.QtCore import QSize
-from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtXml import QDomDocument
 from qgis.core import QgsMapSettings, QgsProject
 
-from ...core.mapextent import MapExtent
+from ... import conf
 from ...utils.basic import pluginDir
 from ...utils import logging
-from ...utils.qgis import getLayersByLayerIds
 
 # constants
 TEX_WIDTH, TEX_HEIGHT = (1024, 1024)
@@ -82,41 +75,17 @@ def stop_app():
 
 
 def loadProject(filename):
-    # clear the map layer registry
-    QgsProject.instance().removeAllMapLayers()
+    project = QgsProject.instance()
+    project.clear()
 
-    # load the project
-    QgsProject.instance().read(filename)
+    if not project.read(filename):
+        raise RuntimeError(f"Failed to load the project: {project.error()} {filename}")
 
-    doc = QDomDocument()
-    with open(filename, encoding="utf-8") as f:
-        doc.setContent(f.read())
+    map_settings = QgsMapSettings()
+    map_settings.setDestinationCrs(project.crs())
+    map_settings.setTransformContext(project.transformContext())
+    map_settings.setLayers(project.layerTreeRoot().checkedLayers())
+    map_settings.setOutputSize(QSize(TEX_WIDTH, TEX_HEIGHT))
+    map_settings.setBackgroundColor(project.backgroundColor())
 
-    # map settings
-    mapSettings = QgsMapSettings()
-    mapSettings.readXml(doc.elementsByTagName("mapcanvas").at(0))
-
-    # visible layers
-    layerIds = []
-    nodes = doc.elementsByTagName("legendlayer")
-    for i in range(nodes.count()):
-        elem = nodes.at(i).toElement().elementsByTagName("legendlayerfile").at(0).toElement()
-        if elem.attribute("visible") == "1":
-            layerIds.append(elem.attribute("layerid"))
-    mapSettings.setLayers(getLayersByLayerIds(layerIds))
-
-    # canvas color
-    red = int(doc.elementsByTagName("CanvasColorRedPart").at(0).toElement().text())
-    green = int(doc.elementsByTagName("CanvasColorGreenPart").at(0).toElement().text())
-    blue = int(doc.elementsByTagName("CanvasColorBluePart").at(0).toElement().text())
-    mapSettings.setBackgroundColor(QColor(red, green, blue))
-
-    # extent
-    MapExtent(mapSettings.extent().center(),
-              mapSettings.extent().height(),
-              mapSettings.extent().height(), 0).toMapSettings(mapSettings)
-
-    # texture base size
-    mapSettings.setOutputSize(QSize(TEX_WIDTH, TEX_HEIGHT))
-
-    return mapSettings
+    return map_settings

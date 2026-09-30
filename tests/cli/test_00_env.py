@@ -24,7 +24,7 @@ except ImportError:
 from ...utils.basic import pluginDir
 
 
-class TestBasic(unittest.TestCase):
+class TestQgisStartup(unittest.TestCase):
 
     def test01_start_qgis(self):
         """Test starting QGIS application."""
@@ -46,7 +46,10 @@ class TestBasic(unittest.TestCase):
         self.assertIsNotNone(app, "Failed to start QGIS application.")
         stop_app()
 
-    def test02_import_all_modules(self):
+
+class TestPluginImports(unittest.TestCase):
+
+    def test01_import_all_modules(self):
         """Test importing all modules in the plugin."""
         logger.info("Imported module list:")
 

@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2015-09-06
 
+import sys
 import traceback
 from qgis.testing import unittest
 
@@ -67,6 +68,7 @@ def runTest(debug_mode=None):
 """)
 
     print("\nSee Qgis2threejs/qgis2threejs.log for details.")
+    return result.wasSuccessful()
 
 
 if __name__ == "__main__":
@@ -77,4 +79,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # run test!
-    runTest(args.debug)
+    sys.exit(0 if runTest(args.debug) else 1)
