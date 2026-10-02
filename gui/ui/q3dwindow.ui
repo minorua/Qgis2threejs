@@ -234,9 +234,6 @@
    <property name="text">
     <string>Reload</string>
    </property>
-   <property name="shortcut">
-    <string>F5</string>
-   </property>
   </action>
   <action name="actionAlwaysOnTop">
    <property name="checkable">
@@ -366,9 +363,6 @@
   <action name="actionDevTools">
    <property name="text">
     <string>Developer Tools</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+I</string>
    </property>
   </action>
   <action name="actionGraphicsInfo">
