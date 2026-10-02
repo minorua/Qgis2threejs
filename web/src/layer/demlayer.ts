@@ -282,11 +282,11 @@ class DEMBlockBase {
 			material.loadData(m, () => layer.requestRender());
 			this.materials[m.mtlIndex] = material;
 
-			if (mesh && m.mtlIndex === layer.currentMtlIndex) {		// current material changed in preview
-				if (mesh.material) layer.materials.removeItem(mesh.material, true);
-
-				mesh.material = material.mtl;
-
+			if (m.mtlIndex === layer.currentMtlIndex) {
+				if (mesh) {		// current material changed in preview
+					if (mesh.material) layer.materials.removeItem(mesh.material, true);
+					mesh.material = material.mtl;
+				}
 				layer.materials.add(material);
 				layer.requestRender();
 			}
