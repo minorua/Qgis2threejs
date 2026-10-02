@@ -540,7 +540,7 @@ export interface App {
     buildNorthArrow(container: HTMLElement, declination?: number);
     buildViewHelper(container: HTMLElement);
 
-    adjustCameraNearFar(updateSphere?: boolean, debugCallback?: (info) => {});
+    adjustCameraNearFar();
     adjustCameraPosition(force?);
 
     animate();

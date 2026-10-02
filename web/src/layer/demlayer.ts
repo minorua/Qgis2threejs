@@ -347,7 +347,7 @@ class DEMGridBlock extends DEMBlockBase {
 
 			this.buildAuxiliaryObjects(layer, geom, mesh);
 
-			app.adjustCameraNearFar(true);		// TODO: async then
+			app.scene.sphereNeedsUpdate = true;
 			layer.requestRender();
 		};
 
@@ -387,7 +387,7 @@ class DEMMeshBlock extends DEMBlockBase {
 			}
 			this.buildAuxiliaryObjects(layer, geom, mesh);
 
-			app.adjustCameraNearFar(true);		// TODO: async then
+			app.scene.sphereNeedsUpdate = true;
 			layer.requestRender();
 		};
 

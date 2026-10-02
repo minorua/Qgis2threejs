@@ -16,6 +16,7 @@ export class Scene extends THREE.Scene {
 
 	mapLayers: Record<number, MapLayer> = {};		// key is layerId
 	tilesRenderers = [];
+	sphereNeedsUpdate = true;
 
 	_boundingBox: THREE.Box3;
 	_boundingSphere: THREE.Sphere;
@@ -267,7 +268,7 @@ export class Scene extends THREE.Scene {
 	}
 
 	boundingSphere() {
-		if (!this._boundingSphere) this.calculateBoundingSphere();
+		if (this.sphereNeedsUpdate) this.calculateBoundingSphere();
 		return this._boundingSphere;
 	}
 

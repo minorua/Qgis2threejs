@@ -85,7 +85,7 @@ function _init(off_screen) {
 		const renderOffscreen = app.render;
 		app.render = () => { };		// No need to render the scene before it has fully loaded.
 		app.addEventListener("sceneLoaded", () => {
-			app.adjustCameraNearFar(true);
+			app.scene.sphereNeedsUpdate = true;
 
 			app.render = renderOffscreen;
 			app.render(true);
@@ -313,7 +313,7 @@ function tasksAndLoadingFinalized(success: boolean, is_scene: boolean) {
 		}, 0);
 	}
 	else {
-		app.adjustCameraNearFar(true);
+		app.scene.sphereNeedsUpdate = true;
 	}
 }
 
@@ -653,7 +653,6 @@ export function copyCanvasToClipboard(width, height) {
 const _initLoadingManager = app.initLoadingManager.bind(app);
 const _render = app.render.bind(app);
 const _saveCanvasImage = app.saveCanvasImage.bind(app);
-const _adjustCameraNearFar = app.adjustCameraNearFar.bind(app);
 
 app.initLoadingManager = () => {
 	_initLoadingManager();
@@ -681,14 +680,4 @@ app.saveCanvasImage = (width, height, fill_background) => {
 		gui.popup.hide();
 	};
 	_saveCanvasImage(width, height, fill_background, saveCanvasImage);
-};
-
-app.adjustCameraNearFar = (updateSphere) => {
-	let callback;
-	if (conf.debugMode && conf.preview.showCameraInfo) {
-		callback = (info) => {
-			E("cameraInfo").innerText = "[camera] radius: " + info.radius.toFixed(3) + ", dist: " + info.dist.toFixed(3) + ", near: " + info.near.toFixed(3) + ", far: " + info.far.toFixed(3);
-		};
-	}
-	_adjustCameraNearFar(updateSphere, callback);
 };

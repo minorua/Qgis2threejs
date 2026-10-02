@@ -199,7 +199,6 @@ app.setupControls = (name: string) => {
     }
     app.controls.listenToKeyEvents(window);
     app.controls.addEventListener("change", () => {
-        app.adjustCameraNearFar(false);
         app.render();
     });
     app.controls.update();
@@ -239,7 +238,7 @@ function setupEventListeners() {
             app.adjustCameraPosition();
         }
 
-        app.adjustCameraNearFar(true);
+        app.scene.sphereNeedsUpdate = true;
         app.render();
 
         if (conf.animation.enabled) {
@@ -553,9 +552,7 @@ app.buildCamera = (is_ortho) => {
 };
 
 // adjusts camera's near and far based on the scene's bounding sphere
-app.adjustCameraNearFar = (updateSphere = true, debugCallback?) => {
-    if (updateSphere) app.scene.calculateBoundingSphere();
-
+app.adjustCameraNearFar = () => {
     const sphere = app.scene.boundingSphere();
     const cameraDistance = app.camera.position.distanceTo(sphere.center);
     const margin = Math.max(0.01 * sphere.radius, 0.1);
@@ -565,14 +562,9 @@ app.adjustCameraNearFar = (updateSphere = true, debugCallback?) => {
     app.camera.near = (app.camera.isOrthographicCamera) ? 0 : Math.max(cameraDistance - sphere.radius - margin, app.camera.far / maxRatio, 0.001);
     app.camera.updateProjectionMatrix();
 
-    if (!debugCallback) return;
-
-    debugCallback({
-        radius: sphere.radius,
-        dist: cameraDistance,
-        near: app.camera.near,
-        far: app.camera.far
-    });
+    if (conf.debugMode && conf.preview.showCameraInfo) {
+        E("cameraInfo").innerText = "[camera] radius: " + sphere.radius.toFixed(3) + ", dist: " + cameraDistance.toFixed(3) + ", near: " + app.camera.near.toFixed(3) + ", far: " + app.camera.far.toFixed(3);
+    }
 };
 
 // moves camera target to center of scene
@@ -709,13 +701,11 @@ app.animate = () => {
         app.viewHelper.update(app.anim_timer.getDelta());
     }
 
-    app.adjustCameraNearFar(false);
     app.render(true);
 };
 
 app.updateControlsAndRender = () => {
     app.controls.update();
-    app.adjustCameraNearFar(false);
     app.render();
 };
 
@@ -738,6 +728,8 @@ app.updateControlsAndRender = () => {
         for (const tilesRenderer of app.scene.tilesRenderers) {
             tilesRenderer.update();
         }
+
+        app.adjustCameraNearFar();
 
         // rendering
         app.renderer.clear()
