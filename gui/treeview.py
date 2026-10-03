@@ -96,6 +96,7 @@ class Q3DTreeView(QTreeView):
 
     def teardown(self):
         self.wnd = None
+        self.controller = None
 
     def addLayer(self, layer):
         # add a layer item to tree view

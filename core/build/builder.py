@@ -77,6 +77,7 @@ class ThreeJSBuilder(QObject):
     @pyqtSlot()
     def quit(self):
         # break circular references
+        self.log = noop
         self.progress = noop
 
         # move to the main thread

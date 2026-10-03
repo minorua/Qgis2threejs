@@ -89,7 +89,7 @@ class Q3DWindow(QMainWindow):
             container.setWebView(webView)
 
             if webViewMode == WebViewMode.EMBEDDED:
-                container.previewStateWidget.buttonRestart.clicked.connect(lambda: self.ui.checkBoxPreview.setChecked(True))
+                self._connect(container.previewStateWidget.buttonRestart.clicked, lambda: self.ui.checkBoxPreview.setChecked(True))
 
         self.webView = webView
         self.webView.setObjectName("webView")
@@ -181,6 +181,8 @@ class Q3DWindow(QMainWindow):
             # disconnect signal-slot connections
             for conn in self._conns:
                 self.disconnect(conn)
+
+            self._conns.clear()
 
             self.controller.teardownConnections()
 
@@ -828,9 +830,14 @@ class PropertiesDialog(QDialog):
         settings = QSettings()
         self.restoreGeometry(settings.value("/Qgis2threejs/propdlg/geometry", b""))
 
+    def teardown(self):
+        self.wnd = None
+
     def closeEvent(self, event):
         settings = QSettings()
         settings.setValue("/Qgis2threejs/propdlg/geometry", self.saveGeometry())
+
+        self.teardown()
 
         QDialog.closeEvent(self, event)
 
