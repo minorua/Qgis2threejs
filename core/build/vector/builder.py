@@ -9,6 +9,7 @@ from qgis.core import QgsCoordinateTransform, QgsFeatureRequest
 from .feature_block_builder import FeatureBlockBuilder
 from .layer import VectorLayer
 from .object import ObjectType
+from ..exceptions import BuilderError
 from ..layerbuilderbase import LayerBuilderBase
 from ..datamanager.material import MaterialManager
 from ..datamanager.model import ModelManager
@@ -45,7 +46,7 @@ class VectorLayerBuilder(LayerBuilderBase):
         if self.vlayer.ot:
             self.log(f"Object type is {self.vlayer.ot.name}.")
         else:
-            logger.error("Object type not found")
+            raise BuilderError("Object type not found")
 
         self.features = []
 

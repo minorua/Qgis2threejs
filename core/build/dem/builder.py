@@ -12,6 +12,7 @@ from .dem_builder import DEMResampBuilder, DEMRawBuilder
 from .material_builder import DEMMaterialBuilder
 from .property_reader import DEMPropertyReader
 from .tileset import Tileset
+from ..exceptions import BuilderError
 from ..layerbuilderbase import LayerBuilderBase
 from ...const import DEMMtlType
 from ...exportsettings import BuildDEMOptions
@@ -202,8 +203,7 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         if pyramid or tiles:
             if not self.provider.CanUseOriginalValues:
-                logger.error("DEM provider doesn't support providing original values.")
-                return
+                raise BuilderError("DEM provider doesn't support providing original values.")
 
             self.provider.setResampleAlg(gdal.GRA_NearestNeighbour)
             if pyramid:

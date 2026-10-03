@@ -11,6 +11,7 @@ from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from ..const import LayerType
 from ..exportsettings import BuildDEMOptions, ExportSettings, Layer
+from .exceptions import BuilderError
 from .datamanager.image import ImageManager
 from .dem.builder import DEMLayerBuilder
 from .vector.builder import VectorLayerBuilder
@@ -32,7 +33,7 @@ class ThreeJSBuilder(QObject):
     # signals - builder to controller interface
     dataReady = pyqtSignal(dict)
     taskCompleted = pyqtSignal()
-    taskFailed = pyqtSignal(str, str)                 # target ("scene" or layer name), traceback_str
+    taskFailed = pyqtSignal(str, str)                 # target ("scene" or layer name), traceback or message
     taskWarning = pyqtSignal(str, str)                # target ("scene" or layer name), message
     taskAborted = pyqtSignal()
     progressUpdated = pyqtSignal(int, int, str)       # current, total, msg
@@ -91,15 +92,17 @@ class ThreeJSBuilder(QObject):
 
         try:
             data = self.buildScene(settings)
+            if data:
+                self.dataReady.emit(data)
+
+        except BuilderError as e:
+            self.taskFailed.emit("scene", str(e))
 
         except Exception as _:
             self.taskFailed.emit("scene", traceback.format_exc())
-            return
 
-        if data:
-            self.dataReady.emit(data)
-
-        self.taskCompleted.emit()
+        else:
+            self.taskCompleted.emit()
 
     @pyqtSlot(Layer, object, ExportSettings)
     def buildLayerSlot(self, layer, buildOptions: BuildDEMOptions | None, settings):
@@ -122,20 +125,32 @@ class ThreeJSBuilder(QObject):
                     data["progress"] = self.currentProgress
                     self.dataReady.emit(data)
 
+        except BuilderError as e:
+            self.taskFailed.emit(layer.name, str(e))
+
         except Exception as _:
             self.taskFailed.emit(layer.name, traceback.format_exc())
-            return
 
-        self.taskCompleted.emit()
+        else:
+            self.taskCompleted.emit()
 
     @pyqtSlot(str, Layer, int, int, int, bool, ExportSettings)
     def buildTileSlot(self, url, layer, level, x, y, onlyMaterial, settings):
-        builder = self._layerBuilder(layer, settings)
+        try:
+            builder = self._layerBuilder(layer, settings)
 
-        data = builder.buildTile(url, level, x, y, onlyMaterial)
+            data = builder.buildTile(url, level, x, y, onlyMaterial)
+            if data:
+                self.dataReady.emit(data)
 
-        self.dataReady.emit(data)
-        self.taskCompleted.emit()
+        except BuilderError as e:
+            self.taskFailed.emit(layer.name, str(e))
+
+        except Exception as _:
+            self.taskFailed.emit(layer.name, traceback.format_exc())
+
+        else:
+            self.taskCompleted.emit()
 
     def buildScene(self, settings):
         be = settings.baseExtent()
