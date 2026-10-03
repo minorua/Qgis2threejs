@@ -386,6 +386,10 @@ class Q3DController(QObject):
         if len(self.settings.layers(export_only=True)) == 1:
             self.taskManager.addRunScriptTask("adjustCameraPos()")
 
+    def runBuildTileTask(self, task: BuildTileTask):
+        self.buildTileRequest.emit(task.url, task.layer, task.level, task.x, task.y, task.onlyMaterial, self._settingsCopy)
+        self.builderProgressUpdated(0, msg=f"Building {task.layer.name} tiles...")
+
     def hideLayer(self, layer, callback=None):
         """hide layer and remove all objects from the layer"""
         self.taskManager.removeBuildLayerTask(layer)        # abort if being processed and remove pending task for the layer
@@ -394,9 +398,9 @@ class Q3DController(QObject):
 
         self.runScript(f"hideLayer({layer.jsLayerId}, true)", callback=callback)
 
-    def runBuildTileTask(self, task: BuildTileTask):
-        self.buildTileRequest.emit(task.url, task.layer, task.level, task.x, task.y, task.onlyMaterial, self._settingsCopy)
-        self.builderProgressUpdated(0, msg=f"Building {task.layer.name} tiles...")
+    def zoomToLayer(self, layer):
+        self.runScript(f"app.cameraAction.zoomToLayer(app.scene.mapLayers[{layer.jsLayerId}])",
+                       message=f'Zoom to layer "{layer.name}"')
 
     # send queue management
     @pyqtSlot(dict)
