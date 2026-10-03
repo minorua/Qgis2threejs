@@ -132,11 +132,11 @@ class DEMLayerBuilder(LayerBuilderBase):
         }
 
         if self.properties.get("radioButton_Pyramid"):
-            tileset = self._getTileset()
-            if tileset:
-                d["tilesetParams"] = tileset.tilesetParams()
-            else:
-                logger.error("Failed to create a tileset.")
+            try:
+                d["tilesetParams"] = self._getTileset().tilesetParams()
+
+            except Exception as e:
+                self.log(f"Failed to create a tileset. {e}", warning=True)
 
         if build_contents:
             d["body"] = {
@@ -176,8 +176,7 @@ class DEMLayerBuilder(LayerBuilderBase):
 
         geotransform = self.provider.geotransform()
         if not math.isclose(geotransform[1], -geotransform[5]):
-            logger.error(f"{self.layer.name}: DEM pixel size is different in X and Y directions.")
-            return None
+            raise Exception("DEM pixel size is different in X and Y directions.")
 
         layer_grid = self.provider.grid()
 
@@ -186,7 +185,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             be = self.settings.baseExtent()
             target_grid = target_grid.intersection(be.unrotatedRect())
             if not target_grid:
-                return None
+                raise Exception("The intersection of the DEM layer and the base extent is empty.")
 
         stats = self.layer.mapLayer.dataProvider().bandStatistics(1)
         zrange = ZRange(stats.minimumValue, stats.maximumValue)
@@ -281,7 +280,6 @@ class DEMLayerBuilder(LayerBuilderBase):
     def _buildTasks_Raw(self, segments=128, minLevel=None):
         tileset = self._getTileset(segments)
         if not tileset:
-            logger.error("Failed to create a tileset.")
             return
 
         isPyramid = bool(minLevel is not None)

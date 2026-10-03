@@ -33,6 +33,7 @@ class ThreeJSBuilder(QObject):
     dataReady = pyqtSignal(dict)
     taskCompleted = pyqtSignal()
     taskFailed = pyqtSignal(str, str)                 # target ("scene" or layer name), traceback_str
+    taskWarning = pyqtSignal(str, str)                # target ("scene" or layer name), message
     taskAborted = pyqtSignal()
     progressUpdated = pyqtSignal(int, int, str)       # current, total, msg
 
@@ -169,14 +170,20 @@ class ThreeJSBuilder(QObject):
             crs = settings.crs
             p["proj"] = crs.toProj()
 
-        self.log("Z scale: {}".format(mapTo3d.zScale))
+        self.log(f"[scene] Z scale: {mapTo3d.zScale}")
 
-        obj = {
+        return {
             "type": "scene",
             "properties": p
         }
-        return obj
 
     def _layerBuilder(self, layer, settings, buildOptions=None, progress=None):
         imageManager = ImageManager(settings.mapSettings)
-        return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(layer, settings, imageManager, buildOptions, progress=progress)
+
+        def log(msg, warning=False):
+            if warning:
+                self.taskWarning.emit(layer.name, msg)
+
+            self.log(f"[{layer.name}] {msg}", warning)
+
+        return LayerBuilderFactory.get(layer.type, VectorLayerBuilder)(layer, settings, imageManager, buildOptions, progress=progress, log=log)

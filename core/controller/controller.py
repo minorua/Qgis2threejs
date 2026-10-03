@@ -64,6 +64,7 @@ class Q3DController(QObject):
 
         # builder and thread management
         self.builder = ThreeJSBuilder(parent=None if useThread else self,
+                                      log=self.log,
                                       isInUiThread=not useThread)
         self.builder.setObjectName("threeJSBuilder")
 
@@ -133,6 +134,7 @@ class Q3DController(QObject):
             # builder -> controller
             (self.builder.dataReady, self.appendDataToSendQueue),
             (self.builder.progressUpdated, self.builderProgressUpdated),
+            (self.builder.taskWarning, self.showWarningMessage),
 
             # builder -> task manager
             (self.builder.taskCompleted, self.taskManager.taskCompleted),
@@ -435,7 +437,10 @@ class Q3DController(QObject):
     def resetCameraState(self):
         self.runScript("app.controls.reset()")
 
-    # status and progress
+    # messagebar, status, progress, and log
+    def showWarningMessage(self, target, msg):
+        self.webPage.showMessageBar(f"{target}: {msg}", timeout_ms=5000)
+
     def showStatusMessage(self, msg, timeout_ms=0):
         self.statusMessage.emit(msg, timeout_ms)
 
@@ -444,6 +449,12 @@ class Q3DController(QObject):
 
     def progress(self, current=0, total=100, msg=""):
         self.progressUpdated.emit(current, total, msg)
+
+    def log(self, msg, warning=False):
+        if warning:
+            logger.warning(msg)
+        else:
+            logger.info(msg)
 
     @pyqtSlot(int, int, str)
     def builderProgressUpdated(self, current, total=100, msg=""):
