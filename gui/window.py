@@ -5,7 +5,7 @@
 
 import os
 
-from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QSettings, QSignalBlocker, QTimer, QUrl, pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import Qt, QDir, QEvent, QObject, QSettings, QSignalBlocker, QUrl, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QColor, QDesktopServices
 from qgis.PyQt.QtWidgets import (
     QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog,

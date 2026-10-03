@@ -2,7 +2,7 @@
 # (C) 2014 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from math import ceil, floor
+from math import floor
 from qgis.core import (
     Qgis, QgsGeometry, QgsPointXY, QgsRectangle, QgsCoordinateTransform, QgsFeatureRequest,
     QgsPoint, QgsMultiPoint, QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon, QgsGeometryCollection,

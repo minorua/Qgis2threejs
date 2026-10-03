@@ -4,7 +4,7 @@
 
 import struct
 from osgeo import gdal
-from qgis.core import QgsCoordinateTransform, QgsPointXY, QgsProject, QgsRasterProjector, QgsRectangle, Qgis
+from qgis.core import QgsPointXY, QgsProject, QgsRasterProjector, QgsRectangle, Qgis
 
 try:
     import numpy

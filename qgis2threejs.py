@@ -7,7 +7,6 @@ import os
 
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtWidgets import QAction, QActionGroup
-from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsApplication, QgsProject
 
 from .utils.logging import configureLoggers

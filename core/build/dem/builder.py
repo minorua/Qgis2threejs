@@ -22,7 +22,6 @@ from ....conf import DEBUG_MODE, DEF_SETS, GRID_DEM_OUTPUT_MODE
 from ....utils.basic import  parseFloat
 from ....utils.file import mkpath
 from ....utils.js import hex_color
-from ....utils.logging import logger
 
 
 _EMPTY_DEM_BASE_EXTENT_WARNING = "The intersection of the DEM layer and the base extent is empty."

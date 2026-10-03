@@ -4,10 +4,7 @@
 
 import os
 import base64
-import json
 import re
-import struct
-import zlib
 
 from PyQt6.QtCore import QBuffer, QByteArray, QIODevice
 

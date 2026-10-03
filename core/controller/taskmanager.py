@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from qgis.PyQt.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot
 
 from ..exportsettings import BuildOptions, BuildDEMOptions, Layer
-from ...conf import DEBUG_MODE
 from ...utils.logging import logger
 
 
