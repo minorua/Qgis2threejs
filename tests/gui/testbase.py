@@ -146,3 +146,8 @@ class LayerTestBase(GUITestBase):
     def setVisible(cls, visible, layerId=None):
         cls.TREE.itemFromLayerId(layerId if layerId else cls.LAYER_ID).setCheckState(Qt.CheckState.Checked if visible else Qt.CheckState.Unchecked)
         cls.sleep(400)  # TODO
+
+    @classmethod
+    def zoomTo(cls, layerId=None):
+        cls.WND.controller.zoomToLayer(cls.WND.settings.getLayer(layerId if layerId else cls.LAYER_ID))
+        cls.sleep(400)

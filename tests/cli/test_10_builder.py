@@ -59,18 +59,18 @@ class TestSceneBuilder(CLITestBase):
 
 class TestDEMLayerBuilder(CLITestBase):
 
-    PROJ_FILE = "testproject2/testproject2.qgs"
-    SETTING_FILE = "testproject2/scene2_g2.qto3settings"
-    LAYER_ID = "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147"
+    def test01_build_tiled_dem_data(self):
+        PROJ_FILE = "testproject2/testproject2.qgs"
+        SETTING_FILE = "testproject2/scene2_g2.qto3settings"
+        LAYER_ID = "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147"
 
-    def test01_build_dem_layer_data(self):
-        map_settings = loadProject(dataPath(self.PROJ_FILE))
+        map_settings = loadProject(dataPath(PROJ_FILE))
 
         settings = ExportSettings()
-        self.assertTrue(settings.loadSettingsFromFile(dataPath(self.SETTING_FILE)))
+        self.assertTrue(settings.loadSettingsFromFile(dataPath(SETTING_FILE)))
         settings.setMapSettings(map_settings)
 
-        layer = settings.getLayer(self.LAYER_ID)
+        layer = settings.getLayer(LAYER_ID)
         self.assertIsNotNone(layer)
 
         dem_data_dir = self.outputPath("data", "dem")
@@ -118,6 +118,49 @@ class TestDEMLayerBuilder(CLITestBase):
         self.assertEqual(grid["nodata"]["__type__"], "f32")
         self.assertEqual(grid["nodata"]["size"], 4)
         self.assertFalse(grid["nodata"]["compressed"])
+
+    def test02_build_pyramid_tiled_dem_data(self):
+        PROJ_FILE = "testproject3/testproject3.qgs"
+        SETTING_FILE = "testproject3/scene3_pyramid.qto3settings"
+        LAYER_ID = "srtm_62ffafc6_c8b2_4e32_8882_137d6e1bbe4c"
+
+        map_settings = loadProject(dataPath(PROJ_FILE))
+
+        settings = ExportSettings()
+        self.assertTrue(settings.loadSettingsFromFile(dataPath(SETTING_FILE)))
+        settings.setMapSettings(map_settings)
+
+        layer = settings.getLayer(LAYER_ID)
+        self.assertIsNotNone(layer)
+
+        dem_data_dir = self.outputPath("data", "dem")
+        os.makedirs(dem_data_dir, exist_ok=True)
+        assetDestination = StorageLocation(
+            outputDir=dem_data_dir,
+            baseUrl=f"./data/dem/",
+            filePrefix=settings.title()
+        )
+
+        builder = DEMLayerBuilder(layer, settings, ImageManager(map_settings), assetDestination=assetDestination)
+        data = builder.build(build_contents=False)
+
+        logger.debug(str(data))
+
+        self.assertEqual(data["type"], "layer")
+        self.assertEqual(data["id"], layer.jsLayerId)
+        self.assertEqual(data["properties"]["type"], "dem")
+        self.assertEqual(data["properties"]["dataType"], "grid")
+        self.assertEqual(data["tilesetParams"], {
+            "boundingBox": {
+                "min": [-87958.0, -143958.0, -7.0],
+                "max": [37958.0, -60042.0, 1686.0]
+            },
+            "gridResolution": 84.0,
+            "gridCols": 1500,
+            "gridRows": 1000,
+            "maxLevel": 4,
+            "tileSegments": 128
+        })
 
     def loadJSONBinaryHeader(self, filename):
             with open(filename, "rb") as f:

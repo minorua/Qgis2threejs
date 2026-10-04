@@ -1,0 +1,228 @@
+{
+  "KEYFRAMES": {
+    "camera": {
+      "tracks": []
+    },
+    "layers": {
+      "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147": {
+        "enabled": true,
+        "tracks": []
+      },
+      "fp:81faab82": {
+        "enabled": true,
+        "tracks": []
+      },
+      "mountains_0fa9a1bf_6167_4571_b385_e9a31c6375e1": {
+        "enabled": true,
+        "tracks": []
+      },
+      "plugin:gsielevtile": {
+        "enabled": true,
+        "tracks": []
+      },
+      "srtm_62ffafc6_c8b2_4e32_8882_137d6e1bbe4c": {
+        "enabled": true,
+        "tracks": []
+      }
+    },
+    "repeat": false
+  },
+  "LAYERS": [
+    {
+      "geomType": 1,
+      "layerId": "mountains_0fa9a1bf_6167_4571_b385_e9a31c6375e1",
+      "name": "mountains",
+      "properties": {
+        "checkBox_Clickable": true,
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Label": false,
+        "checkBox_Outline": true,
+        "checkBox_Underline": false,
+        "checkBox_Visible": true,
+        "colorButton_BgColor": [
+          255,
+          255,
+          255,
+          176
+        ],
+        "colorButton_ConnColor": [
+          192,
+          192,
+          208,
+          255
+        ],
+        "colorButton_Label": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "colorButton_OtlColor": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "comboBox_FontFamily": "sans-serif",
+        "comboBox_ObjectType": "Cone",
+        "comboBox_altitudeMode": null,
+        "comboEdit_Color": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "comboEdit_Color2": {
+          "comboData": null,
+          "comboText": "None",
+          "editText": "",
+          "type": 7
+        },
+        "comboEdit_FilePath": {},
+        "comboEdit_Opacity": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "comboEdit_altitude2": {},
+        "expression_Label": "\"Name\"",
+        "fieldExpressionWidget_altitude": "\"Elevation\"",
+        "geomWidget0": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "200",
+          "type": 1
+        },
+        "geomWidget1": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "300",
+          "type": 1
+        },
+        "geomWidget2": {},
+        "geomWidget3": {},
+        "geomWidget4": {},
+        "groupBox_Background": true,
+        "groupBox_Conn": true,
+        "labelHeightWidget": {
+          "comboData": 1,
+          "comboText": "Relative",
+          "editText": "50",
+          "type": 6
+        },
+        "lineEdit_Name": "",
+        "mtlWidget0": {
+          "checkBox": false,
+          "type": 9
+        },
+        "mtlWidget1": {},
+        "radioButton_AllFeatures": true,
+        "radioButton_Expression": true,
+        "slider_FontSize": 3
+      },
+      "visible": true
+    },
+    {
+      "geomType": 0,
+      "layerId": "srtm_62ffafc6_c8b2_4e32_8882_137d6e1bbe4c",
+      "name": "srtm",
+      "properties": {
+        "checkBox_Clickable": true,
+        "checkBox_Sides": false,
+        "checkBox_Tiles": false,
+        "checkBox_Visible": true,
+        "colorButton_Side": [
+          204,
+          187,
+          170,
+          255
+        ],
+        "comboBox_ClipLayer": null,
+        "horizontalSlider_DEMSize": 2,
+        "lineEdit_Bottom": "0",
+        "lineEdit_Name": "",
+        "materials": [
+          {
+            "id": "b0c8d53f",
+            "name": "map (canvas)",
+            "properties": {
+              "checkBox_FlatShading": false,
+              "checkBox_Shading": true,
+              "checkBox_TransparentBackground": false,
+              "colorButton_Color": [
+                0,
+                0,
+                0,
+                255
+              ],
+              "comboBox_TextureSize": "1024",
+              "layerIds": [],
+              "lineEdit_ImageFile": "",
+              "radioButton_WebP": true,
+              "spinBox_Opacity": 100
+            },
+            "type": 0
+          }
+        ],
+        "mtlId": "b0c8d53f",
+        "radioButton_NoClip": true,
+        "radioButton_Pyramid": true,
+        "spinBox_Roughening": 1,
+        "spinBox_Size": 3,
+        "spinBox_TileSideSegments": 512
+      },
+      "visible": true
+    },
+    {
+      "geomType": 0,
+      "layerId": "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147",
+      "name": "ascii_dem",
+      "properties": {},
+      "visible": false
+    },
+    {
+      "geomType": 0,
+      "layerId": "plugin:gsielevtile",
+      "name": "GSI Elevation Tile",
+      "properties": {},
+      "visible": false
+    },
+    {
+      "geomType": 0,
+      "layerId": "fp:81faab82",
+      "name": "Flat Plane",
+      "properties": {},
+      "visible": false
+    }
+  ],
+  "SCENE": {
+    "checkBox_FixAspectRatio": false,
+    "checkBox_Outline": false,
+    "colorButton_Color": [
+      0,
+      0,
+      0,
+      255
+    ],
+    "colorButton_Fog": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "comboBox_MaterialType": 0,
+    "comboBox_xyShift": true,
+    "groupBox_Fog": false,
+    "lineEdit_CenterX": "-25000.0",
+    "lineEdit_CenterY": "-102000.0",
+    "lineEdit_Height": "84000.0",
+    "lineEdit_Width": "126000.0",
+    "lineEdit_zFactor": "1.0",
+    "radioButton_FixedExtent": true,
+    "radioButton_WGS84": true,
+    "slider_Fog": 41
+  },
+  "Version": 30201
+}

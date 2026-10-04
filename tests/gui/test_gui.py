@@ -148,6 +148,10 @@ def runTest(wnd):
         from . import test_gui2
         testClasses = collectTestClasses(test_gui2)
 
+    elif filename == "testproject3.qgs":
+        from . import test_gui3
+        testClasses = collectTestClasses(test_gui3)
+
     else:
         testClasses = []
 
