@@ -442,6 +442,8 @@ class ThreeJSExporter(QObject):
             self.modelManagers.append(builder.modelManager)
 
         obj = builder.build()
+        if not obj:
+            return None
 
         contents = []
         for cont in builder.buildContents():

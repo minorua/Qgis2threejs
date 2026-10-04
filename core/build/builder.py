@@ -115,15 +115,15 @@ class ThreeJSBuilder(QObject):
             if data:
                 self.dataReady.emit(data)
 
-            for buildTask in layerBuilder.buildTasks():
-                if self.aborted:
-                    self.taskAborted.emit()
-                    return
+                for buildTask in layerBuilder.buildTasks():
+                    if self.aborted:
+                        self.taskAborted.emit()
+                        return
 
-                data = buildTask.build()
-                if data:
-                    data["progress"] = self.currentProgress
-                    self.dataReady.emit(data)
+                    data = buildTask.build()
+                    if data:
+                        data["progress"] = self.currentProgress
+                        self.dataReady.emit(data)
 
         except BuilderError as e:
             self.taskFailed.emit(layer.name, str(e))
