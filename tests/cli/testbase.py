@@ -14,8 +14,9 @@ from qgis.PyQt.QtGui import QImage
 from qgis.testing import unittest
 
 from .utils import start_app, stop_app, loadProject
-from ..utils import expectedDataPath, initOutputDir, outputPath
+from ..utils import dataPath, expectedDataPath, initOutputDir, outputPath
 from ..webpage_check import WebPageCapturer, WebPageErrorChecker
+from ...core.exportsettings import ExportSettings
 from ...core.export.export import ThreeJSExporter
 from ...utils.gui import openFile
 
@@ -28,8 +29,9 @@ OUT_WIDTH, OUT_HEIGHT = (1024, 768)
 
 class CLITestBase(unittest.TestCase):
 
-    PROJ_FILE = "testproject1/testproject1.qgs"
-    SETTING_FILE = "testproject1/scene1.qto3settings"
+    PROJ_FILE = None
+    SETTING_FILE = None
+    LAYER_ID = None
 
     @classmethod
     def setUpClass(cls):
@@ -47,6 +49,30 @@ class CLITestBase(unittest.TestCase):
     @classmethod
     def outputPath(cls, *subdirs):
         return outputPath(cls.__name__[4:], *subdirs)
+
+    def loadProject(self, filepath=None):
+        if filepath is None:
+            filepath = self.PROJ_FILE
+
+        self.assertIsNotNone(filepath)
+
+        mapSettings = loadProject(dataPath(filepath))
+        self.assertIsNotNone(mapSettings)
+        return mapSettings
+
+    def loadSettings(self, filepath=None, mapSettings=None):
+        if filepath is None:
+            filepath = self.SETTING_FILE
+
+        self.assertIsNotNone(filepath)
+
+        settings = ExportSettings()
+        success = settings.loadSettingsFromFile(dataPath(filepath))
+        self.assertTrue(success)
+
+        if mapSettings:
+            settings.setMapSettings(mapSettings)
+        return settings
 
     def export_webpage(self, project_path, settings_path, out_path, local_mode=False, template=None):
         mapSettings = loadProject(project_path)

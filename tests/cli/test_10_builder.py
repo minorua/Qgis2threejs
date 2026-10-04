@@ -27,11 +27,8 @@ class TestSceneBuilder(CLITestBase):
     SETTING_FILE = "testproject2/scene2_g2.qto3settings"
 
     def test01_build_scene_data(self):
-        map_settings = loadProject(dataPath(self.PROJ_FILE))
-
-        settings = ExportSettings()
-        self.assertTrue(settings.loadSettingsFromFile(dataPath(self.SETTING_FILE)))
-        settings.setMapSettings(map_settings)
+        mapSettings = self.loadProject()
+        settings = self.loadSettings(mapSettings=mapSettings)
 
         builder = ThreeJSBuilder(None)
         data = builder.buildScene(settings)
@@ -62,21 +59,13 @@ class TestSceneBuilder(CLITestBase):
 class TestDEMLayerBuilder(CLITestBase):
 
     def test01_build_simple_dem_data(self):
-        PROJ_FILE = "testproject1/testproject1.qgs"
-        SETTING_FILE = "testproject1/scene1_g1.qto3settings"
-        LAYER_ID = "dem_srtm3020150914165149263"
-
-        map_settings = loadProject(dataPath(PROJ_FILE))
-
-        settings = ExportSettings()
-        self.assertTrue(settings.loadSettingsFromFile(dataPath(SETTING_FILE)))
-        settings.setMapSettings(map_settings)
-
-        layer = settings.getLayer(LAYER_ID)
+        mapSettings = self.loadProject("testproject1/testproject1.qgs")
+        settings = self.loadSettings("testproject1/scene1_g1.qto3settings", mapSettings)
+        layer = settings.getLayer("dem_srtm3020150914165149263")
         self.assertIsNotNone(layer)
         self.assertNotEqual(layer.mapLayer.crs(), settings.crs)
 
-        builder = DEMLayerBuilder(layer, settings, ImageManager(map_settings))
+        builder = DEMLayerBuilder(layer, settings, ImageManager(mapSettings))
 
         transform = QgsCoordinateTransform(layer.mapLayer.crs(), settings.crs, QgsProject.instance())
         settings._baseExtent = MapExtent.fromRect(transform.transformBoundingBox(layer.mapLayer.extent()))
@@ -93,17 +82,9 @@ class TestDEMLayerBuilder(CLITestBase):
         self.assertIsNone(builder.build())
 
     def test02_build_tiled_dem_data(self):
-        PROJ_FILE = "testproject2/testproject2.qgs"
-        SETTING_FILE = "testproject2/scene2_g2.qto3settings"
-        LAYER_ID = "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147"
-
-        map_settings = loadProject(dataPath(PROJ_FILE))
-
-        settings = ExportSettings()
-        self.assertTrue(settings.loadSettingsFromFile(dataPath(SETTING_FILE)))
-        settings.setMapSettings(map_settings)
-
-        layer = settings.getLayer(LAYER_ID)
+        mapSettings = self.loadProject("testproject2/testproject2.qgs")
+        settings = self.loadSettings("testproject2/scene2_g2.qto3settings", mapSettings)
+        layer = settings.getLayer("ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147")
         self.assertIsNotNone(layer)
 
         dem_data_dir = self.outputPath("data", "dem")
@@ -114,7 +95,7 @@ class TestDEMLayerBuilder(CLITestBase):
             filePrefix=settings.title()
         )
 
-        builder = DEMLayerBuilder(layer, settings, ImageManager(map_settings), assetDestination=assetDestination)
+        builder = DEMLayerBuilder(layer, settings, ImageManager(mapSettings), assetDestination=assetDestination)
         data = builder.build(build_contents=True)
 
         logger.debug(str(data))
@@ -153,17 +134,9 @@ class TestDEMLayerBuilder(CLITestBase):
         self.assertFalse(grid["nodata"]["compressed"])
 
     def test03_build_pyramid_tiled_dem_data(self):
-        PROJ_FILE = "testproject3/testproject3.qgs"
-        SETTING_FILE = "testproject3/scene3_pyramid.qto3settings"
-        LAYER_ID = "srtm_62ffafc6_c8b2_4e32_8882_137d6e1bbe4c"
-
-        map_settings = loadProject(dataPath(PROJ_FILE))
-
-        settings = ExportSettings()
-        self.assertTrue(settings.loadSettingsFromFile(dataPath(SETTING_FILE)))
-        settings.setMapSettings(map_settings)
-
-        layer = settings.getLayer(LAYER_ID)
+        mapSettings = self.loadProject("testproject3/testproject3.qgs")
+        settings = self.loadSettings("testproject3/scene3_pyramid.qto3settings", mapSettings)
+        layer = settings.getLayer("srtm_62ffafc6_c8b2_4e32_8882_137d6e1bbe4c")
         self.assertIsNotNone(layer)
 
         dem_data_dir = self.outputPath("data", "dem")
@@ -174,7 +147,7 @@ class TestDEMLayerBuilder(CLITestBase):
             filePrefix=settings.title()
         )
 
-        builder = DEMLayerBuilder(layer, settings, ImageManager(map_settings), assetDestination=assetDestination)
+        builder = DEMLayerBuilder(layer, settings, ImageManager(mapSettings), assetDestination=assetDestination)
         data = builder.build(build_contents=False)
 
         logger.debug(str(data))
@@ -211,16 +184,12 @@ class TestVectorLayerBuilder(CLITestBase):
     LAYER_ID = "points_230791f1_2e27_4a9d_b5e4_f137f118f216"
 
     def test01_build_point_layer_data(self):
-        map_settings = loadProject(dataPath(self.PROJ_FILE))
-
-        settings = ExportSettings()
-        self.assertTrue(settings.loadSettingsFromFile(dataPath(self.SETTING_FILE)))
-        settings.setMapSettings(map_settings)
-
+        mapSettings = self.loadProject()
+        settings = self.loadSettings(mapSettings=mapSettings)
         layer = settings.getLayer(self.LAYER_ID)
         self.assertIsNotNone(layer)
 
-        builder = VectorLayerBuilder(layer, settings, ImageManager(map_settings))
+        builder = VectorLayerBuilder(layer, settings, ImageManager(mapSettings))
         data = builder.build(build_contents=True)
 
         logger.debug(str(data))
