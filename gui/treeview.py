@@ -6,6 +6,7 @@
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
 from qgis.PyQt.QtWidgets import QAction, QMenu, QMessageBox, QTreeView
+from qgis.core import QgsApplication
 
 from .proppages import DEMPropertyPage
 from ..conf import PLUGIN_NAME
@@ -65,10 +66,11 @@ class Q3DTreeView(QTreeView):
         self.actionProperties = QAction("Properties...", self)
         self.actionProperties.triggered.connect(self.onDoubleClicked)
 
-        self.actionRemoveLayer = QAction("Remove from layer tree...", self)
+        self.actionRemoveLayer = QAction("Remove from Layer Tree...", self)
         self.actionRemoveLayer.triggered.connect(self.removeAdditionalLayer)
 
-        self.actionZoomToLayer = QAction("Zoom to layer objects", self)
+        self.actionZoomToLayer = QAction("Zoom to Layer Objects", self)
+        self.actionZoomToLayer.setIcon(QgsApplication.getThemeIcon("mActionZoomToLayer.svg"))
         self.actionZoomToLayer.triggered.connect(self.zoomToLayer)
 
         # map layer

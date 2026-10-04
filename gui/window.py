@@ -253,6 +253,12 @@ class Q3DWindow(QMainWindow):
 
         ui.actionNavigationWidget.setChecked(self.settings.isNavigationEnabled())
 
+        ui.actionSaveAsImage.setIcon(QgsApplication.getThemeIcon("mActionSaveMapAsImage.svg"))
+        ui.actionPluginSettings.setIcon(QgsApplication.getThemeIcon("mActionOptions.svg"))
+        ui.actionReload.setIcon(QgsApplication.getThemeIcon("mActionRefresh.svg"))
+        ui.actionUsage.setIcon(QgsApplication.getThemeIcon("mIconInfo.svg"))
+        ui.actionHelp.setIcon(QgsApplication.getThemeIcon("mActionHelpContents.svg"))
+
         # signal-slot connections
         ui.actionExportToWeb.triggered.connect(self.exportToWeb)
         ui.actionLoadSettings.triggered.connect(self.loadSettings)
