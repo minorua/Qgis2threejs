@@ -91,12 +91,13 @@ class VectorLayerBuilder(LayerBuilderBase):
             data["models"] = self.modelManager.build(bool(self.assetDestination is not None),
                                                      base64=self.settings.requiresJsonSerializable)
 
-            self.log(
-                "This layer references 3D model files. "
-                "Please copy associated files to the data directory for local 3D model files. "
-                "Remote 3D model files may not be displayed due to CORS restrictions.",
-                warning=True
-            )
+            if not self.settings.isPreview:
+                self.log(
+                    "This layer references 3D model files. "
+                    "Please copy associated files to the data directory for local 3D model files. "
+                    "Remote 3D model files may not be displayed due to CORS restrictions.",
+                    warning=True
+                )
         else:
             for feat in vlayer.features(request):
                 feat.material = vlayer.ot.material(feat)
