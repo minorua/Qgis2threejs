@@ -6,16 +6,18 @@ import json
 import os
 import struct
 
+from qgis.core import QgsCoordinateTransform, QgsPointXY, QgsProject
 from qgis.testing import unittest
 
 from .testbase import CLITestBase   # Enable test mode before importing plugin's other modules
 from .utils import loadProject, logger
-from ..utils import dataPath, outputPath
+from ..utils import dataPath
 from ...core.build.builder import ThreeJSBuilder
 from ...core.build.datamanager.image import ImageManager
 from ...core.build.dem.builder import DEMLayerBuilder
 from ...core.build.vector.builder import VectorLayerBuilder
 from ...core.exportsettings import ExportSettings
+from ...core.mapextent import MapExtent
 from ...core.storagelocation import StorageLocation
 
 
@@ -59,7 +61,38 @@ class TestSceneBuilder(CLITestBase):
 
 class TestDEMLayerBuilder(CLITestBase):
 
-    def test01_build_tiled_dem_data(self):
+    def test01_build_simple_dem_data(self):
+        PROJ_FILE = "testproject1/testproject1.qgs"
+        SETTING_FILE = "testproject1/scene1_g1.qto3settings"
+        LAYER_ID = "dem_srtm3020150914165149263"
+
+        map_settings = loadProject(dataPath(PROJ_FILE))
+
+        settings = ExportSettings()
+        self.assertTrue(settings.loadSettingsFromFile(dataPath(SETTING_FILE)))
+        settings.setMapSettings(map_settings)
+
+        layer = settings.getLayer(LAYER_ID)
+        self.assertIsNotNone(layer)
+        self.assertNotEqual(layer.mapLayer.crs(), settings.crs)
+
+        builder = DEMLayerBuilder(layer, settings, ImageManager(map_settings))
+
+        transform = QgsCoordinateTransform(layer.mapLayer.crs(), settings.crs, QgsProject.instance())
+        settings._baseExtent = MapExtent.fromRect(transform.transformBoundingBox(layer.mapLayer.extent()))
+        data = builder.build()
+
+        logger.debug(str(data))
+
+        self.assertEqual(data["type"], "layer")
+        self.assertEqual(data["id"], layer.jsLayerId)
+        self.assertEqual(data["properties"]["type"], "dem")
+        self.assertEqual(data["properties"]["dataType"], "grid")
+
+        settings._baseExtent = MapExtent(QgsPointXY(0, -200000), 100, 100)
+        self.assertIsNone(builder.build())
+
+    def test02_build_tiled_dem_data(self):
         PROJ_FILE = "testproject2/testproject2.qgs"
         SETTING_FILE = "testproject2/scene2_g2.qto3settings"
         LAYER_ID = "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147"
@@ -119,7 +152,7 @@ class TestDEMLayerBuilder(CLITestBase):
         self.assertEqual(grid["nodata"]["size"], 4)
         self.assertFalse(grid["nodata"]["compressed"])
 
-    def test02_build_pyramid_tiled_dem_data(self):
+    def test03_build_pyramid_tiled_dem_data(self):
         PROJ_FILE = "testproject3/testproject3.qgs"
         SETTING_FILE = "testproject3/scene3_pyramid.qto3settings"
         LAYER_ID = "srtm_62ffafc6_c8b2_4e32_8882_137d6e1bbe4c"

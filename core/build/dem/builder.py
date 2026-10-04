@@ -6,7 +6,7 @@ import math
 import os
 from osgeo import gdal
 from qgis.PyQt.QtCore import QSize
-from qgis.core import QgsPoint, QgsProject
+from qgis.core import QgsCoordinateTransform, QgsPoint, QgsProject
 
 from .dem_builder import DEMResampBuilder, DEMRawBuilder
 from .material_builder import DEMMaterialBuilder
@@ -23,6 +23,9 @@ from ....utils.basic import  parseFloat
 from ....utils.file import mkpath
 from ....utils.js import hex_color
 from ....utils.logging import logger
+
+
+_EMPTY_DEM_BASE_EXTENT_WARNING = "The intersection of the DEM layer and the base extent is empty."
 
 
 class BuildTask:
@@ -138,6 +141,15 @@ class DEMLayerBuilder(LayerBuilderBase):
 
             except Exception as e:
                 self.log(f"Failed to create a tileset. {e}", warning=True)
+                return None
+
+        elif not self.properties.get("radioButton_Tiles"):
+            # Simple mode
+            transform = QgsCoordinateTransform(self.settings.crs, self.layer.mapLayer.crs(), QgsProject.instance())
+            base_extent = transform.transformBoundingBox(self.settings.baseExtent().boundingBox())
+            if not self.provider.grid().intersection(base_extent):
+                self.log(_EMPTY_DEM_BASE_EXTENT_WARNING, warning=True)
+                return None
 
         if build_contents:
             d["body"] = {
@@ -186,7 +198,7 @@ class DEMLayerBuilder(LayerBuilderBase):
             be = self.settings.baseExtent()
             target_grid = target_grid.intersection(be.unrotatedRect())
             if not target_grid:
-                raise Exception("The intersection of the DEM layer and the base extent is empty.")
+                raise Exception(_EMPTY_DEM_BASE_EXTENT_WARNING)
 
         stats = self.layer.mapLayer.dataProvider().bandStatistics(1)
         zrange = ZRange(stats.minimumValue, stats.maximumValue)
