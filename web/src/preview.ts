@@ -351,8 +351,6 @@ function showFPS() {
 }
 
 export function saveAsGLTF(filename: string) {
-	showStatusMessage('Saving the model to "' + filename + '"...');
-
 	const scene = new THREE.Scene();
 	for (const id in app.scene.mapLayers) {
 		const layer = app.scene.mapLayers[id];
@@ -370,15 +368,11 @@ export function saveAsGLTF(filename: string) {
 	import("three/addons/exporters/GLTFExporter.js").then(({ GLTFExporter }) => {
 		const gltfExporter = new GLTFExporter();
 		gltfExporter.parseAsync(scene, options).then((result) => {
-			const showStatus = () => {
-				showStatusMessage("Successfully saved the model.", 5000);
-			}
-
 			if (result instanceof ArrayBuffer) {
-				sendData(new Uint8Array(result), true, filename, showStatus);
+				sendData(new Uint8Array(result), true, filename);
 			}
 			else {
-				sendData(JSON.stringify(result, null, 2), false, filename, showStatus);
+				sendData(JSON.stringify(result, null, 2), false, filename);
 			}
 
 			// restore preview

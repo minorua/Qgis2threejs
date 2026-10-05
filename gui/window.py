@@ -568,6 +568,7 @@ class Q3DWindow(QMainWindow):
 
         fn = filename.replace("\\", "\\\\")
         self.runScript(f"{script_func}('{fn}')")
+        self.showStatusMessage(f'Saving the scene to "{filename}"...')
 
         self.lastDir = os.path.dirname(filename)
 
@@ -597,16 +598,15 @@ class Q3DWindow(QMainWindow):
                 self._modelFile = None
 
                 if self._saveModelState == SAVING:
-                    def showMessage():
-                        QMessageBox.information(self, "Save Scene As glTF", "Successfully saved model data: " + filename)
-                    QTimer.singleShot(0, showMessage)
+                    self.webPage.showMessageBar("The scene was successfully saved to: " + filename, className="info", timeout_ms=10000)
+                    self.showStatusMessage("")
 
                 self._saveModelState = None
                 return
 
         except Exception as e:
             if self._saveModelState != ERR:
-                QMessageBox.critical(self, "Failed to save model data.", str(e))
+                QMessageBox.critical(self, "Failed to save the scene.", str(e))
             self._saveModelState = ERR
 
     def loadSettings(self, filename=None):
