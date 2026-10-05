@@ -248,7 +248,7 @@ class Q3DWindow(QMainWindow):
         ui.actionMapControls.setActionGroup(ui.actionGroupControls)
         ui.actionOrbitControls.setActionGroup(ui.actionGroupControls)
 
-        if self.settings.controls() == "Orb":
+        if self.settings.controls() == "Orbit":
             ui.actionOrbitControls.setChecked(True)
 
         ui.actionNavigationWidget.setChecked(self.settings.isNavigationEnabled())
@@ -738,7 +738,7 @@ class Q3DWindow(QMainWindow):
 
     def controlsChanged(self, action):
         if action == self.ui.actionOrbitControls:
-            name = "Orb"
+            name = "Orbit"
         else:
             name = "Map"
         self.settings.setControls(name)
@@ -787,7 +787,7 @@ class Q3DWindow(QMainWindow):
 
     # Help menu
     def usage(self):
-        self.runScript("gui.showInfo()")
+        self.runScript("gui.showHelp()")
 
     def homePage(self):
         QDesktopServices.openUrl(QUrl("https://github.com/minorua/Qgis2threejs"))

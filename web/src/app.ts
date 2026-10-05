@@ -185,13 +185,13 @@ function setupScene() {
 app.setupControls = (name: string) => {
     if (!name) {
         if ("MapControls" in modules) name = "Map";
-        else if ("OrbitControls" in modules) name = "Orb";
+        else if ("OrbitControls" in modules) name = "Orbit";
     }
 
     if (name == "Map") {
         app.controls = new modules.MapControls(app.camera, app.renderer.domElement);
     }
-    else if (name == "Orb") {
+    else if (name == "Orbit") {
         app.controls = new modules.OrbitControls(app.camera, app.renderer.domElement);
     }
     else {
@@ -488,7 +488,7 @@ app.eventListener = {
                 }
                 return;
             case "i":
-                gui.showInfo();
+                gui.showHelp();
                 return;
             case "l":
                 app.setLabelVisible(!app.labelVisible);

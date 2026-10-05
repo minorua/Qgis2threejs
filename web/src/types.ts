@@ -610,7 +610,7 @@ export interface Gui {
     /* functions */
     init();
     clean();
-    showInfo();
+    showHelp();
     showQueryResult(point, layer, obj, show_coords);
     showPrintDialog();
 }

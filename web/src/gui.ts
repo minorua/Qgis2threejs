@@ -61,8 +61,8 @@ gui.init = () => {
     ON_CLICK("infobtn", () => {
         gui.layerPanel.hide();
 
-        if (gui.popup.isVisible() && gui.popup.content == "pageinfo") gui.popup.hide();
-        else gui.showInfo();
+        if (gui.popup.isVisible() && gui.popup.content == "help") gui.popup.hide();
+        else gui.showHelp();
     });
 
     const btn = E("animbtn");
@@ -127,7 +127,7 @@ gui.popup = {
     },
 
     // show box
-    // obj: html, element or content id ("queryresult" or "pageinfo")
+    // obj: html, element or content id ("queryresult" or "help")
     // modal: boolean
     // duration: int [milliseconds]
     show: function (obj, title, modal, duration) {
@@ -142,11 +142,11 @@ gui.popup = {
         if (e) e.classList.remove(VIS);
 
         const content = E("popupcontent");
-        [content, E("queryresult"), E("pageinfo")].forEach((e) => {
+        [content, E("queryresult"), E("help")].forEach((e) => {
             if (e) e.classList.remove(VIS);
         });
 
-        if (obj == "queryresult" || obj == "pageinfo") {
+        if (obj == "queryresult" || obj == "help") {
             E(obj).classList.add(VIS);
         }
         else {
@@ -182,10 +182,10 @@ gui.popup = {
 
 };
 
-gui.showInfo = () => {
+gui.showHelp = () => {
     const e = E("urlbox");
     if (e instanceof HTMLInputElement) e.value = app.currentViewUrl();
-    gui.popup.show("pageinfo");
+    gui.popup.show("help");
 };
 
 gui.showQueryResult = (point, layer, obj, show_coords) => {

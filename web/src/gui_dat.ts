@@ -23,7 +23,7 @@ gui.dat = {
 			rot: false,  // auto rotation
 			wf: false    // wireframe mode
 		},
-		i: gui.showInfo
+		i: gui.showHelp
 	}
 };
 

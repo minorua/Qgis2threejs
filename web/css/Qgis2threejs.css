@@ -263,13 +263,13 @@ body {
   background-color: #eee;
 }
 
-/* pageinfo */
-#pageinfo {
+/* help */
+#help {
   font-size: small;
   display: none;
 }
 
-#pageinfo > h1 {
+#help h1 {
   background-color: gray;
   color: white;
   font-size: small;
@@ -283,7 +283,7 @@ body {
   width: 98%;
 }
 
-#usage, #about {
+#usage table, #about {
   margin-left: 5px;
 }
 

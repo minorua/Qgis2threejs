@@ -93,6 +93,13 @@ function _init(off_screen) {
 	}
 	else {
 		E("closemsgbar").onclick = closeMessageBar;
+
+		if (app.controls) {
+			const helpUrl = "./help/" + app.controls.constructor.name + ".html";
+			fetch(helpUrl).then(async (response) => {
+				if (response.ok) E("usage").innerHTML = await response.text();
+			});
+		}
 	}
 
 	app.addEventListener("loadComplete", () => {

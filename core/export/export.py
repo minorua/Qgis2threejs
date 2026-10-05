@@ -121,6 +121,11 @@ class ThreeJSExporter(QObject):
             with open(os.path.join(dataDir, "scene.json"), "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2 if DEBUG_MODE else None)
 
+        # controls usage
+        ctrl = self.settings.controls()
+        with open(pluginDir("web", "help", f"{ctrl}Controls.html"), "r", encoding="utf-8") as f:
+            usage_html = f.read()
+
         # copy image files referenced in narration
         narration_html = ""
         if self.settings.isAnimationEnabled():
@@ -184,6 +189,7 @@ class ThreeJSExporter(QObject):
             "header": self.settings.headerLabel(),
             "footer": self.settings.footerLabel(),
             "narration": narration_html,
+            "usage": usage_html,
             "version": PLUGIN_VERSION,
             "deps": ", ".join([f"<a href=\"{d['url']}\">{d['name']}</a>" for d in self.dependencies()])
         }
