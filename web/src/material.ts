@@ -36,35 +36,24 @@ export class Material {
 		const opt: any = {};
 		let defer = false;
 
-		if (m.ds) opt.side = THREE.DoubleSide;
-
-		if (m.flat) opt.flatShading = true;
-
-		// texture
 		if (m.image !== undefined) {
-			if (m.image.url !== undefined) {
-				opt.map = app.loadTextureFile(m.image.url, () => {
-					this._loadCompleted(callback);
-				});
-				defer = true;
-			}
-			else {    // base64
-				opt.map = new THREE.TextureLoader(app.loadingManager).load(m.image.base64);
-				defer = true;
-				delete m.image.base64;
-			}
+			const source = m.image.url || m.image.base64;
+			const loader = new THREE.TextureLoader(app.loadingManager);
+			opt.map = loader.load(source, () => this._loadCompleted(callback));
 			opt.map.anisotropy = conf.texture.anisotropy;
 			opt.map.colorSpace = THREE.SRGBColorSpace;
+			defer = true;
 		}
 
-		if (m.c !== undefined) opt.color = m.c;
+		if (m.ds) opt.side = THREE.DoubleSide;
+		if (m.flat) opt.flatShading = true;
+		if (m.t) opt.transparent = true;
 
+		if (m.c !== undefined) opt.color = m.c;
 		if (m.o !== undefined && m.o < 1) {
 			opt.opacity = m.o;
 			opt.transparent = true;
 		}
-
-		if (m.t) opt.transparent = true;
 
 		if (m.type == MaterialType.MeshStandard) {
 			if (m.roughness !== undefined) opt.roughness = m.roughness;
