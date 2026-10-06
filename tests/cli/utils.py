@@ -85,6 +85,7 @@ def loadProject(filename):
     map_settings.setDestinationCrs(project.crs())
     map_settings.setTransformContext(project.transformContext())
     map_settings.setLayers(project.layerTreeRoot().checkedLayers())
+    map_settings.setExtent(project.viewSettings().defaultViewExtent())
     map_settings.setOutputSize(QSize(TEX_WIDTH, TEX_HEIGHT))
     map_settings.setBackgroundColor(project.backgroundColor())
 

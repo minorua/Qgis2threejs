@@ -75,7 +75,7 @@ class CLITestBase(unittest.TestCase):
         return settings
 
     def export_webpage(self, project_path, settings_path, out_path, local_mode=False, template=None):
-        mapSettings = loadProject(project_path)
+        mapSettings = self.loadProject(project_path)
 
         exporter = ThreeJSExporter()
         exporter.loadSettings(settings_path)
