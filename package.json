@@ -5,9 +5,9 @@
     "build": "node scripts/build.mjs",
     "build:min": "node scripts/build.mjs --minify",
     "watch": "node scripts/build.mjs --watch",
-    "release": "./scripts/release.sh",
-    "setup-debug": "./scripts/setup-debug.sh",
-    "setup-test": "ts-json-schema-generator --path web/src/types.ts --type PreviewData --out web/src/schema/preview.json",
+    "release": "bash scripts/release.sh",
+    "setup-debug": "bash scripts/setup-debug.sh",
+    "setup-test": "bash scripts/setup-test.sh",
     "typecheck": "tsc --noEmit"
   },
   "author": "Minoru Akagi",

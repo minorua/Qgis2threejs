@@ -19,7 +19,5 @@
     "web/src/**/*.js",
     "web/src/**/*.ts"
   ],
-  "exclude": [
-    "web/src/types"
-  ]
+  "exclude": []
 }
