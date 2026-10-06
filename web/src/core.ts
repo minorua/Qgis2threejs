@@ -59,9 +59,38 @@ export const MaterialType = {
 
 	Unknown: -1
 
-};
+} as const;
 
 export type MaterialType = typeof MaterialType[keyof typeof MaterialType];
+
+export type DEMMaterialType =
+	| typeof MaterialType.MeshLambert
+	| typeof MaterialType.MeshPhong
+	| typeof MaterialType.MeshToon
+	| typeof MaterialType.MeshBasic
+	| typeof MaterialType.MeshStandard;
+
+export type VectorMaterialType =
+    | DEMMaterialType
+	| typeof MaterialType.Line
+	| typeof MaterialType.MeshLine
+	| typeof MaterialType.Sprite
+	| typeof MaterialType.Point;
+
+export type DEMMaterial =
+	| THREE.MeshLambertMaterial
+	| THREE.MeshPhongMaterial
+	| THREE.MeshToonMaterial
+	| THREE.MeshBasicMaterial
+	| THREE.MeshStandardMaterial;
+
+export type VectorMaterial =
+	| DEMMaterial
+	| THREE.PointsMaterial
+	| THREE.LineBasicMaterial
+	| THREE.LineDashedMaterial
+	| THREE.SpriteMaterial;
+	// meshline.MeshLineMaterial
 
 /**
  * @enum {number}

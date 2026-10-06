@@ -3,7 +3,7 @@
 
 import { THREE } from "../three.js";
 
-import { app, conf, modules, LayerType } from "../core.js";
+import { app, conf, modules, LayerType, DEMMaterial } from "../core.js";
 import { MapLayer } from "./layer.js";
 import { Material } from "../material.js";
 import { createWallGeometry, decodeBase64TypedArrayObject, getBoundaryLines } from "../utils.js";
@@ -177,8 +177,8 @@ export class DEMLayer extends MapLayer {
 	prepareTexAnimation(from: number, to: number) {
 		this.anim = [];
 		for (const block of this.blocks) {
-			const imgFrom = block.materials[from].mtl.map.image;
-			const imgTo = block.materials[to].mtl.map.image;
+			const imgFrom = (block.materials[from].mtl as DEMMaterial).map.image as HTMLImageElement;
+			const imgTo = (block.materials[to].mtl as DEMMaterial).map.image as HTMLImageElement;
 
 			const canvas = document.createElement("canvas");
 			canvas.width = (imgFrom.width > imgTo.width) ? imgFrom.width : imgTo.width;
@@ -190,7 +190,7 @@ export class DEMLayer extends MapLayer {
 			tex.anisotropy = conf.texture.anisotropy;
 			tex.colorSpace = THREE.SRGBColorSpace;
 
-			const opt = {
+			const opt: any = {
 				map: tex,
 				side: THREE.DoubleSide,
 				transparent: true
@@ -206,8 +206,8 @@ export class DEMLayer extends MapLayer {
 					mtl = new THREE.MeshPhongMaterial(opt);
 				}
 				else if (m instanceof THREE.MeshStandardMaterial) {
-					opt.metalness = m.metalness;
-					opt.roughness = m.roughness;
+					if ("metalness" in m) opt.metalness = m.metalness;
+					if ("roughness" in m) opt.roughness = m.roughness;
 					mtl = new THREE.MeshStandardMaterial(opt);
 				}
 				else if (m instanceof THREE.MeshBasicMaterial) {
@@ -645,9 +645,10 @@ export async function buildTile(layer: DEMLayer, data: DEMTileData, tile: Runtim
 	mesh.userData.materials = data.materials;
 
 	const { engineData } = tile;
-	engineData.materials = [material.mtl];
+	const mtl = material.mtl as DEMMaterial;
+	engineData.materials = [mtl];
 	engineData.geometry = [geometry];
-	engineData.textures = (material.mtl.map) ? [material.mtl.map] : [];
+	engineData.textures = (mtl.map) ? [mtl.map] : [];
 	engineData.scene = mesh;
 	engineData.metadata = null;
 

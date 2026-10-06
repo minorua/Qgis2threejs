@@ -13,7 +13,7 @@ export class Material {
 
 	mtl!: THREE.Material;
 	origTransparent!: boolean;
-	groupId!: number;
+	groupId: number | undefined;
 
 	private _updateAspect?: () => void = null;
 	private _callbacks: (() => void)[] = [];
@@ -31,7 +31,7 @@ export class Material {
 	loadData(data: MaterialData, callback?: () => void) {
 		const m = data;
 		this.origTransparent = Boolean(m.t);
-		this.groupId = m.mtlIndex;
+		this.groupId = ("mtlIndex" in m) ? m.mtlIndex : undefined;
 
 		const opt: any = {};
 		let defer = false;
@@ -56,8 +56,8 @@ export class Material {
 		}
 
 		if (m.type == MaterialType.MeshStandard) {
-			if (m.roughness !== undefined) opt.roughness = m.roughness;
-			if (m.metalness !== undefined) opt.metalness = m.metalness;
+			if ("roughness" in m) opt.roughness = m.roughness;
+			if ("metalness" in m) opt.metalness = m.metalness;
 		}
 
 		const MaterialClass = MaterialFactory[m.type];

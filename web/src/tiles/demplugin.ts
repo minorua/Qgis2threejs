@@ -3,7 +3,7 @@
 
 // https://github.com/NASA-AMMOS/3DTilesRendererJS/blob/master/src/core/renderer/API.md
 
-import { app, debugLog } from "../core.js"
+import { app, debugLog, DEMMaterial } from "../core.js"
 import { buildTile } from "../layer/demlayer.js";
 import { Material } from "../material.js";
 import { decodeBase64TypedArrayObject } from "../utils.js";
@@ -198,7 +198,7 @@ export class DEMPlugin {
                 material.loadData(mesh.userData.materials[mtlIndex], () => layer.requestRender());
                 layer.materials.add(material);
 
-                const mtl = material.mtl;
+                const mtl = material.mtl as DEMMaterial;
                 mesh.material = mtl;
 
                 engineData.materials = [mtl];
@@ -216,14 +216,14 @@ export class DEMPlugin {
                     const promise = new Promise((res, rej) => {
                         resolve = res;
                         reject = rej;
-                    }).then((content) => {
+                    }).then((content: DEMTileData) => {
                         layer.materials.removeItem(mesh.material, true);
 
                         const material = new Material();
                         material.loadData(content.material, () => layer.requestRender());
                         layer.materials.add(material);
 
-                        const mtl = material.mtl;
+                        const mtl = material.mtl as DEMMaterial;
                         mesh.material = mtl;
 
                         engineData.materials = [mtl];

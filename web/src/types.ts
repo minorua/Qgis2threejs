@@ -5,7 +5,7 @@ import type * as THREE from "three";
 import type { Collada } from "three/addons/loaders/ColladaLoader.js";
 import type { GLTF } from "three/addons/loaders/GLTFLoader.js";
 
-import type { LayerType, MaterialType, TweenType } from "./core.js";
+import type { DEMMaterialType, LayerType, MaterialType, TweenType, VectorMaterialType } from "./core.js";
 import type { Scene } from "./scene.js";
 import type { MapLayer } from "./layer/layer.js";
 import type { DEMLayer } from "./layer/demlayer.js";
@@ -105,21 +105,29 @@ export interface MaterialImageData {
     base64?: string;
 }
 
-export interface MaterialData {
-    type: MaterialType;
-    mtlIndex: number;
+interface MaterialDataBase<T extends MaterialType> {
+    type: T;
     c?: number;         // color
     o?: number;         // opacity
     ds?: boolean | number;  // double-sided
     flat?: boolean | number;
     image?: MaterialImageData;
     t?: boolean | number;        // transparent
+}
+
+export interface DEMMaterialData extends MaterialDataBase<DEMMaterialType> {
+    mtlIndex: number;
+}
+
+export interface VectorMaterialData extends MaterialDataBase<VectorMaterialType> {
     s?: number;         // point size
     dashed?: boolean | number;
     thickness?: number;
     metalness?: number;
     roughness?: number;
 }
+
+export type MaterialData = DEMMaterialData | VectorMaterialData;
 
 export interface ModelData {
     url?: string;
@@ -174,10 +182,13 @@ export interface DEMBlockMeshData extends BlockData {
 }
 
 export interface DEMBlockMaterialData extends BlockData {
-    materials: MaterialData[];
+    materials: DEMMaterialData[];
 }
 
-export type DEMBlockData = DEMBlockGridData | DEMBlockMeshData | DEMBlockMaterialData;
+export interface DEMBlockGridMaterialData extends DEMBlockGridData, DEMBlockMaterialData {}
+export interface DEMBlockMeshMaterialData extends DEMBlockMeshData, DEMBlockMaterialData {}
+
+export type DEMBlockData = DEMBlockGridData | DEMBlockMeshData | DEMBlockMaterialData | DEMBlockGridMaterialData | DEMBlockMeshMaterialData;
 
 export interface GridGeomDataB64 {
     array: Base64F32;
@@ -221,8 +232,8 @@ export interface ParsedMeshGeomData {
 
 export interface DEMTileData {
     geometry?: DEMGridData;
-    material?: MaterialData;        // preview
-    materials?: MaterialData[];     // export
+    material?: DEMMaterialData;        // preview
+    materials?: DEMMaterialData[];     // export
 }
 
 export interface DEMTileEntry extends DEMTileData {
@@ -271,7 +282,7 @@ export interface VectorLayerData extends LayerData {
     properties: VectorLayerProperties;
     body: {
         contents?: FeatureBlockData[] | FeatureBlockDataRef[];
-        materials?: MaterialData[];
+        materials?: VectorMaterialData[];
         models?: ModelData[];
     };
 }
@@ -359,12 +370,25 @@ export interface TrackData {
     keyframes: Keyframe[]
 }
 
+export interface TweenProps {
+    p?: number;
+    opacity?: number;
+    theta?: number;
+    d?: number;
+    fx?: number;
+    fy?: number;
+    fz?: number;
+}
+
 export interface Track extends TrackData {
-    prop_list?;
+    layerId?: number;
+    completed?: boolean;
+    prop_list?: TweenProps[];
     currentIndex?: number;
-    _keyframes?;
+    _keyframes?: Keyframe[];
     onStart?: () => void;
-    onUpdate?: (obj, elapsed?, isFirst?) => void;
+    onUpdate?: (obj: TweenProps, elapsed?: number, isFirst?: boolean) => void;
+    onComplete?: (obj: TweenProps) => void;
 }
 
 export interface Keyframe {
@@ -430,7 +454,8 @@ export interface SignalData extends BaseData {
 
 export type AppData =
     SceneData
-    | LayerData
+    | DEMLayerData
+    | VectorLayerData
     | DEMBlockData
     | FeatureBlockData
     | TileDataResponse;

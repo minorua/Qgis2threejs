@@ -254,7 +254,7 @@ class BillboardBuilder extends Builder {
             }
 
             material.callbackOnLoad(() => {
-                const { image } = mtl.map;
+                const image = mtl.map.image as HTMLImageElement;
                 const scaleY = size * image.height / image.width;
 
                 for (const sprite of sprites) {
