@@ -6,22 +6,44 @@ import json
 import os
 import struct
 
+import jsonschema
 from qgis.core import QgsCoordinateTransform, QgsPointXY, QgsProject
 from qgis.testing import unittest
 
 from .testbase import CLITestBase   # Enable test mode before importing plugin's other modules
-from .utils import loadProject, logger
-from ..utils import dataPath
+from .utils import logger
 from ...core.build.builder import ThreeJSBuilder
 from ...core.build.datamanager.image import ImageManager
 from ...core.build.dem.builder import DEMLayerBuilder
 from ...core.build.vector.builder import VectorLayerBuilder
-from ...core.exportsettings import ExportSettings
 from ...core.mapextent import MapExtent
 from ...core.storagelocation import StorageLocation
+from ...utils.basic import pluginDir
 
 
-class TestSceneBuilder(CLITestBase):
+# Run `npm run setup-test` to generate JSON schemas from web/src/types.ts.
+APP_SCHEMA_PATH = pluginDir("web", "src", "schema", "app.json")
+APP_SCHEMA = None
+VERBOSE = False
+
+
+class BuilderTestBase(CLITestBase):
+
+    def assertDataValid(self, data):
+        global APP_SCHEMA
+        if APP_SCHEMA is None:
+            with open(APP_SCHEMA_PATH, encoding="utf-8") as f:
+                APP_SCHEMA = json.load(f)
+
+        if VERBOSE:
+            logger.debug(str(data))
+        else:
+            logger.info(f'Validating {data["type"]} data.')
+
+        jsonschema.validate(data, APP_SCHEMA)
+
+
+class TestSceneBuilder(BuilderTestBase):
 
     PROJ_FILE = "testproject2/testproject2.qgs"
     SETTING_FILE = "testproject2/scene2_g2.qto3settings"
@@ -32,8 +54,7 @@ class TestSceneBuilder(CLITestBase):
 
         builder = ThreeJSBuilder(None)
         data = builder.buildScene(settings)
-
-        logger.debug(str(data))
+        self.assertDataValid(data)
 
         self.assertEqual(data["type"], "scene")
 
@@ -56,7 +77,7 @@ class TestSceneBuilder(CLITestBase):
         self.assertEqual(properties["light"], "directional")
 
 
-class TestDEMLayerBuilder(CLITestBase):
+class TestDEMLayerBuilder(BuilderTestBase):
 
     def test01_build_simple_dem_data(self):
         mapSettings = self.loadProject("testproject1/testproject1.qgs")
@@ -69,9 +90,9 @@ class TestDEMLayerBuilder(CLITestBase):
 
         transform = QgsCoordinateTransform(layer.mapLayer.crs(), settings.crs, QgsProject.instance())
         settings._baseExtent = MapExtent.fromRect(transform.transformBoundingBox(layer.mapLayer.extent()))
-        data = builder.build()
 
-        logger.debug(str(data))
+        data = builder.build()
+        self.assertDataValid(data)
 
         self.assertEqual(data["type"], "layer")
         self.assertEqual(data["id"], layer.jsLayerId)
@@ -96,9 +117,9 @@ class TestDEMLayerBuilder(CLITestBase):
         )
 
         builder = DEMLayerBuilder(layer, settings, ImageManager(mapSettings), assetDestination=assetDestination)
-        data = builder.build(build_contents=True)
 
-        logger.debug(str(data))
+        data = builder.build(build_contents=True)
+        self.assertDataValid(data)
 
         self.assertEqual(data["type"], "layer")
         self.assertEqual(data["id"], layer.jsLayerId)
@@ -107,6 +128,7 @@ class TestDEMLayerBuilder(CLITestBase):
 
         block = data["body"]["contents"][0]
 
+        self.assertDataValid(block)
         self.assertEqual(block["type"], "block")
         self.assertEqual(block["layer"], layer.jsLayerId)
 
@@ -114,7 +136,8 @@ class TestDEMLayerBuilder(CLITestBase):
         self.assertEqual(geometry["zScale"], settings.mapTo3d().zScale)
 
         grid = self.loadJSONBinaryHeader(self.outputPath(geometry["grid"]["url"]))
-        logger.debug(str(grid))
+        if VERBOSE:
+            logger.debug(str(grid))
 
         self.assertEqual(grid["segments"], 10)
         self.assertEqual(grid["columns"], 10)
@@ -148,9 +171,9 @@ class TestDEMLayerBuilder(CLITestBase):
         )
 
         builder = DEMLayerBuilder(layer, settings, ImageManager(mapSettings), assetDestination=assetDestination)
-        data = builder.build(build_contents=False)
 
-        logger.debug(str(data))
+        data = builder.build(build_contents=False)
+        self.assertDataValid(data)
 
         self.assertEqual(data["type"], "layer")
         self.assertEqual(data["id"], layer.jsLayerId)
@@ -177,7 +200,7 @@ class TestDEMLayerBuilder(CLITestBase):
             return json.loads(data[4:header_end])
 
 
-class TestVectorLayerBuilder(CLITestBase):
+class TestVectorLayerBuilder(BuilderTestBase):
 
     PROJ_FILE = "testproject2/testproject2.qgs"
     SETTING_FILE = "testproject2/scene2_g2.qto3settings"
@@ -190,9 +213,9 @@ class TestVectorLayerBuilder(CLITestBase):
         self.assertIsNotNone(layer)
 
         builder = VectorLayerBuilder(layer, settings, ImageManager(mapSettings))
-        data = builder.build(build_contents=True)
 
-        logger.debug(str(data))
+        data = builder.build(build_contents=True)
+        self.assertDataValid(data)
 
         self.assertEqual(data["type"], "layer")
         self.assertEqual(data["id"], layer.jsLayerId)
@@ -201,6 +224,7 @@ class TestVectorLayerBuilder(CLITestBase):
         blocks = data["body"]["contents"]
         self.assertTrue(blocks)
         for block in blocks:
+            self.assertDataValid(block)
             self.assertEqual(block["type"], "block")
             self.assertEqual(block["layer"], layer.jsLayerId)
             self.assertEqual(block["featureCount"], len(block["features"]))
