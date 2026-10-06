@@ -527,14 +527,15 @@ export interface App {
     init(container: HTMLElement);
     initLoadingManager();
 
-    loadData(data: AppData);
-    loadFile(url: string, type, callback?);
-    loadJSONFile(url: string, callback?);
-    loadSceneFile(url: string, sceneFileLoadedCallback?, sceneLoadedCallback?);
-    loadTextureFile(url: string, callback?);
-    loadModelFile(url: string, callback?);
-    loadModelData(data, ext: string, resourcePath: string, callback?);
+    loadFile(url: string, type: XMLHttpRequestResponseType): Promise<any>;
+    loadJSONFile(url: string): Promise<void>;
     loadJSONBinaryFile(url: string): Promise<any>;
+    loadModelFile(url: string): Promise<ModelObject>;
+    loadSceneFile(url: string): Promise<void>;
+
+    loadData(data: AppData): boolean;
+    loadModelData(data: Uint8Array, ext: string, resourcePath: string, callback?);
+
     buildCamera(is_ortho?: boolean);
     setupControls(name?: string);
     buildNorthArrow(container: HTMLElement, declination?: number);

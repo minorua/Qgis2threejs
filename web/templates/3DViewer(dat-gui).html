@@ -96,20 +96,18 @@ ${options}
 const container = document.getElementById("view")
 app.init(container);
 
-app.loadSceneFile("${scenefile}", function (scene) {
-  // scene file has been loaded
-  app.start();
-
-  gui.dat.initLayersFolder(scene);
-}, function (scene) {
-  // all associated files have been loaded
-
+app.addEventListener("sceneLoaded", () => {
   if (conf.gui.customPlane) {
     // If not specified, z range of scene bounding box is used.
     var zMin = undefined,
         zMax = undefined;
     gui.dat.initCustomPlaneFolder(zMin, zMax);
   }
+});
+
+app.loadSceneFile("${scenefile}").then((scene) => {
+  app.start();
+  gui.dat.initLayersFolder(scene);
 });
 </script>
 </body>

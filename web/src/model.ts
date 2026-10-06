@@ -31,7 +31,7 @@ export class Model {
 
 	// callback is called when model has been completely loaded
 	load(url: string, callback: (obj: ModelObject) => void) {
-		app.loadModelFile(url, (model) => {
+		app.loadModelFile(url).then((model) => {
 			this.model = model;
 			this._loadCompleted(callback);
 		});

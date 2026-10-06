@@ -110,12 +110,10 @@ ${options}
 const container = document.getElementById("view")
 app.init(container);
 
-app.loadSceneFile("${scenefile}", function (scene) {
-  // scene file has been loaded
-  app.start();
-}, function (scene) {
-  // all associated files have been loaded
+app.addEventListener("sceneLoaded", () => {});
 
+app.loadSceneFile("${scenefile}").then((scene) => {
+  app.start();
 });
 </script>
 </body>

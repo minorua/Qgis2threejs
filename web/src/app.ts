@@ -282,22 +282,116 @@ app.initLoadingManager = () => {
     };
 };
 
-app.loadFile = (url, type, callback) => {
-
+app.loadFile = async (url: string, type: XMLHttpRequestResponseType): Promise<any> => {
     const loader = new THREE.FileLoader(app.loadingManager);
     loader.setResponseType(type);
 
-    const onError = (e) => {
-        if (location.protocol == "file:") {
-            gui.popup.show("This browser doesn't allow loading local files via Ajax. See <a href='https://github.com/minorua/Qgis2threejs/wiki/Browser-Support'>plugin wiki page</a> for details.", "Error", true);
-        }
-    };
+    return new Promise((resolve, reject) => {
+        loader.load(url, resolve, undefined, reject);
+    });
+};
+
+app.loadJSONFile = async (url: string): Promise<void> => {
+    const data = await app.loadFile(url, "json") as AppData;
+    app.loadData(data);
+};
+
+app.loadJSONBinaryFile = async (url: string): Promise<Record<string, ArrayBuffer | any>> => {
+    app.loadingManager.itemStart(url);
 
     try {
-        loader.load(url, callback, undefined, onError);
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status}`);
+
+        const buf = await response.arrayBuffer();
+        const view = new DataView(buf);
+
+        const jsonSize = view.getUint32(0, true);
+        const jsonStr = new TextDecoder().decode(new Uint8Array(buf, 4, jsonSize));
+        const binaryOffset = 4 + jsonSize;
+
+        const data = await transformObjectValues(JSON.parse(jsonStr), async (value) => {
+            if (value.__type__ !== undefined) {
+                let chunk = buf.slice(
+                    binaryOffset + value.offset,
+                    binaryOffset + value.offset + value.size
+                );
+
+                if (value.compressed) {
+                    chunk = await decompress(chunk);
+                }
+
+                switch (value.__type__) {
+                    case "f32":
+                        return new Float32Array(chunk);
+                    case "I32":
+                        return new Uint32Array(chunk);
+                }
+            }
+        });
+
+        app.loadingManager.itemEnd(url);
+        return data;
     }
-    catch (e) {      // for IE
-        onError(e);
+    catch (error) {
+        app.loadingManager.itemError(url);
+        throw error;
+    }
+};
+
+app.loadModelFile = async (url: string): Promise<ModelObject> => {
+    const ext = url.split(".").pop();
+
+    let loader;
+    if (ext == "dae") {
+        loader = new modules.ColladaLoader(app.loadingManager);
+    }
+    else if (ext == "gltf" || ext == "glb") {
+        loader = new modules.GLTFLoader(app.loadingManager);
+    }
+    else {
+        throw new Error("Model file type not supported: " + url);
+    }
+
+    app.loadingManager.itemStart("M" + url);
+
+    const model = await new Promise<ModelObject>((resolve, reject) => {
+        loader.load(url, resolve, undefined, (error) => {
+            app.loadingManager.itemError("M" + url);
+            reject(error);
+        });
+    });
+
+    app.loadingManager.itemEnd("M" + url);
+    return model;
+};
+
+app.loadSceneFile = async (url: string): Promise<void> => {
+    app.loadingManager.itemStart("scene");
+
+    try {
+        const ext = url.split(".").pop();
+        if (ext == "json") {
+            await app.loadJSONFile(url);
+        }
+        else if (ext == "js") {
+            await new Promise<void>((resolve, reject) => {
+                const script = document.createElement("script");
+                script.src = url;
+                script.onload = () => resolve();
+                script.onerror = (error) => reject(error);
+                document.body.appendChild(script);
+            });
+        }
+        else {
+            throw new Error("Scene file type not supported: " + ext);
+        }
+
+        app.loadingManager.itemEnd("scene");
+    }
+    catch (error) {
+        app.loadingManager.itemError("scene");
+        throw error;
     }
 };
 
@@ -318,73 +412,6 @@ app.loadData = (data: AppData): boolean => {
     }
 };
 
-app.loadJSONFile = (url, callback) => {
-    app.loadFile(url, "json", (data) => {
-        app.loadData(data);
-        if (callback) callback(data);
-    });
-};
-
-app.loadSceneFile = (url, sceneFileLoadedCallback, sceneLoadedCallback) => {
-
-    const onload = () => {
-        if (sceneFileLoadedCallback) sceneFileLoadedCallback(app.scene);
-
-        app.loadingManager.itemEnd("scenefile");
-    };
-
-    if (sceneLoadedCallback) {
-        app.addEventListener("sceneLoaded", () => {
-            sceneLoadedCallback(app.scene);
-        });
-    }
-
-    app.loadingManager.itemStart("scenefile");
-
-    const ext = url.split(".").pop();
-    if (ext == "json") {
-        app.loadJSONFile(url, onload);
-    }
-    else if (ext == "js") {
-        const e = document.createElement("script");
-        e.src = url;
-        e.onload = onload;
-        document.body.appendChild(e);
-    }
-};
-
-app.loadTextureFile = (url, callback) => {
-    return new THREE.TextureLoader(app.loadingManager).load(url, callback);
-};
-
-app.loadModelFile = (url, callback: (model: ModelObject) => void) => {
-    const ext = url.split(".").pop();
-
-    let loader;
-    if (ext == "dae") {
-        loader = new modules.ColladaLoader(app.loadingManager);
-    }
-    else if (ext == "gltf" || ext == "glb") {
-        loader = new modules.GLTFLoader(app.loadingManager);
-    }
-    else {
-        console.warn("Model file type not supported: " + url);
-        return;
-    }
-
-    app.loadingManager.itemStart("M" + url);
-
-    loader.load(url, (model) => {
-        if (callback) callback(model);
-        app.loadingManager.itemEnd("M" + url);
-    },
-        undefined,
-        (e) => {
-            console.warn("Failed to load model: " + url);
-            app.loadingManager.itemError("M" + url);
-        });
-};
-
 app.loadModelData = (data: Uint8Array, ext: string, resourcePath: string, callback: (scene: THREE.Group) => void) => {
 
     if (ext == "dae") {
@@ -401,53 +428,6 @@ app.loadModelData = (data: Uint8Array, ext: string, resourcePath: string, callba
     else {
         console.warn("Model file type not supported: " + ext);
     }
-};
-
-app.loadJSONBinaryFile = (url: string): Promise<Record<string, ArrayBuffer | any>> => {
-    app.loadingManager.itemStart(url);
-
-    return new Promise((resolve, reject) => {
-        fetch(url)
-            .then(r => r.arrayBuffer())
-            .then(async buf => {
-                const view = new DataView(buf);
-
-                const jsonSize = view.getUint32(0, true);
-
-                const jsonStr = new TextDecoder().decode(
-                    new Uint8Array(buf, 4, jsonSize)
-                );
-
-                const binaryOffset = 4 + jsonSize;
-
-                const data = await transformObjectValues(JSON.parse(jsonStr), async (value) => {
-                    if (value.__type__ !== undefined) {
-                        let chunk = buf.slice(
-                            binaryOffset + value.offset,
-                            binaryOffset + value.offset + value.size
-                        );
-
-                        if (value.compressed) {
-                            chunk = await decompress(chunk);
-                        }
-
-                        switch (value.__type__) {
-                            case "f32":
-                                return new Float32Array(chunk);
-                            case "I32":
-                                return new Uint32Array(chunk);
-                        }
-                    }
-                });
-
-                app.loadingManager.itemEnd(url);
-
-                resolve(data);
-            })
-            .catch(err => {
-                reject(err);
-            });
-    });
 };
 
 app.mouseDownPoint = new THREE.Vector2();
