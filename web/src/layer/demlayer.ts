@@ -334,31 +334,31 @@ class DEMGridBlock extends DEMBlockBase {
 		const grid_geom = data.geometry;
 		if (grid_geom === undefined) return;
 
-		const geom = new GridGeometry();
+		const geometry = new GridGeometry();
 		const material = (this.materials[layer.currentMtlIndex] || {}).mtl;
-		const mesh = new THREE.Mesh(geom, material);
+
+		const mesh = new THREE.Mesh(geometry, material);
 		mesh.scale.z = grid_geom.zScale;
 		mesh.position.fromArray(grid_geom.translate);
-		layer.addObject(mesh);
 
-		const build = (grid_data: ParsedGridGeomData) => {
-			geom.loadData(grid_data);
-			mesh.material.needsUpdate = true;		// update shader after computing vertex normals
-
-			this.buildAuxiliaryObjects(layer, geom, mesh);
-
-			app.scene.sphereNeedsUpdate = true;
-			layer.requestRender();
-		};
-
-		const grid_data = grid_geom.grid;
-		if ("url" in grid_data) {
-			app.loadJSONBinaryFile(grid_data.url).then(build);
+		let dataPromise: Promise<ParsedGridGeomData>;
+		if ("url" in grid_geom.grid) {
+			dataPromise = app.loadJSONBinaryFile(grid_geom.grid.url);
 		}
 		else {
-			decodeBase64TypedArrayObject(grid_data).then(build);
+			dataPromise = decodeBase64TypedArrayObject(grid_geom.grid);
 		}
+		dataPromise.then((grid_data) => {
+			geometry.loadData(grid_data);
 
+			this.buildAuxiliaryObjects(layer, geometry, mesh);
+
+			material.needsUpdate = true;		// update shader after computing vertex normals
+			app.scene.sphereNeedsUpdate = true;
+			layer.requestRender();
+		});
+
+		layer.addObject(mesh);
 		this.obj = mesh;
 		return mesh;
 	}
@@ -372,33 +372,32 @@ class DEMMeshBlock extends DEMBlockBase {
 		const mesh_geom = data.geometry;
 		if (mesh_geom === undefined) return;
 
-		const geom = new THREE.BufferGeometry();
+		const geometry = new THREE.BufferGeometry();
 		const material = (this.materials[layer.currentMtlIndex] || {}).mtl;
 
-		const mesh = new THREE.Mesh(geom, material);
+		const mesh = new THREE.Mesh(geometry, material);
 		mesh.scale.z = mesh_geom.zScale;
 		mesh.position.fromArray(mesh_geom.translate);
-		layer.addObject(mesh);
 
-		const build = (mesh_data: ParsedMeshGeomData) => {
-			this.setGeometryData(geom, mesh_data);
-			if (!geom.getAttribute("uv") && mesh_data.extent) {
-				this.calculateUVs(geom, mesh_data.extent, layer.sceneData.origin);
+		let dataPromise: Promise<ParsedMeshGeomData>;
+		if ("url" in mesh_geom.mesh) {
+			dataPromise = app.loadJSONBinaryFile(mesh_geom.mesh.url);
+		}
+		else {    // preview
+			dataPromise = decodeBase64TypedArrayObject(mesh_geom.mesh);
+		}
+		dataPromise.then(mesh_data => {
+			this.setGeometryData(geometry, mesh_data);
+			if (!geometry.getAttribute("uv") && mesh_data.extent) {
+				this.calculateUVs(geometry, mesh_data.extent, layer.sceneData.origin);
 			}
-			this.buildAuxiliaryObjects(layer, geom, mesh);
+			this.buildAuxiliaryObjects(layer, geometry, mesh);
 
 			app.scene.sphereNeedsUpdate = true;
 			layer.requestRender();
-		};
+		});
 
-		const mesh_data = mesh_geom.mesh;
-		if ("url" in mesh_data) {
-			app.loadJSONBinaryFile(mesh_data.url).then(build);
-		}
-		else {    // preview
-			decodeBase64TypedArrayObject(mesh_data).then(build);
-		}
-
+		layer.addObject(mesh);
 		this.obj = mesh;
 		return mesh;
 	}
