@@ -310,6 +310,8 @@ class ThreeJSExporter(QObject):
         script = ""
         for filepath, type in list(dict.fromkeys(files)):
             if type == ScriptFile.TYPE_NON_MODULE:
+                if filepath.startswith("lib/"):
+                    filepath = "./" + filepath[4:]
                 script += f'<script defer src="{filepath}"></script>\n'
 
             else:
