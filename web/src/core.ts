@@ -88,3 +88,11 @@ export const UV = {
 export function debugLog(...args: any[]) {
 	if (conf.debugMode) console.debug(...args);
 }
+
+// Expose core objects globally for testing
+globalThis.__qgis2threejs = {
+	app,
+	conf,
+	gui,
+	modules
+};
