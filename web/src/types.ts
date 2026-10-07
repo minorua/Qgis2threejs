@@ -531,7 +531,7 @@ export interface App {
     loadJSONFile(url: string): Promise<void>;
     loadJSONBinaryFile(url: string): Promise<any>;
     loadModelFile(url: string): Promise<ModelObject>;
-    loadSceneFile(url: string): Promise<void>;
+    loadSceneFile(url: string): Promise<Scene>;
 
     loadData(data: AppData): boolean;
     loadModelData(data: Uint8Array, ext: string, resourcePath: string, callback?);

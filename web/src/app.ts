@@ -366,7 +366,7 @@ app.loadModelFile = async (url: string): Promise<ModelObject> => {
     return model;
 };
 
-app.loadSceneFile = async (url: string): Promise<void> => {
+app.loadSceneFile = async (url: string): Promise<Scene> => {
     app.loadingManager.itemStart("scene");
 
     try {
@@ -393,6 +393,8 @@ app.loadSceneFile = async (url: string): Promise<void> => {
         app.loadingManager.itemError("scene");
         throw error;
     }
+
+    return app.scene;
 };
 
 /**
