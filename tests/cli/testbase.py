@@ -15,15 +15,14 @@ from qgis.testing import unittest
 
 from .utils import start_app, stop_app, loadProject
 from ..utils import dataPath, expectedDataPath, initOutputDir, outputPath
-from ..webpage_check import WebPageCapturer, WebPageErrorChecker
+from ..inspector.client import InspectorClient
+from ..webpage_check import WebPageCapturer
 from ...core.exportsettings import ExportSettings
 from ...core.export.export import ThreeJSExporter
 from ...utils.gui import openFile
 
 
-MANUAL_PAGE_CHECK = True
 MANUAL_IMAGE_CHECK = True
-
 OUT_WIDTH, OUT_HEIGHT = (1024, 768)
 
 
@@ -89,12 +88,16 @@ class CLITestBase(unittest.TestCase):
     def check_webpage(self, filename):
         """check JavaScript errors and warnings in exported web page"""
 
-        url = QUrl.fromLocalFile(self.outputPath(filename))
-        checker = WebPageErrorChecker(url)
-        result = checker.check()
+        checker = InspectorClient(self.outputPath(filename))
+        self.addCleanup(checker.close)
 
-        if MANUAL_PAGE_CHECK:
-            openFile(self.outputPath(filename))
+        self.assertTrue(checker.waitForLoad(), f"Failed to load {filename}")
+        checker.waitForSceneLoadFinished()
+        checker.renderScene()
+
+        result = checker.checkResult()
+
+        checker.waitIfAutoExitCancelled()
 
         self.assertFalse(result.errors, f"JavaScript errors found in {filename}")
         self.assertFalse(result.warnings, f"JavaScript warnings found in {filename}")

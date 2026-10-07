@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import logging
-from dataclasses import dataclass
 from qgis.PyQt.QtCore import QEventLoop, QTimer, QUrl
 from qgis.PyQt.QtGui import QImage, QPainter
 from qgis.PyQt.QtTest import QSignalSpy
@@ -13,36 +12,10 @@ from .cli.utils import logger
 from ..gui.webview.webengineview import QWebEnginePage, setChromiumFlags
 
 
-@dataclass
-class ConsoleMessage:
-    level: str   # "error", "warning", "info"
-    message: str
-    line: int | None = None
-    source: str | None = None
-
-
-@dataclass
-class ErrorCheckResult:
-    ok: bool
-    errors: list[ConsoleMessage]
-    warnings: list[ConsoleMessage]
-
-
 class WebEnginePage(QWebEnginePage):
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-        self.errors: list[ConsoleMessage] = []
-        self.warnings: list[ConsoleMessage] = []
 
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
         CML = QWebEnginePage.JavaScriptConsoleMessageLevel
-
-        if level == CML.ErrorMessageLevel:
-            self.errors.append(ConsoleMessage("error", message, lineNumber, sourceID))
-        elif level == CML.WarningMessageLevel:
-            self.warnings.append(ConsoleMessage("warning", message, lineNumber, sourceID))
 
         logging_level = {
             CML.InfoMessageLevel: logging.INFO,
@@ -132,25 +105,6 @@ class WebPageCheckerBase(QWebEngineView):
         timer.start(1000)
         loop.exec()
 
-
-class WebPageErrorChecker(WebPageCheckerBase):
-
-    def check(self):
-        self.waitForSceneLoadFinished()
-        self.renderScene()
-
-        ignore_warnings = [
-            "THREE.FileLoader: HTTP Status 0 received.",
-            "RENDER WARNING: Render count or primcount is 0."
-        ]
-
-        warnings = [w for w in self._page.warnings if not any(i in w.message for i in ignore_warnings)]
-
-        return ErrorCheckResult(
-            ok=len(self._page.errors) == 0,
-            errors=self._page.errors,
-            warnings=warnings,
-        )
 
 class WebPageCapturer(WebPageCheckerBase):
 
