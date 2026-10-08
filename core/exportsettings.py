@@ -539,10 +539,9 @@ class ExportSettings:
         else:
             layer = QgsProject.instance().mapLayer(id)
             if layer:
-                if DEBUG_MODE and "copy" in layer.name():  # TODO: REMOVE THIS
-                    return QGISRasterDEMProvider(layer, self.crs)
-                else:
-                    return GDALDEMProvider(layer.source(), str(self.crs.toWkt()), source_wkt=str(layer.crs().toWkt()))    # use CRS set to the layer in QGIS
+                # if DEBUG_MODE and "copy" in layer.name():
+                #     return QGISRasterDEMProvider(layer, self.crs)
+                return GDALDEMProvider(layer.source(), str(self.crs.toWkt()), source_wkt=str(layer.crs().toWkt()))    # use CRS set to the layer in QGIS
 
         return FlatDEMProvider()
 
