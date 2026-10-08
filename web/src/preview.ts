@@ -669,10 +669,9 @@ app.render = (immediate) => {
 	if (immediate) tickCount++;
 };
 
-app.saveCanvasImage = (width, height, fill_background) => {
-	const saveCanvasImage = (canvas) => {
+app.saveCanvasImage = (width, height, fill_background = true) => {
+	_saveCanvasImage(width, height, fill_background, (canvas) => {
 		pyObj.saveImage(canvas.toDataURL("image/png"));
 		gui.popup.hide();
-	};
-	_saveCanvasImage(width, height, fill_background, saveCanvasImage);
+	});
 };

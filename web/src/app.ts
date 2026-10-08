@@ -1022,81 +1022,70 @@ app.canvasClicked = (e) => {
 };
 
 app.saveCanvasImage = (width, height, fill_background = true, saveImageFunc) => {
-    let old_size;
-    if (width && height) {
-        old_size = [app.width, app.height];
-        app.setCanvasSize(width, height);
+    if (width <= 0 || height <= 0) {
+        throw new RangeError("Image width and height must be positive numbers.");
     }
 
+    const { renderer, width: oldWidth, height: oldHeight } = app;
+
     const saveBlob = (blob) => {
-        const filename = "image.png";
+        if (!blob) {
+            console.error("Failed to create the image blob.");
+            return;
+        }
 
         if (app._canvasImageUrl) URL.revokeObjectURL(app._canvasImageUrl);
         app._canvasImageUrl = URL.createObjectURL(blob);
 
-        // display a link to save the image
-        const e = document.createElement("a");
-        e.className = "download-link";
-        e.href = app._canvasImageUrl;
-        e.download = filename;
-        e.innerHTML = "Save";
-        gui.popup.show("Click to save the image to a file." + e.outerHTML, "Image is ready");
+        const link = document.createElement("a");
+        link.className = "download-link";
+        link.href = app._canvasImageUrl;
+        link.download = "image.png";
+        link.textContent = "Save";
+        gui.popup.show("Click to save the image to a file." + link.outerHTML, "Image is ready");
     };
 
-    const saveCanvasImage = saveImageFunc || ((canvas) => canvas.toBlob(saveBlob));
-
-    const restoreCanvasSize = () => {
-        if (old_size) app.setCanvasSize(old_size[0], old_size[1]);
+    const _saveImageFunc = saveImageFunc || ((canvas) => canvas.toBlob(saveBlob));
+    const _restoreCanvasSize = () => {
+        app.setCanvasSize(oldWidth, oldHeight);
         app.render();
     };
 
-    // background option
-    if (!fill_background) app.renderer.setClearColor(0, 0);
+    app.setCanvasSize(width, height);
+    if (!fill_background) renderer.setClearColor(0, 0);
 
-    // rendering
-    app.renderer.clear()
-    app.renderer.preserveDrawingBuffer = true;
+    app.render(true);
 
-    if (app.effect) {
-        app.effect.render(app.scene, app.camera);
-    }
-    else {
-        app.renderer.render(app.scene, app.camera);
-    }
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
 
-    // restore clear color
-    const bgcolor = conf.bgColor;
-    app.renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
-
-    if (fill_background && bgcolor === null) {
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext("2d");
-        if (fill_background && bgcolor === null) {
-            // render "sky-like" background
-            const grad = ctx.createLinearGradient(0, 0, 0, height);
-            grad.addColorStop(0, "#98c8f6");
-            grad.addColorStop(0.4, "#cbebff");
-            grad.addColorStop(1, "#f0f9ff");
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, width, height);
-        }
+    const ctx = canvas.getContext("2d");
+    if (fill_background && conf.bgColor === null) {
+        // Render a sky-like background.
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, "#98c8f6");
+        gradient.addColorStop(0.4, "#cbebff");
+        gradient.addColorStop(1, "#f0f9ff");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
 
         const image = new Image();
         image.onload = () => {
             ctx.drawImage(image, 0, 0, width, height);
 
-            saveCanvasImage(canvas);
-            restoreCanvasSize();
+            _saveImageFunc(canvas);
+            _restoreCanvasSize();
         };
         image.src = app.renderer.domElement.toDataURL("image/png");
     }
     else {
-        saveCanvasImage(app.renderer.domElement);
-        restoreCanvasSize();
+        _saveImageFunc(app.renderer.domElement);
+        _restoreCanvasSize();
     }
+
+    const bgcolor = conf.bgColor;
+    renderer.setClearColor(bgcolor || 0, (bgcolor === null) ? 0 : 1);
 };
 
 (() => {	// measurement

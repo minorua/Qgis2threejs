@@ -558,7 +558,7 @@ export interface App {
 
     cleanView();
     highlightFeature(object);
-    saveCanvasImage(width, height, fill_backgroundtrue, saveImageFunc?);
+    saveCanvasImage(width: number, height: number, fill_background?: boolean, saveImageFunc?: (canvas: HTMLCanvasElement) => void);
 
     canvasClicked(e);
     intersectObjects(offsetX, offsetY);
@@ -570,7 +570,7 @@ export interface App {
     modelBuilders;
     urlParams;
     queryMarker: THREE.Mesh;
-    _canvasImageUrl;
+    _canvasImageUrl: string;
 }
 
 interface AnimationModule {

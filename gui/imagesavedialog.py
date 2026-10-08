@@ -63,10 +63,7 @@ class ImageSaveDialog(QDialog):
 
         self.wnd.ui.statusbar.showMessage(self.tr("Rendering..."))
 
-        def finalized(_):
-            QDialog.accept(self)
-
-        self.wnd.runScript(f"saveCanvasImage({width}, {height})", callback=finalized)
+        self.wnd.runScript(f"saveCanvasImage({width}, {height})", callback=lambda _: QDialog.accept(self))
 
     def helpClicked(self):
         openHelp("dlg=imagesave")
