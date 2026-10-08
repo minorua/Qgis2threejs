@@ -11,6 +11,12 @@ import type { AppData, ModelObject, Q3DEventListener } from "./types.js";
 
 const _v = new THREE.Vector3();
 
+app.anim_timer = new THREE.Timer();
+app.mouseDownPoint = new THREE.Vector2();
+app.mouseUpPoint = new THREE.Vector2();
+app.queryTargetPosition = new THREE.Vector3();
+
+
 const listeners: Record<string, Q3DEventListener[]> = {};
 
 app.dispatchEvent = (event) => {
@@ -206,11 +212,11 @@ app.setupControls = (name: string) => {
 
 function setupWidgets() {
     if (conf.navigation.enabled) {
-        app.buildViewHelper(app.container);
+        app.buildViewHelper();
     }
 
     if (conf.northArrow.enabled) {
-        app.buildNorthArrow(E("northarrow"));
+        app.buildNorthArrow();
     }
 }
 
@@ -433,9 +439,6 @@ app.loadModelData = (data: Uint8Array, ext: string, resourcePath: string, callba
     }
 };
 
-app.mouseDownPoint = new THREE.Vector2();
-app.mouseUpPoint = new THREE.Vector2();
-
 app.eventListener = {
 
     keydown: function (e) {
@@ -586,69 +589,108 @@ app.adjustCameraPosition = (force) => {
     app.cameraAction.zoom(_v.x, _v.y, (bbox.max.z + _v.z) / 2, app.scene.userData.baseExtent.width);
 };
 
-/**
- * @param container
- * @param declination Clockwise from +y, in degrees
- */
-app.buildNorthArrow = (container, declination = 0) => {
-    container.style.display = "block";
+(() => {    // North arrow
+    let naScene, naCamera, naMesh;
 
-    app.renderer2 = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    app.renderer2.setClearColor(0, 0);
-    app.renderer2.setSize(container.clientWidth, container.clientHeight);
+    const buildNorthArrowGeometry = () => {
+        const vertices = [
+            -5, -10, 0,
+            0, 10, 0,
+            0, -7, 3,
+            5, -10, 0
+        ];
 
-    app.container2 = container;
-    app.container2.appendChild(app.renderer2.domElement);
+        const index = [
+            0, 1, 2,
+            2, 1, 3
+        ];
 
-    app.camera2 = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 1000);
-    app.camera2.position.set(0, 0, conf.northArrow.cameraDistance);
-    app.camera2.up = app.camera.up;
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(vertices), 3));
+        geometry.setIndex(index);
+        return geometry;
+    };
 
-    app.scene2 = new Scene();
-    app.scene2.buildLights(conf.lights.directional);
+    /**
+     * @param declination Clockwise from +y, in degrees
+     */
+    app.buildNorthArrow = (declination = 0) => {
+        if (naMesh === undefined) {
+            const geometry = buildNorthArrowGeometry();
+            const material = new THREE.MeshLambertMaterial({
+                color: conf.northArrow.color,
+                flatShading: true,
+                side: THREE.DoubleSide
+            });
 
-    // an arrow object
-    const vertices = [
-        -5, -10, 0,
-        0, 10, 0,
-        0, -7, 3,
-        5, -10, 0
-    ];
+            naMesh = new THREE.Mesh(geometry, material);
 
-    const index = [
-        0, 1, 2,
-        2, 1, 3
-    ];
+            naScene = new Scene()
+            naScene.buildLights(conf.lights.directional);
+            naScene.add(naMesh);
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(vertices), 3));
-    geometry.setIndex(index);
+            naCamera = new THREE.PerspectiveCamera(45, 1, 1, 1000);
+            naCamera.up = app.camera.up;
+            naCamera.position.set(0, 0, conf.northArrow.cameraDistance);
+        }
+        else {
+            naMesh.material.color.set(conf.northArrow.color);
+        }
 
-    const material = new THREE.MeshLambertMaterial({
-        color: conf.northArrow.color,
-        flatShading: true,
-        side: THREE.DoubleSide
-    });
+        naMesh.rotation.z = -declination * deg2rad;
+    };
 
-    const mesh = new THREE.Mesh(geometry, material);
-    if (declination) mesh.rotation.z = -declination * deg2rad;
+    const viewport = new THREE.Vector4();
 
-    app.scene2.add(mesh);
-};
+    app.renderNorthArrow = () => {
+        if (naScene === undefined) return;
 
-app.anim_timer = new THREE.Timer();
+        naScene.quaternion.copy(app.camera.quaternion).invert();
+        naScene.updateMatrixWorld();
+
+        // based on three.js's ViewHelper.js.
+        const location = conf.northArrow.location;
+        const dim = conf.northArrow.size;
+
+        const { renderer } = app;
+        const { domElement } = renderer;
+
+        let x, y;
+
+        if ( location.left !== null ) {
+            x = location.left;
+        } else {
+            x = domElement.offsetWidth - dim - location.right;
+        }
+
+        if ( location.top !== null ) {
+            y = renderer.isWebGPURenderer ? location.top : domElement.offsetHeight - dim - location.top;
+        } else {
+            y = renderer.isWebGPURenderer ? domElement.offsetHeight - dim - location.bottom : location.bottom;
+        }
+
+        renderer.clearDepth();
+
+        renderer.getViewport(viewport);
+        renderer.setViewport(x, y, dim, dim);
+
+        renderer.render(naScene, naCamera);
+
+        renderer.setViewport(viewport.x, viewport.y, viewport.z, viewport.w);
+    };
+})();
 
 (() => {	// view helper
     let _pupListenerAdded = false;
 
-    app.buildViewHelper = (container) => {
+    app.buildViewHelper = () => {
         if (!modules.ViewHelper) return;
 
+        const { container } = app;
         app.viewHelper = new modules.ViewHelper(app.camera, container);
         app.viewHelper.center = app.controls.target;
         app.viewHelper.setLabels("X", "Y", "Z");
-        app.viewHelper.location.top = conf.navigation.top;
-        app.viewHelper.location.bottom = conf.navigation.bottom;
+        Object.assign(app.viewHelper.location, conf.navigation.location);
 
         if (_pupListenerAdded) return;
 
@@ -744,11 +786,8 @@ app.updateControlsAndRender = () => {
         }
 
         // North arrow
-        if (app.renderer2) {
-            app.scene2.quaternion.copy(app.camera.quaternion).invert();
-            app.scene2.updateMatrixWorld();
-
-            app.renderer2.render(app.scene2, app.camera2);
+        if (conf.northArrow.enabled) {
+            app.renderNorthArrow();
         }
 
         // navigation widget
@@ -814,8 +853,6 @@ app.intersectObjects = (offsetX, offsetY) => {
     ray.setFromCamera(vec2, app.camera);
     return ray.intersectObjects(app.scene.visibleObjects(app.labelVisible));
 };
-
-app.queryTargetPosition = new THREE.Vector3();
 
 app.cameraAction = {
 

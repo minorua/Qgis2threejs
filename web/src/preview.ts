@@ -512,7 +512,7 @@ export function switchCamera(is_ortho: boolean) {
 	// rebuild view helper
 	if (app.viewHelper) {
 		app.viewHelper.dispose();
-		app.buildViewHelper(app.container);
+		app.buildViewHelper();
 	}
 
 	app.updateControlsAndRender();
@@ -568,7 +568,7 @@ export function changeLight(type) {
 export function setNavigationEnabled(enabled) {
 	if (enabled) {
 		if (app.viewHelper === undefined) {
-			app.buildViewHelper(app.container);
+			app.buildViewHelper();
 			app.viewHelper.render(app.renderer);
 		}
 	}
@@ -582,23 +582,17 @@ export function setNavigationEnabled(enabled) {
 }
 
 export function setNorthArrowVisible(visible) {
-	E("northarrow").style.display = (visible) ? "block" : "none";
-	if (visible && app.scene2 === undefined) {
-		app.buildNorthArrow(E("northarrow"));
+	conf.northArrow.enabled = visible;
+	if (visible) {
+		app.buildNorthArrow();
 		app.render();
 	}
 }
 
 export function setNorthArrowColor(color: number) {
-	if (app.scene2 === undefined) {
-		conf.northArrow.color = color;
-	}
-	else {
-		const arrow = app.scene2.children[app.scene2.children.length - 1] as Mesh;
-		const material = arrow.material as MeshLambertMaterial;
-		material.color.set(color);
-		app.render();
-	}
+	conf.northArrow.color = color;
+	app.buildNorthArrow();
+	app.render();
 }
 
 //// animation

@@ -372,18 +372,6 @@ table.measure tr > td:nth-child(2) {
   cursor: pointer;
 }
 
-/* widgets */
-#northarrow {
-  position: absolute;
-  left: 12px;
-  bottom: 16px;
-  width: 80px;
-  height: 80px;
-  z-index: 1000;
-  pointer-events: none;
-  display: none;
-}
-
 /* animation */
 #narrativebox {
   position: absolute;

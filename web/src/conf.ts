@@ -91,14 +91,25 @@ export const conf = {
     // Widgets
     navigation: {
         enabled: true,
-        top: null,
-        bottom: 0
+        location: {
+            top: null,
+            right: 0,
+            bottom: 16,
+            left: null
+        }
     },
 
     northArrow: {
         color: 0x8b4513,
         cameraDistance: 30,
-        enabled: false
+        enabled: false,
+        location: {
+            top: null,
+            right: null,
+            bottom: 16,
+            left: 12
+        },
+        size: 80
     },
 
     // Animation

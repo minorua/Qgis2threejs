@@ -496,11 +496,6 @@ export interface App {
     viewHelper;
     effect;
 
-    camera2;
-    container2;
-    renderer2;
-    scene2: Scene;
-
     /* state */
     width: number;
     height: number;
@@ -539,8 +534,8 @@ export interface App {
 
     buildCamera(is_ortho?: boolean);
     setupControls(name?: string);
-    buildNorthArrow(container: HTMLElement, declination?: number);
-    buildViewHelper(container: HTMLElement);
+    buildNorthArrow(declination?: number);
+    buildViewHelper();
 
     adjustCameraNearFar();
     adjustCameraPosition(force?);
@@ -553,6 +548,7 @@ export interface App {
     render(immediate?: boolean);
     setIntervalRender(delay, repeat);
     updateControlsAndRender();
+    renderNorthArrow();
 
     currentViewUrl();
     setCanvasSize(width, height);
