@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """Client for inspector.py (runs it as a subprocess, reads its stdout, sends scripts to its stdin)."""
+import base64
 import json
 import os
 import queue
@@ -12,6 +13,8 @@ import sys
 import threading
 import time
 from dataclasses import dataclass, field
+
+from qgis.PyQt.QtGui import QImage
 
 from ..cli.utils import logger
 
@@ -33,7 +36,7 @@ class ErrorCheckResult:
 
 class InspectorClient:
 
-    def __init__(self, filepath, timeout=60):
+    def __init__(self, filepath, timeout=60, size=None):
         # logger.debug("os.environ: " + str(os.environ))
 
         if sys.platform == "win32":
@@ -44,6 +47,8 @@ class InspectorClient:
             cmd = [sys.executable or "python3", os.path.join(DIR, "inspector.py")]
             path = "/usr/bin:/bin"
         cmd += [filepath, "--timeout", str(timeout)]
+        if size:
+            cmd += ["--size", f"{size.width()}x{size.height()}"]
 
         self._proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                       text=True, encoding="utf-8", bufsize=1)
@@ -89,6 +94,25 @@ class InspectorClient:
     def renderScene(self):
         self.runScript("__qgis2threejs.app.render();")
         time.sleep(1)
+
+    def capture(self):
+        result = self.runScript("__capture__")
+        if not isinstance(result, dict) or "png" not in result:
+            raise RuntimeError(f"Failed to capture page: {result}")
+
+        image = QImage.fromData(base64.b64decode(result["png"]), "PNG")
+        if image.isNull():
+            raise RuntimeError("Failed to decode captured page image.")
+
+        logger.debug("Page captured.")
+        return image
+
+    def captureToFile(self, filename):
+        image = self.capture()
+        if not image.save(filename):
+            raise OSError(f"Failed to save captured image to: {filename}")
+
+        logger.info(f"Image saved to: {filename}")
 
     def waitIfAutoExitCancelled(self):
         if self._auto_exit_cancelled.is_set():

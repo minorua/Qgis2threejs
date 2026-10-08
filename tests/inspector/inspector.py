@@ -13,6 +13,7 @@ Usage:
 - Exits automatically after --timeout seconds (0 to disable) unless the "Cancel auto-exit" button is pressed.
 """
 import argparse
+import base64
 import functools
 import json
 import os
@@ -20,7 +21,8 @@ import sys
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-from PyQt6.QtCore import QTimer, QUrl, pyqtSignal
+from PyQt6.QtCore import QBuffer, QIODevice, QTimer, QUrl, pyqtSignal
+from PyQt6.QtGui import QImage, QPainter
 from PyQt6.QtWebEngineCore import QWebEnginePage
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWidgets import QApplication, QHBoxLayout, QLineEdit, QPushButton, QVBoxLayout, QWidget
@@ -77,12 +79,14 @@ class Inspector(QWidget):
 
     scriptReceived = pyqtSignal(str)
 
-    def __init__(self, url, timeout):
+    def __init__(self, url, timeout, size=None):
         super().__init__()
         self.setWindowTitle("Web Page Inspector")
         self.resize(1024, 768)
 
         self.view = QWebEngineView()
+        if size:
+            self.view.setFixedSize(*size)
         self.page = ConsoleLoggingPage(self.view)
         self.view.setPage(self.page)
 
@@ -146,10 +150,37 @@ class Inspector(QWidget):
         self.pending = []
 
     def runScript(self, code):
-        if self.loaded:
-            self.page.runJavaScript(code, lambda result: out("[result] " + json.dumps(result, default=str)))
-        else:
+        if not self.loaded:
             self.pending.append(code)
+            return
+
+        if code == "__capture__":
+            image = QImage(self.view.size(), QImage.Format.Format_ARGB32_Premultiplied)
+            painter = QPainter(image)
+            self.view.render(painter)
+            painter.end()
+
+            buffer = QBuffer()
+            buffer.open(QIODevice.OpenModeFlag.WriteOnly)
+            if image.save(buffer, "PNG"):
+                result = {"png": base64.b64encode(bytes(buffer.data())).decode("ascii")}
+            else:
+                result = {"error": "Failed to encode captured page image."}
+            out("[result] " + json.dumps(result))
+
+            return
+
+        self.page.runJavaScript(code, lambda result: out("[result] " + json.dumps(result, default=str)))
+
+def parse_size(value):
+    try:
+        width, height = (int(part) for part in value.lower().split("x"))
+    except ValueError as e:
+        raise argparse.ArgumentTypeError("size must be WIDTHxHEIGHT") from e
+
+    if width <= 0 or height <= 0:
+        raise argparse.ArgumentTypeError("size dimensions must be positive")
+    return width, height
 
 
 def main():
@@ -157,6 +188,7 @@ def main():
     parser.add_argument("html", help="HTML file to open")
     parser.add_argument("--timeout", type=float, default=60, help="auto-exit timeout in seconds (0: disable)")
     parser.add_argument("--port", type=int, default=0, help="HTTP server port (0: auto)")
+    parser.add_argument("--size", type=parse_size, help="web view size as WIDTHxHEIGHT")
     args = parser.parse_args()
 
     path = os.path.abspath(args.html)
@@ -167,7 +199,7 @@ def main():
     url = "http://127.0.0.1:{}/{}".format(server.server_address[1], os.path.basename(path))
 
     app = QApplication(sys.argv[:1])
-    win = Inspector(url, args.timeout)
+    win = Inspector(url, args.timeout, args.size)
     win.show()
     StdinReader(win.scriptReceived.emit).start()
 

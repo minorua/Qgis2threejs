@@ -9,14 +9,13 @@ conf.VALIDATE_DATA = True
 from osgeo import gdal
 gdal.UseExceptions()
 
-from qgis.PyQt.QtCore import QSize, QUrl
+from qgis.PyQt.QtCore import QSize
 from qgis.PyQt.QtGui import QImage
 from qgis.testing import unittest
 
 from .utils import start_app, stop_app, loadProject
 from ..utils import dataPath, expectedDataPath, initOutputDir, outputPath
 from ..inspector.client import InspectorClient
-from ..webpage_check import WebPageCapturer
 from ...core.exportsettings import ExportSettings
 from ...core.export.export import ThreeJSExporter
 from ...utils.gui import openFile
@@ -107,17 +106,16 @@ class CLITestBase(unittest.TestCase):
     def check_webpage_capture(self, filename):
         """render exported web page and check page capture"""
 
-        url = QUrl.fromLocalFile(self.outputPath(filename))
-        # url = QUrl(url.toString() + "#cx=-20&cy=34&cz=16&tx=-2&ty=-8&tz=0")
-
+        html_path = self.outputPath(filename)
         filename = filename.replace(".html", "_capture.png")
         image_path = self.outputPath(filename)
 
-        wpc = WebPageCapturer(url, QSize(OUT_WIDTH, OUT_HEIGHT))
-        # wpc.runScript('document.getElementById("progress").style.display = "none";')  # hide progress bar
-        wpc.waitForSceneLoadFinished()
-        wpc.renderScene()
-        wpc.captureToFile(image_path)
+        checker = InspectorClient(html_path, size=QSize(OUT_WIDTH, OUT_HEIGHT))
+        self.addCleanup(checker.close)
+        self.assertTrue(checker.waitForLoad(), f"Failed to load {filename}")
+        checker.waitForSceneLoadFinished()
+        checker.renderScene()
+        checker.captureToFile(image_path)
 
         image = QImage(image_path)
         self.assertEqual(image.size(), QSize(OUT_WIDTH, OUT_HEIGHT), "captured image size is incorrect")
@@ -129,4 +127,4 @@ class CLITestBase(unittest.TestCase):
             # TODO: Visual Regression Testing and SSIM comparison
             self.assertEqual(image, QImage(expectedDataPath(filename)), "captured image is different from expected.")
 
-        return wpc
+        return checker
