@@ -511,6 +511,7 @@ export interface App {
     selectedObject;
     mouseDownPoint: THREE.Vector2;
     mouseUpPoint: THREE.Vector2;
+    _clickTimer?: ReturnType<typeof setTimeout>;
     queryTargetPosition;
 
     /* sub-modules */

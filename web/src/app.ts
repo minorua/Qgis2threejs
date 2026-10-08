@@ -258,6 +258,7 @@ function setupEventListeners() {
 
     app.renderer.domElement.addEventListener("mousedown", app.eventListener.mousedown);
     app.renderer.domElement.addEventListener("mouseup", app.eventListener.mouseup);
+    app.renderer.domElement.addEventListener("dblclick", app.eventListener.dblclick);
 }
 
 app.initLoadingManager = () => {
@@ -490,7 +491,19 @@ app.eventListener = {
 
     mouseup: function (e) {
         app.mouseUpPoint.set(e.clientX, e.clientY);
-        if (app.mouseDownPoint.equals(app.mouseUpPoint)) app.canvasClicked(e);
+        if (app.mouseDownPoint.equals(app.mouseUpPoint)) {
+            clearTimeout(app._clickTimer);
+            app._clickTimer = setTimeout(() => app.canvasClicked(e), 250);
+        }
+    },
+
+    dblclick: function (e) {
+        clearTimeout(app._clickTimer);
+        if (app.measure.isActive) return;
+
+        const canvasOffset = elemOffset(app.renderer.domElement);
+        const objs = app.intersectObjects(e.clientX - canvasOffset.left, e.clientY - canvasOffset.top);
+        if (objs.length) app.cameraAction.zoomToPoint(objs[0].point);
     },
 
     resize: function () {
@@ -825,6 +838,17 @@ app.cameraAction = {
         app.camera.position.copy(app.cameraAction.vecZoom).multiplyScalar(dist).add(_v);
         app.camera.lookAt(_v);
         if (app.controls.target !== undefined) app.controls.target.copy(_v);
+        app.updateControlsAndRender();
+        app.cleanView();
+    },
+
+    zoomToPoint: function (point) {
+        const dist = app.camera.position.distanceTo(point) / 2;
+        const dir = new THREE.Vector3().subVectors(app.camera.position, point).normalize();
+
+        app.camera.position.copy(dir).multiplyScalar(dist).add(point);
+        app.camera.lookAt(point);
+        if (app.controls.target !== undefined) app.controls.target.copy(point);
         app.updateControlsAndRender();
         app.cleanView();
     },
