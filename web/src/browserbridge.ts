@@ -85,7 +85,7 @@ const pyObj: PyObj = {
 	requestTileData: proxyMethod("requestTileData")
 };
 
-window.pyObj = pyObj;
+globalThis.pyObj = pyObj;
 
 function runScript(script: string) {
 	try {

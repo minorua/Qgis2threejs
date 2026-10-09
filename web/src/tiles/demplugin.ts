@@ -117,7 +117,8 @@ export class DEMPlugin {
      * @param options
      */
     async fetchData(url, options) {
-        if (window.requestTileData === undefined) {
+        const pyObj = globalThis.pyObj;
+        if (pyObj === undefined) {
             const tileId = url.split("/").slice(-3).join("/").replace(".tile", "")
 
             const entry = this.tileEntries.get(tileId);
@@ -138,7 +139,7 @@ export class DEMPlugin {
         });
 
         debugLog("Requesting tile data.", customUrl, options);
-        window.requestTileData(customUrl);
+        pyObj.requestTileData(customUrl);
 
         this.pendingRequests.set(customUrl, { promise, resolve, reject });
         return promise;
@@ -181,6 +182,7 @@ export class DEMPlugin {
     }
 
     setTileMaterialUpdaters(mtlIndex: number) {
+        const pyObj = globalThis.pyObj;
         const noop = () => {};
         const layer = this.layer;
 
@@ -189,7 +191,7 @@ export class DEMPlugin {
             if (!mesh) continue;
 
             const engineData = tile.engineData;
-            if (window.requestTileData === undefined) {
+            if (pyObj === undefined) {
                 layer.materials.removeItem(mesh.material, true);
 
                 const material = new Material();
@@ -208,7 +210,7 @@ export class DEMPlugin {
                     const pending = this.pendingRequests.get(uri);
                     if (pending) return;
 
-                    window.requestTileData(uri);
+                    pyObj.requestTileData(uri);
 
                     let resolve, reject;
                     const promise = new Promise((res, rej) => {

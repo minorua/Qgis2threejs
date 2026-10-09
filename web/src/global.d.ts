@@ -36,9 +36,4 @@ declare global {
     };
 
     var pyObj: PyObj;
-
-    // Declaration merging
-    interface Window {
-        pyObj: PyObj;
-    }
 }

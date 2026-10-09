@@ -18,7 +18,7 @@
 </script>
 <script type="module">
   import * as exports from "./js/dist/preview.js";
-  Object.assign(window, exports);
+  Object.assign(globalThis, exports);
 </script>
 <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
 </head>

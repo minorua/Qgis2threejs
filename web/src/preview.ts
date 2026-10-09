@@ -64,13 +64,13 @@ export function init(off_screen: boolean, debug_mode: number, qgis_version: numb
 		loadModules(modules_to_load).then(() => _init(off_screen));
 	};
 
-	if (window.pyObj) {
+	if (globalThis.pyObj) {
 		setup();
 		return;
 	}
 
 	new QWebChannel(qt.webChannelTransport, (channel) => {
-		window.pyObj = channel.objects.bridge;
+		globalThis.pyObj = channel.objects.bridge;
 		setup();
 	});
 }
@@ -441,10 +441,6 @@ export function requestRendering() {
 		app.render(true);
 		pyObj.emitRequestedRenderingFinished();
 	});
-}
-
-export function requestTileData(url: string) {
-	pyObj.requestTileData(url)
 }
 
 let barTimerId: number | null = null;

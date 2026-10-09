@@ -20,7 +20,7 @@
 <script type="module" src="./js/dist/browserbridge.js"></script>
 <script type="module">
   import * as exports from "./js/dist/preview.js";
-  Object.assign(window, exports);
+  Object.assign(globalThis, exports);
 </script>
 </head>
 <body>
