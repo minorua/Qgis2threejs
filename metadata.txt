@@ -6,12 +6,20 @@ qgisMinimumVersion=4.0
 qgisMaximumVersion=4.99
 description=3D map visualization and web export powered by three.js JavaScript library
 about=This plugin visualizes DEM and vector data in 3D within web browsers. You can easily create various 3D objects, generate files for web publishing, and export 3D models in glTF format for 3DCG or 3D printing.
-version=3.2.1
+version=3.3
 author=Minoru Akagi
 email=akaginch@gmail.com
 
 # Optional items:
 changelog=
+    Version 3.3
+    - Renamed "Resampling Method" group to "DEM Structure"
+    - Renamed "Bilinear Resampling" to "Simple" and "Use Original DEM Values" to "Tiles"
+    - Added pyramid tiles mode to DEM
+    - Added MapControls and set it as default
+    - Added zoom-to-point on double-click
+    - Restructured exported data
+
     Version 3.2.1
     - Fixed camera near and far plane distance calculation by ignoring the Z extent
 

@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [3.3] - 2026-10-13
+- Renamed "Resampling Method" group to "DEM Structure"
+- Renamed "Bilinear Resampling" to "Simple" and "Use Original DEM Values" to "Tiles"
+- Added pyramid tiles mode to DEM
+- Added MapControls and set it as default
+- Added zoom-to-point on double-click
+- Restructured exported data
+
 ## [3.2.1] - 2026-09-07
 
 - Fixed camera near and far plane distance calculation by ignoring the Z extent
