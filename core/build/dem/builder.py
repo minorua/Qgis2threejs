@@ -142,8 +142,8 @@ class DEMLayerBuilder(LayerBuilderBase):
                 self.log(f"Failed to create a tileset. {e}", warning=True)
                 return None
 
-        elif not self.properties.get("radioButton_Tiles"):
-            # Simple mode
+        elif not self.properties.get("radioButton_Tiles") and self.layer.mapLayer:
+            # Simple mode with GDAL DEM provider
             transform = QgsCoordinateTransform(self.settings.crs, self.layer.mapLayer.crs(), QgsProject.instance())
             base_extent = transform.transformBoundingBox(self.settings.baseExtent().boundingBox())
             if not self.provider.grid().intersection(base_extent):
