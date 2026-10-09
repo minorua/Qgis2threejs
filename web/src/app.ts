@@ -238,6 +238,8 @@ function setupQueryMarker() {
 
 function setupEventListeners() {
     app.addEventListener("sceneLoaded", () => {
+        console.info("** Scene loaded! **");
+
         E("progressbar").classList.add("fadeout");
 
         if (conf.viewpoint.preset === null && conf.autoAdjustCameraPos) {
