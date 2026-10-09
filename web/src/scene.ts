@@ -155,10 +155,7 @@ export class Scene extends THREE.Scene {
 
 	loadTileData(data: TileDataResponse) {
 		const layer = this.mapLayers[data.layer];
-		if (layer === undefined || layer.tilesRenderer === undefined) return;
-
-		const plugin = layer.tilesRenderer.plugins[0];
-		plugin.dataReceived(data.url, data.data);
+		if (layer instanceof DEMLayer) layer.loadTileDataResponse(data);
 	}
 
 	buildLights(lights, rotation = 0) {

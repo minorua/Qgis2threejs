@@ -145,7 +145,7 @@ export class DEMPlugin {
     }
 
     /**
-     * Called from Scene.loadTileData() in preview mode
+     * Called from layer.loadTileDataResponse() in preview mode
      */
     dataReceived(url, data: DEMTileData) {
         const pending = this.pendingRequests.get(url);

@@ -9,7 +9,7 @@ import { Material } from "../material.js";
 import { createWallGeometry, decodeBase64TypedArrayObject, getBoundaryLines } from "../utils.js";
 import { buildTileset, DEMPlugin } from "../tiles/demplugin.js";
 
-import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, DEMTileData, DEMTileEntry, MapExtent, ParsedGridGeomData, ParsedMeshGeomData, Point3, RuntimeTile, Tileset, Vec3 } from "../types.js";
+import type { DEMBlockData, DEMBlockGridData, DEMBlockMeshData, DEMLayerData, DEMLayerProperties, DEMTileData, DEMTileEntry, MapExtent, ParsedGridGeomData, ParsedMeshGeomData, Point3, RuntimeTile, TileDataResponse, Tileset, Vec3 } from "../types.js";
 import type { Scene } from "../scene.js";
 
 
@@ -20,6 +20,7 @@ export class DEMLayer extends MapLayer {
 	sideVisible: boolean = false;
 	auxiliaryMtl: Partial<Record<"sides", Material>> = {};
 	tilesRenderer = null;
+	tilesDEMPlugin: DEMPlugin | null = null;
 
 	anim?: any[];
 
@@ -29,10 +30,11 @@ export class DEMLayer extends MapLayer {
 		super.clearObjects();
 
 		if (this.tilesRenderer) {
-			this.tilesRenderer.plugins[0].pendingRequests.clear();
+			this.tilesDEMPlugin.pendingRequests.clear();
 			this.removeObject(this.tilesRenderer.group);
 			app.scene.removeTilesRenderer(this.tilesRenderer);
 			this.tilesRenderer = null;
+			this.tilesDEMPlugin = null;
 		}
 	}
 
@@ -65,6 +67,7 @@ export class DEMLayer extends MapLayer {
 				plugin.showBoundingVolume = true;
 			}
 
+			this.tilesDEMPlugin = plugin;
 			this.tilesRenderer = new mod.TilesRenderer();
 			this.tilesRenderer.registerPlugin(plugin);
 			this.tilesRenderer.setCamera(app.camera);
@@ -80,6 +83,10 @@ export class DEMLayer extends MapLayer {
 		if (data.body && data.body.contents) {
 			data.body.contents.forEach((block) => this.loadBlockData(block, scene));
 		}
+	}
+
+	loadTileDataResponse(data: TileDataResponse) {
+		this.tilesDEMPlugin.dataReceived(data.url, data.data);
 	}
 
 	_loadAuxiliaryMaterials(p: DEMLayerProperties) {
@@ -121,7 +128,7 @@ export class DEMLayer extends MapLayer {
 		this.properties.mtlIndex = mtlIndex;
 
 		if (this.tilesRenderer) {
-			this.tilesRenderer.plugins[0].setTileMaterialUpdaters(mtlIndex);
+			this.tilesDEMPlugin.setTileMaterialUpdaters(mtlIndex);
 			return;
 		}
 
