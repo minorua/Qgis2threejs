@@ -31,13 +31,18 @@ class GUITestBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.WND.showStatusMessage(f"{cls.__name__}: Test started.", 3000)
 
         if cls.CAMERA_STATE:
             cls.WND.controller.setCameraState(cls.CAMERA_STATE)
 
+        cls.WND.webPage.loadScriptFile(ScriptFile.TEST, wait=True)
+
     @classmethod
     def tearDownClass(cls):
         cls.runScript("gui.popup.hide()")
+        cls.setLabels()
+        cls.WND.showStatusMessage(f"{cls.__name__}: Test finished.", 3000)
         super().tearDownClass()
 
     @classmethod
@@ -72,6 +77,13 @@ class GUITestBase(unittest.TestCase):
         cls.runScript(f'emulateKeyPress("{key}", "{code}")')
         cls.sleep(200)
 
+    @classmethod
+    def setLabels(cls, header="", footer=""):
+       cls.WND.controller.updateWidget("Label", {
+            "Header": header,
+            "Footer": footer
+        })
+
     @staticmethod
     def sleep(msec=500):
         loop = QEventLoop()
@@ -103,10 +115,7 @@ class GUITestBase(unittest.TestCase):
         if animating:
             desc += "<br>Animation in progress..."
 
-        self.WND.controller.updateWidget("Label", {
-            "Header": f"{self.__class__.__name__} - {testname}",
-            "Footer": desc
-        })
+        self.setLabels(f"{self.__class__.__name__} - {testname}", desc)
 
     def loadSettings(self, testDir, filename, useTestLabels=True):
         if not filename.endswith(".qto3settings"):

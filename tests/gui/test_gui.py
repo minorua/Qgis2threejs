@@ -202,3 +202,6 @@ def runTest(wnd):
         pass
 
     result.printResult()
+
+    msg = f"Test result for {filename}: {result.testsRun} tests, {len(result.skipped)} skipped, {len(result.errors)} errors, {len(result.failures)} failures."
+    wnd.showStatusMessage(msg, 60000)
