@@ -148,13 +148,29 @@ class TestKeyboardInteraction(GUITestBase):
         'pos': {'x': -55233, 'y': -195106, 'z': 37283}
     }
 
-    def test01_hideLabels(self):
+    def test01_labels(self):
+        self.sleep(500)
+        self.keyPress("L", "KeyL")
         self.sleep(500)
         self.keyPress("L", "KeyL")
 
-    def test02_showLabels(self):
+    def test02_orbitAnimation(self):
         self.sleep(500)
-        self.keyPress("L", "KeyL")
+        self.keyPress("R", "KeyR")
+        self.sleep(1500)
+        self.keyPress("R", "KeyR")
+
+    def test03_wireframe(self):
+        self.sleep(500)
+        self.keyPress("W", "KeyW")
+        self.sleep(500)
+        self.keyPress("W", "KeyW")
+
+    def test04_saveAsImage(self):
+        self.sleep(500)
+        self.keyPress("S", "KeyS", shiftKey=True)
+        self.sleep(500)
+        self.keyPress("Escape", "Escape")
 
 
 class TestCameraAnimation(GUITestBase):

@@ -182,12 +182,14 @@ function emulateClick(x, y) {
 	app.controls.connect(elem);
 }
 
-function emulateKeyPress(key, code) {
+function emulateKeyPress(key, code, shiftKey = false, ctrlKey = false) {
 	const options = {
 		bubbles: true,
 		cancelable: true,
 		key: key,
-		code: code
+		code: code,
+		shiftKey: shiftKey,
+		ctrlKey: ctrlKey
 	};
 
 	window.dispatchEvent(new KeyboardEvent("keydown", options));

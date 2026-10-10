@@ -73,8 +73,8 @@ class GUITestBase(unittest.TestCase):
         cls.sleep(500)
 
     @classmethod
-    def keyPress(cls, key, code):
-        cls.runScript(f'emulateKeyPress("{key}", "{code}")')
+    def keyPress(cls, key, code, shiftKey=False, ctrlKey=False):
+        cls.runScript(f'emulateKeyPress("{key}", "{code}", {js_bool(shiftKey)}, {js_bool(ctrlKey)})')
         cls.sleep(200)
 
     @classmethod
