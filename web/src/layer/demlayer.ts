@@ -86,7 +86,7 @@ export class DEMLayer extends MapLayer {
 	}
 
 	loadTileDataResponse(data: TileDataResponse) {
-		this.tilesDEMPlugin.dataReceived(data.url, data.data);
+		if (this.tilesDEMPlugin) this.tilesDEMPlugin.dataReceived(data.url, data.data);
 	}
 
 	_loadAuxiliaryMaterials(p: DEMLayerProperties) {
