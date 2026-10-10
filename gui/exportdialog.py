@@ -93,15 +93,12 @@ class ExportToWebDialog(QDialog):
         # Qgis2OnlineMap plugin integration
         self.q2om = qgis.utils.plugins.get("Qgis2OnlineMap")
         if self.q2om:
-            self.ui.pushButton_Publish.clicked.connect(self.publish)
             try:
                 self.ui.pushButton_Publish.setIcon(self.q2om.action.icon())
-
             except Exception:
                 logger.warning(traceback.format_exc())
-        else:
-            self.ui.pushButton_Publish.setEnabled(False)
 
+        self.ui.pushButton_Publish.clicked.connect(self.publish)
         self.ui.pushButton_Publish.setVisible(False)
 
     def templateChanged(self, index=None):
@@ -328,4 +325,12 @@ th {text-align:left;}
         self.log(msg, warning, indented=True)
 
     def publish(self):
-        self.q2om.open_with_path(self.lastExportDir)
+        if self.q2om:
+            self.q2om.open_with_path(self.lastExportDir)
+            return
+
+        msg = (
+            'To use this feature, you need to install the <a href="https://plugins.qgis.org/plugins/Qgis2OnlineMap">Qgis2OnlineMap plugin</a>, '
+            "which helps you publish your exported map online."
+        )
+        QMessageBox.information(self, "Publish with Qgis2OnlineMap", msg)
