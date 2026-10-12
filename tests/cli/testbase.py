@@ -4,7 +4,6 @@
 
 from ... import conf
 conf.IS_TESTING = True
-conf.VALIDATE_DATA = True
 
 from osgeo import gdal
 gdal.UseExceptions()
@@ -14,7 +13,7 @@ from qgis.PyQt.QtGui import QImage
 from qgis.testing import unittest
 
 from .utils import start_app, stop_app, loadProject
-from ..utils import dataPath, expectedDataPath, initOutputDir, outputPath
+from ..utils import assertValidData, dataPath, expectedDataPath, initOutputDir, outputPath
 from ..inspector.client import InspectorClient
 from ...core.exportsettings import ExportSettings
 from ...core.export.export import ThreeJSExporter
@@ -128,3 +127,6 @@ class CLITestBase(unittest.TestCase):
             self.assertEqual(image, QImage(expectedDataPath(filename)), "captured image is different from expected.")
 
         return checker
+
+    def assertValidData(self, data, type_name=None, convert_tuples=False, schema_filename="app.json"):
+        assertValidData(data, type_name, convert_tuples, schema_filename)

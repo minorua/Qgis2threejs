@@ -65,12 +65,28 @@ export interface DEMLayerProperties extends LayerProperties {
     };
 }
 
-export interface VectorLayerProperties extends LayerProperties {
-    type: "point" | "line" | "polygon";
+interface VectorLayerPropertiesBase extends LayerProperties {
     objType: string;
     fieldNames?: string[];
     label?: LabelProperties;
 }
+
+export interface PointLayerProperties extends VectorLayerPropertiesBase {
+    type: "point";
+    objType: "Point" | "Sphere" | "Cylinder" | "Cone" | "Box" | "Disk" | "Plane" | "Billboard" | "3D Model";
+}
+
+export interface LineLayerProperties extends VectorLayerPropertiesBase {
+    type: "line";
+    objType: "Line" | "Thick Line" | "Pipe" | "Cone" | "Box" | "Wall";
+}
+
+export interface PolygonLayerProperties extends VectorLayerPropertiesBase {
+    type: "polygon";
+    objType: "Polygon" | "Extruded" | "Overlay";
+}
+
+export type VectorLayerProperties = PointLayerProperties | LineLayerProperties | PolygonLayerProperties;
 
 interface LabelProperties {
     relative?: boolean;
@@ -162,13 +178,13 @@ export interface DEMLayerData extends LayerData {
 }
 
 export interface DEMGridData {
-    grid: GridGeomDataB64 | GridGeomDataRef | ParsedGridGeomData;
+    grid: GridGeomDataB64 | GridGeomDataRef | GridGeomDataBinaryJSON | ParsedGridGeomData;
     translate: Vec3;
     zScale: number;
 }
 
 export interface DEMMeshData {
-    mesh: MeshGeomDataB64 | MeshGeomDataRef | ParsedMeshGeomData;
+    mesh: MeshGeomDataB64 | MeshGeomDataRef | MeshGeomDataBinaryJSON | ParsedMeshGeomData;
     translate: Vec3;
     zScale: number;
 }
@@ -203,6 +219,15 @@ export interface GridGeomDataRef {
     url: string;
 }
 
+export interface GridGeomDataBinaryJSON {
+    array: DataRefF32;
+    columns: number;
+    rows: number;
+    extent: MapExtent;
+    nodata?: DataRefF32;
+    segments?: number;
+}
+
 export interface ParsedGridGeomData {
     array: Float32Array;     // DEM values
     columns: number;         // Number of columns of actual grid data
@@ -221,6 +246,13 @@ export interface MeshGeomDataB64 {
 
 export interface MeshGeomDataRef {
     url: string;
+}
+
+export interface MeshGeomDataBinaryJSON {
+    vertices: DataRefF32;
+    indices: DataRefI32;
+    uvs?: DataRefF32;
+    extent?: MapExtent;
 }
 
 export interface ParsedMeshGeomData {
@@ -295,7 +327,7 @@ export interface FeatureBlockData extends BlockData {
 
 export interface FeatureBlockDataRef extends BlockData {
     url: string;
-    featureCound: number;
+    featureCount: number;
 }
 
 export interface FeatureData {
@@ -324,8 +356,8 @@ export type RenderableObject = THREE.Mesh<THREE.BufferGeometry, THREE.Material> 
 export interface GeomData {
     pts?: number[] | Vec3[];
     lines?: (number[] | Vec3[])[];
-    polygons: Vec2[][][];
-    centroids: Vec3[];
+    polygons?: Vec2[][][];
+    centroids?: Vec3[];
     r?: number;
     w?: number;
     h?: number;

@@ -7,7 +7,7 @@ import { LayerType } from "../core.js";
 import { BuilderBase, VectorLayer } from "./vectorlayer.js";
 import { arrayToVec2Array, getBoundaryLines } from "../utils.js";
 
-import type { FeatureData, GeomData, MeshData, Vec2 } from "../types.js";
+import type { FeatureData, GeomData, MeshData, PolygonLayerProperties, Vec2 } from "../types.js";
 
 
 export class PolygonLayer extends VectorLayer {
@@ -22,6 +22,8 @@ export class PolygonLayer extends VectorLayer {
 		"Extruded": ExtrudedBuilder,
 		"Overlay": OverlayBuilder
 	}
+
+	declare properties: PolygonLayerProperties;
 
 	buildLabels(features) {
 		super.buildLabels(features, f => f.geom.centroids);

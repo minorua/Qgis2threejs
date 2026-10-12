@@ -477,9 +477,6 @@ class Q3DController(QObject):
     def sendData(self, data, viaQueue=False):
         self.webPage.sendData(data, viaQueue)
 
-        if conf.VALIDATE_DATA:
-            self.validateData(data)
-
     @requires_enabled
     def runScript(self, string, message="", sourceID="controller.py", callback=None, wait=False):
         return self.webPage.runScript(string, message, sourceID, callback, wait)
@@ -487,9 +484,3 @@ class Q3DController(QObject):
     @requires_enabled
     def loadScriptFiles(self, script_ids, callback=None):
         self.webPage.loadScriptFiles(script_ids, callback=callback)
-
-    def validateData(self, data):
-        from ...utils.debug import validateData
-        e = validateData(data)
-        if e and conf.IS_TESTING:
-            raise e

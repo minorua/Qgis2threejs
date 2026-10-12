@@ -8,7 +8,7 @@ import { BuilderBase, VectorLayer } from "./vectorlayer.js";
 import { Materials } from "../material.js";
 import { createWallGeometry } from "../utils.js";
 
-import type { FeatureData, GeomData, Vec3 } from "../types.js";
+import type { FeatureData, GeomData, LineLayerProperties, Vec3 } from "../types.js";
 
 
 export class LineLayer extends VectorLayer {
@@ -25,6 +25,8 @@ export class LineLayer extends VectorLayer {
         "Box": BoxBuilder,
         "Wall": WallBuilder
     }
+
+    declare properties: LineLayerProperties;
 
     clearObjects() {
         super.clearObjects();

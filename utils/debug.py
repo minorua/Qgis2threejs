@@ -3,13 +3,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2024-10-28
 
-import json
 import sys
 import weakref
 
 from qgis.PyQt.QtCore import QDir, QObject
 
-from .basic import pluginDir, temporaryOutputDir
+from .basic import temporaryOutputDir
 from .logging import logger
 from .gui import openDirectory
 
@@ -82,21 +81,3 @@ def logReferenceCount(wnd):
 
     if USE_OBJGRAPH:
         openDirectory(temp_dir)
-
-
-schema = None
-def validateData(data):
-    from jsonschema import validate, ValidationError
-
-    global schema
-    if not schema:
-        with open(pluginDir("web/src/schema/preview.json"), "r") as f:
-            schema = json.load(f)
-
-    try:
-        validate(data, schema)
-        logger.debug("[VALIDATION] {} data is valid.".format(data.get("type")))
-
-    except ValidationError as e:
-        logger.warning(str(e))
-        return e

@@ -7,7 +7,7 @@ import { deg2rad, LayerType, UV } from "../core.js";
 import { BuilderBase, VectorLayer } from "./vectorlayer.js";
 import { Models } from "../model.js";
 
-import type { GeomData, Vec3, VectorLayerData, FeatureBlockData, ModelObject, FeatureData } from "../types.js";
+import type { GeomData, Vec3, FeatureBlockData, FeatureData, ModelObject, PointLayerProperties, VectorLayerData } from "../types.js";
 import type { Scene } from "../scene.js";
 
 
@@ -28,6 +28,7 @@ export class PointLayer extends VectorLayer {
         "3D Model": ModelBuilder
     }
 
+    declare properties: PointLayerProperties;
     declare models: Models;
 
     constructor() {
