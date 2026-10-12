@@ -68,11 +68,25 @@ export class DEMLayer extends MapLayer {
 			}
 
 			this.tilesDEMPlugin = plugin;
-			this.tilesRenderer = new mod.TilesRenderer();
-			this.tilesRenderer.registerPlugin(plugin);
-			this.tilesRenderer.setCamera(app.camera);
-			this.tilesRenderer.setResolutionFromRenderer(app.camera, app.renderer);
-			this.tilesRenderer.addEventListener("needs-update", () => this.requestRender());
+
+			const renderer = new mod.TilesRenderer();
+			renderer.registerPlugin(plugin);
+			renderer.setCamera(app.camera);
+			renderer.setResolutionFromRenderer(app.camera, app.renderer);
+			renderer.addEventListener("needs-update", () => this.requestRender());
+
+			if (conf.preview) {
+				const { lruCache, downloadQueue } = renderer;
+
+				// Replace the renderer's default LRU cache and download queue.
+				renderer.lruCache = new mod.LRUCache();
+				renderer.lruCache.unloadPriorityCallback = lruCache.unloadPriorityCallback;
+
+				renderer.downloadQueue = new mod.DownloadPriorityQueue();
+				renderer.downloadQueue.maxJobsPerOrigin = 6;
+				renderer.downloadQueue.priorityCallback = downloadQueue.priorityCallback;
+			}
+			this.tilesRenderer = renderer;
 
 			this.addObject(this.tilesRenderer.group);
 			scene.addTilesRenderer(this.tilesRenderer);
