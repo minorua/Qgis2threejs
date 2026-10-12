@@ -8,7 +8,8 @@
     "release": "bash scripts/release.sh",
     "setup-debug": "bash scripts/setup-debug.sh",
     "setup-test": "bash scripts/setup-test.sh",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:js": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./tests/js/register.mjs --test \"tests/js/*.test.mjs\""
   },
   "author": "Minoru Akagi",
   "license": "GPL-3.0-or-later",
@@ -24,6 +25,7 @@
     "@types/three": "0.184.0",
     "esbuild": "^0.28.1",
     "eslint": "^10.7.0",
+    "jsdom": "^29.1.1",
     "ts-json-schema-generator": "^2.9.0",
     "typescript": "^6.0.3"
   }
