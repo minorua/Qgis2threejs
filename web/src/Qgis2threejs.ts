@@ -7,5 +7,5 @@ import "./gui.js";
 import "./animation.js";
 import { E } from "./utils.js";
 
-export const VERSION = "3.2.1";
+export const VERSION = "3.3";
 export { app, conf, debugLog, deg2rad, gui, modules, tweens, E };
