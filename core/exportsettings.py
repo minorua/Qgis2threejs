@@ -606,22 +606,31 @@ class ExportSettings:
         if warning_log is None:
             warning_log = logger.warning
 
-        def warn_one_keyframe(trk):
-            warning_log(f'Track "{trk["name"]}" has only one keyframe. At least two keyframes are needed for this track to work.')
+        def warn_insufficient_keyframes(trk):
+            name = trk["name"]
+            warning_log(
+                f"Track '{name}' has fewer than two keyframes. "
+                "At least two keyframes are required for this track to work."
+            )
+
+        def tracks_for(layer_data):
+            return layer_data.get("tracks", layer_data.get("groups", []))  # renamed since v2.9
 
         d = self.data.get(ExportSettings.KEYFRAMES, {})
 
         if layerId is None:
             # camera motion
-            count = 0
             camera = d.get("camera", {})
-            for track in camera.get("tracks", camera.get("groups", [])):     # renamed since v2.9
-                if track["enabled"]:
-                    if len(track["keyframes"]) > 1:
-                        count += 1
-                        yield track
-                    else:
-                        warn_one_keyframe(track)
+            count = 0
+            for track in tracks_for(camera):
+                if not track["enabled"]:
+                    continue
+
+                if len(track["keyframes"]) > 1:
+                    count += 1
+                    yield track
+                else:
+                    warn_insufficient_keyframes(track)
 
             if count > 1:
                 warning_log(f"There are {count} enabled camera motion tracks. They may not work properly due to conflicts.")
@@ -631,35 +640,42 @@ class ExportSettings:
         idsToExport = self.layerIdsToExport()
 
         if layerId is not None:
-            layer = layers.get(layerId)
-            if layer:
-                layers = {layerId: layer}
+            layerData = layers.get(layerId)
+            if layerData:
+                layers = {layerId: layerData}
             else:
                 return
 
-        for layerId, layer in layers.items():
+        for layerId, layerData in layers.items():
             if layerId not in idsToExport:
                 continue
 
-            for track in layer.get("tracks", layer.get("groups", [])):      # renamed since v2.9
+            for track in tracks_for(layerData):
                 if not track["enabled"]:
                     continue
 
+                layer = self.getLayer(layerId)
+                if not layer:
+                    warning_log(f"Layer not found: {layerId}")
+                    continue
+
                 if track["type"] == ATConst.ITEM_TRK_GROWING_LINE:
-                    layer = self.getLayer(layerId)
-                    if layer:
-                        if layer.properties.get("comboBox_ObjectType") in ["Line", "Thick Line"]:
-                            yield track
-                        else:
-                            warning_log(f"Layer '{layer.name}': Growing line animation is available with 'Line' and 'Thick Line'.")
+                    if layer.properties.get("comboBox_ObjectType") in ["Line", "Thick Line"]:
+                        yield track
                     else:
-                        warning_log(f"Layer not found: {layerId}")
+                        warning_log(f"Layer '{layer.name}': Growing line animation is only available for 'Line' and 'Thick Line'.")
+                    continue
 
-                elif len(track["keyframes"]) > 1:
-                    yield track
+                if track["type"] == ATConst.ITEM_TRK_TEXTURE:
+                    if layer.properties.get("radioButton_Pyramid"):
+                        warning_log(f"Layer '{layer.name}': Texture animation is not supported in pyramid tiles mode.")
+                        continue
 
-                else:
-                    warn_one_keyframe(track)
+                if len(track["keyframes"]) == 1:
+                    warn_insufficient_keyframes(track)
+                    continue
+
+                yield track
 
     def animationData(self, layerId=None, export=False, warning_log=None):
         d = self.data.get(ExportSettings.KEYFRAMES, {})
@@ -668,7 +684,6 @@ class ExportSettings:
                 return d.get("layers", {}).get(layerId, {})
             return d
 
-        # for export
         if not d.get("enabled"):
             return {}
 
