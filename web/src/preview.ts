@@ -461,7 +461,7 @@ export function showMessageBar(message: string, className = "warning", timeout_m
 	e.classList.add(className);
 }
 
-function closeMessageBar() {
+export function closeMessageBar() {
 	E("msgbar").style.display = "none";
 	barTimerId = null;
 }

@@ -166,6 +166,9 @@ class Q3DWebPageCommon:
         """
         self.runScript(f'showMessageBar({json.dumps(msg)}, "{className}", {timeout_ms})')
 
+    def closeMessageBar(self):
+        self.runScript("closeMessageBar()")
+
     def showStatusMessage(self, message, timeout_ms=0):
         self.bridge.statusMessage.emit(message, timeout_ms)
 

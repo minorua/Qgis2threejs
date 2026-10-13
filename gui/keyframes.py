@@ -92,11 +92,14 @@ class AnimationPanel(QWidget):
         settings = self.wnd.settings
         settings.setAnimationData(self.data())
 
-        self._warnings = []
+        warnings = []
+        def warning_log(msg):
+            warnings.append(msg)
+            logger.info("Animation: " + msg)
 
         dataList = []
         if items is None:
-            for track in settings.enabledValidTracks(warning_log=self._log):
+            for track in settings.enabledValidTracks(warning_log=warning_log):
                 layerId = track.get("layerId")
                 if layerId is None:
                     dataList.append(track)
@@ -130,13 +133,16 @@ class AnimationPanel(QWidget):
                     dataList.append(data)
 
         msg = ""
-        timeout_ms = 5000
-        if self._warnings:
-            msg = "Animation warning{}:<br><ul>".format("s" if len(self._warnings) > 1 else "")
-            for w in self._warnings:
-                msg += "<li>" + w + "</li>"
+        timeout_ms = 0
+        if warnings:
+            s = "s" if len(warnings) > 1 else ""
+            msg = (
+                '<div class="msgtitle"><span class="warning-icon">&#9888;</span>'
+                f'Animation warning{s}</div><ul>'
+            )
+            for w in warnings:
+                msg += f"<li>{w}</li>"
             msg += "</ul>"
-            timeout_ms = 0
 
         if len(dataList):
             self.isAnimating = True
@@ -149,14 +155,16 @@ class AnimationPanel(QWidget):
             self.ui.toolButtonPlay.setIcon(self.iconStop)
             self.ui.checkBoxLoop.setEnabled(False)
         else:
-            if not msg:
-                msg = "Animation: "
-            msg += "There are no tracks to play."
-
             self.ui.toolButtonPlay.setChecked(False)
 
+            if not warnings:
+                msg = '<div class="msgtitle">Animation</div><div>There are no tracks to play.</div>'
+                timeout_ms = 5000
+
         if msg:
-            self.webPage.showMessageBar(msg, timeout_ms)
+            self.webPage.showMessageBar(msg, className="info" if timeout_ms else "warning", timeout_ms=timeout_ms)
+        else:
+            self.webPage.closeMessageBar()
 
     def _updateLayer(self, layer, trackType):
         options = None
@@ -168,10 +176,6 @@ class AnimationPanel(QWidget):
         tm.addRunScriptTask("preview.renderEnabled = false;")
         tm.addBuildLayerTask(layer, options)
         tm.addRunScriptTask("preview.renderEnabled = true;")
-
-    def _log(self, msg):
-        self._warnings.append(msg)
-        logger.info("Animation: " + msg)
 
     def stopAnimation(self):
         self.webPage.runScript("stopAnimation()")

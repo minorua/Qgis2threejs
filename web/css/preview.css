@@ -56,8 +56,19 @@
   padding: 0;
 }
 
+#msgcontent .msgtitle {
+  font-weight: bold;
+}
+
+#msgcontent .warning-icon {
+  color: #664d03;
+  margin-right: 0.4em;
+}
+
 #msgcontent ul {
   margin: 0 5px;
+  display: inline-block;
+  text-align: left;
 }
 
 #testmarker {
