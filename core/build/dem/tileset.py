@@ -34,7 +34,7 @@ class Tileset:
 
         cols = math.ceil((grid.shape.cols - 1) / self.tileSegments)
         rows = math.ceil((grid.shape.rows - 1) / self.tileSegments)
-        self.tileShape = GridShape(cols, rows)
+        self.maxLevelTileShape = GridShape(cols, rows)
         self.maxLevel = max(0, max(cols, rows) - 1).bit_length()
 
     def tilesetParams(self):
@@ -85,15 +85,30 @@ class Tileset:
         if maxLevel is None:
             maxLevel = self.maxLevel
 
-        max_level_tile_size = self.gridResolution * self.tileSegments
-
         for level in range(minLevel, maxLevel + 1):
-            level_scale = 1 << (self.maxLevel - level)
-            tile_size = max_level_tile_size * level_scale
+            level_scale = 1 << (self.maxLevel - level)      # tile res. / grid res.
+            tile_resolution = self.gridResolution * level_scale
+            tile_size = tile_resolution * self.tileSegments
 
-            cols = math.ceil(self.boundingRect.width() / tile_size)
-            rows = math.ceil(self.boundingRect.height() / tile_size)
+            tile_cols = math.floor(self.boundingRect.width() / tile_size)
+            tile_rows = math.floor(self.boundingRect.height() / tile_size)
 
-            for row in range(rows):
-                for col in range(cols):
-                    yield Tile(level, col, row, self.tileRect(level, col, row))
+            rem_width = self.boundingRect.width() - tile_cols * tile_size
+            rem_height = self.boundingRect.height() - tile_rows * tile_size
+
+            rem_cols = round(rem_width / self.gridResolution)
+            rem_rows = round(rem_height / self.gridResolution)
+
+            if rem_cols >= level_scale:
+                tile_cols += 1
+            elif rem_cols:
+                # TODO: extend tileRect here?
+                pass
+
+
+            if rem_rows >= level_scale:
+                tile_rows += 1
+
+            for row in range(tile_rows):
+                for col in range(tile_cols):
+                    yield Tile(level, col, row, self.tileRect(level, col, row))     # TODO: extend tileRect here?
