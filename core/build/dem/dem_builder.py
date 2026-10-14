@@ -318,10 +318,20 @@ class DEMRawBuilder(DEMBuilderBase):
         self.dataExtent = dataExtent if dataExtent else tileExtent
         self.clip_geometry = clip_geometry
 
+    def gridShape(self) -> tuple[int, int]:
+        res = self.tileSize / self.segments
+        cols = round(self.dataExtent.width() / res) + 1
+        rows = round(self.dataExtent.height() / res) + 1
+        return cols, rows
+
     def build(self):
         """
-        @returns {DEMBlockGridData | DEMBlockMeshData}
+        @returns {DEMBlockGridData | DEMBlockMeshData | {}}
         """
+        columns, rows = self.gridShape()
+        if columns <= 1 or rows <= 1:
+            return {}
+
         b = super().build()
 
         c = self.extent.center()
@@ -330,19 +340,13 @@ class DEMRawBuilder(DEMBuilderBase):
 
         if self.clip_geometry:
             # TODO: implement clipped tile
-            pass
+            return {}
 
         else:
-            res = self.tileSize / self.segments
-            dataExtent = self.dataExtent
-
-            columns = round(dataExtent.width() / res) + 1
-            rows = round(dataExtent.height() / res) + 1
-
-            arr = self.provider.readAsArray(columns, rows, dataExtent)
+            arr = self.provider.readAsArray(columns, rows, self.dataExtent)
 
             if GRID_DEM_OUTPUT_MODE == "mesh":
-                data = self.buildMeshData(arr, dataExtent, self.localOrigin, self.provider.nodata, full_extent=self.extent)
+                data = self.buildMeshData(arr, self.dataExtent, self.localOrigin, self.provider.nodata, full_extent=self.extent)
                 b["translate"] = [0, 0, 0]
             else:   # "grid"
                 data = self.buildGridData(arr, self.provider.nodata, self.segments, full_extent=self.extent)

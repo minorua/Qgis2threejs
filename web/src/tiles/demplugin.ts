@@ -117,8 +117,8 @@ export class DEMPlugin {
      * @param options
      */
     async fetchData(url, options) {
-        const pyObj = globalThis.pyObj;
-        if (pyObj === undefined) {
+        const is_preview = "pyObj" in globalThis;
+        if (!is_preview) {
             const tileId = url.split("/").slice(-3).join("/").replace(".tile", "")
 
             const entry = this.tileEntries.get(tileId);
@@ -127,7 +127,6 @@ export class DEMPlugin {
             throw new Error("Tile entry not found");
         }
 
-        // preview
         const customUrl = "dem://" + url.split("/").slice(-4).join("/");
         const pending = this.pendingRequests.get(customUrl);
         if (pending) return pending.promise;
@@ -139,7 +138,7 @@ export class DEMPlugin {
         });
 
         debugLog("Requesting tile data.", customUrl, options);
-        pyObj.requestTileData(customUrl);
+        globalThis.pyObj.requestTileData(customUrl);
 
         this.pendingRequests.set(customUrl, { promise, resolve, reject });
         return promise;
@@ -159,13 +158,17 @@ export class DEMPlugin {
     }
 
     /**
+     * Called when the promise returned by fetchData() resolves.
      * @param content
      * @param {Tile} tile
      * @param {string} extension
      */
 	async parseTile(content: DEMTileEntry | DEMTileData, tile, extension, url, abortSignal) {
-        const grid_data = content.geometry as DEMGridData;
-        if ("tileId" in content) {     // export
+        const grid_data = content.geometry as (DEMGridData | undefined);
+        if (grid_data === undefined) return true;
+
+        const is_export = "tileId" in content;
+        if (is_export) {
             grid_data.grid = await app.loadJSONBinaryFile((grid_data.grid as GridGeomDataRef).url) as ParsedGridGeomData;
         }
         else {

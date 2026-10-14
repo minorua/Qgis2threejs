@@ -263,6 +263,7 @@ export interface ParsedMeshGeomData {
 }
 
 export interface DEMTileData {
+    // Empty tile data is allowed when the tile contains no valid grid data.
     geometry?: DEMGridData;
     material?: DEMMaterialData;        // preview
     materials?: DEMMaterialData[];     // export

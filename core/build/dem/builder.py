@@ -331,6 +331,13 @@ class DEMLayerBuilder(LayerBuilderBase):
             else:
                 yield ContentIdTask.fromBlockIndex(self.layer, blockIndex)
 
+            # Check whether the tile contains valid grid data
+            if not self.buildOptions.onlyMaterial:
+                self.demBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments, dataExtent=dataExtent)
+                cols, rows = self.demBuilder.gridShape()
+                if cols <= 1 or rows <= 1:
+                    continue
+
             # material builder
             if self.buildOptions.allMaterials and mtlCount:
                 for idx in range(mtlCount):
@@ -343,8 +350,6 @@ class DEMLayerBuilder(LayerBuilderBase):
 
             # dem builder
             if not self.buildOptions.onlyMaterial:
-                # DEMRawBuilder
-                self.demBuilder.setup(blockIndex, tileExtent, self.settings.mapTo3d().origin, segments, dataExtent=dataExtent)
                 yield BuildTask(self.demBuilder)
 
             self.progress(i + 1, tileCount)
@@ -444,12 +449,16 @@ class DEMLayerBuilder(LayerBuilderBase):
         dataExtent = MapExtent.fromRect(dataRect)
 
         data = {}
+        geometry = None
         if not onlyMaterial:
             self.demBuilder.setup(0, tileExtent, self.settings.mapTo3d().origin, tileset.tileSegments, dataExtent=dataExtent)
-            data["geometry"] = self.demBuilder.build()
+            geometry = self.demBuilder.build()
+            if geometry:
+                data["geometry"] = geometry
 
-        self.mtlBuilder.setup(0, tileExtent, debugText=f"{level}/{x}/{y}" if DEBUG_MODE else "")
-        data["material"] = self.mtlBuilder.build()
+        if geometry or onlyMaterial:
+            self.mtlBuilder.setup(0, tileExtent, debugText=f"{level}/{x}/{y}" if DEBUG_MODE else "")
+            data["material"] = self.mtlBuilder.build()
 
         return {
             "type": "tile",
