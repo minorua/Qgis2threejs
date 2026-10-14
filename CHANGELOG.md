@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [3.3] - 2026-10-14
+- Added pyramid tiles mode for DEMs
+- Added double-click zooming toward a point in the scene
+- Improved camera clipping plane calculations
+- Introduced MapControls as the default navigation controls
+- Renamed "Resampling Method" group to "DEM Structure"
+- Renamed "Bilinear Resampling" to "Simple" and "Use Original DEM Values" to "Tiles"
+
 ## [3.2.1] - 2026-09-07
 
 - Fixed camera near and far plane distance calculation by ignoring the Z extent
