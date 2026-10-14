@@ -146,12 +146,17 @@ as it resets the camera and its focal point to a reasonable location.</p>
 <li><dl class="simple">
 <dt>Save Scene As</dt><dd><ul id="save-image-dialog">
 <li><dl class="simple">
-<dt>Image (.png)…</dt><dd><p>Saves the rendered scene as a PNG image file. You can also copy the image to the clipboard.</p>
+<dt>Image (.png)…</dt><dd><p>Saves the rendered scene as a PNG image. You can also copy the image to the clipboard.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>glTF (.gltf,.glb)…</dt><dd><p>Saves the 3D model of the current scene in glTF format.</p>
+<dt>glTF (.gltf,.glb)…</dt><dd><p>Saves the current scene as a 3D model in glTF format.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>three.js JSON (.json)…</dt><dd><p>Saves the current scene as a 3D model in three.js JSON format.</p>
 </dd>
 </dl>
 </li>
@@ -180,25 +185,16 @@ as it resets the camera and its focal point to a reasonable location.</p>
 </section>
 <section id="scene-menu">
 <h3>Scene Menu<a class="headerlink" href="#scene-menu" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#scene-menu'"><span>#</span></a></h3>
-<ul>
+<ul class="simple">
 <li><dl class="simple">
 <dt>Scene Settings…</dt><dd><p>Opens the Scene Settings dialog. See <a class="reference external" href="#scene-settings">Scene Settings</a>.</p>
 </dd>
 </dl>
 </li>
-<li><dl>
-<dt>Add Layer</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Add Layer</dt><dd><ul>
 <li><dl class="simple">
 <dt>Add Flat Plane</dt><dd><p>Adds a flat horizontal plane to the scene. The altitude of the added plane can be changed in the Properties dialog.</p>
-</dd>
-</dl>
-</li>
-</ul>
-<ul class="simple" id="add-point-cloud-layer">
-<li><dl class="simple">
-<dt>Add Point Cloud Layer…</dt><dd><p>Adds a point cloud layer to the scene that can be loaded with Potree version 1.6. This feature has not been updated
-in recent years and does not support the Potree 2.0 file format or Cloud Optimized Point Cloud (COPC).
-See also <a class="reference external" href="#point-cloud-layer">Point Cloud Layer</a>.</p>
 </dd>
 </dl>
 </li>
@@ -429,14 +425,50 @@ this option is disabled.</p>
 </section>
 <section id="material-effects">
 <h4>Material &amp; Effects<a class="headerlink" href="#material-effects" title="Link to this heading"><span>#</span></a></h4>
-<ul class="simple">
-<li><dl class="simple">
-<dt>Basic material type</dt><dd><p>Specifies the material type applied to most 3D objects, except for Point, Billboard, Model File and Line-type objects.
-Select a material type from
-<a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshLambertMaterial">Lambert material</a>,
-<a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshPhongMaterial">Phong material</a> or
-<a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshToonMaterial">Toon material</a>.
-The default is Lambert material.</p>
+<ul>
+<li><dl>
+<dt>Material type</dt><dd><p>Sets the material type used to render most 3D mesh objects. This setting does not apply to Point, Billboard, Model File
+or Line-type objects, which use their own material types.
+Matte is selected by default.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.5%"/>
+<col style="width: 43.8%"/>
+<col style="width: 33.8%"/>
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Appearance</p></th>
+<th class="head"><p>Three.js material</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Simple</p></td>
+<td><p>Displays colors without lighting.</p></td>
+<td><p><a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshBasicMaterial">MeshBasicMaterial</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Matte</p></td>
+<td><p>A matte material with soft lighting.</p></td>
+<td><p><a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshLambertMaterial">MeshLambertMaterial</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Glossy</p></td>
+<td><p>A shiny material with bright highlights.</p></td>
+<td><p><a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshPhongMaterial">MeshPhongMaterial</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Toon</p></td>
+<td><p>Uses cartoon-style stepped shading.</p></td>
+<td><p><a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshToonMaterial">MeshToonMaterial</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Metal</p></td>
+<td><p>A reflective, metal-like material.</p></td>
+<td><p><a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshStandardMaterial">MeshStandardMaterial</a> (metalness 0.65, roughness 0.3)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Clay</p></td>
+<td><p>A rough, clay-like material.</p></td>
+<td><p><a class="reference external" href="https://threejs.org/docs/#api/en/materials/MeshStandardMaterial">MeshStandardMaterial</a> (metalness 0, roughness 0.9)</p></td>
+</tr>
+</tbody>
+</table>
 </dd>
 </dl>
 </li>
