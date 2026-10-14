@@ -565,7 +565,7 @@ app.adjustCameraNearFar = () => {
         app.camera.near = 0;
     }
     else {
-        const near = Math.max(cameraDistance - sphere.radius - margin, 0.001);
+        const near = Math.max(cameraDistance - sphere.radius - margin, 1);
         app.camera.near = Math.max(app.camera.far / maxRatio, Math.min(near, app.camera.far / minRatio));
     }
     app.camera.updateProjectionMatrix();
