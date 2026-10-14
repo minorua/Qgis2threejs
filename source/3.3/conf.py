@@ -9,7 +9,7 @@
 project = 'Qgis2threejs Plugin'
 copyright = '2014, Minoru Akagi'
 author = 'Minoru Akagi'
-release = '3.2'
+release = '3.3'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

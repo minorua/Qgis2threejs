@@ -3,14 +3,42 @@
 *********
 
 
+.. _3d-viewer-controls:
+
 3D Viewer Controls
 ==================
 
-Customized OrbitControls for Qgis2threejs are available.
+MapControls and OrbitControls are available.
+
+Double-click in the 3D view to zoom in toward the clicked location.
 
 
-Basic Controls
---------------
+MapControls
+-----------
+
+=======================   ==============================================================
+Mouse / Key               Control
+=======================   ==============================================================
+Left button + drag        Pan (Moves the camera parallel to the screen)
+Scroll wheel              Zoom
+Right button + drag       Orbit (Rotates the camera around the focal point)
+Arrow keys                Move (Moves the camera on the horizontal plane)
+=======================   ==============================================================
+
+
+Additional Controls
+^^^^^^^^^^^^^^^^^^^
+
+========================== ==========================================
+Mouse / Key                Control
+========================== ==========================================
+Ctrl + Right button + drag Look Around (Rotates the camera in place)
+Ctrl + Arrow keys          Look Around
+========================== ==========================================
+
+
+OrbitControls
+-------------
 
 =======================   ==============================================================
 Mouse / Key               Control
@@ -24,7 +52,7 @@ Shift + Arrow keys        Orbit
 
 
 Additional Controls
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 ========================== ==========================================
 Mouse / Key                Control

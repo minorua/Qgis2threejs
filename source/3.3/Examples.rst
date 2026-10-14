@@ -3,14 +3,14 @@ Examples
 
 * **Kibi-ji Cycling**: Animation and narrative box
 
-.. figure:: ./images/examples/kibiji.png
+.. figure:: https://minorua.github.io/Qgis2threejs/examples/screenshots/kibiji.png
    :target: /Qgis2threejs/examples/27/kibiji/
 
    Data sources: Geospatial Information Authority of Japan. |GSI_TILES| (dem, ort, relief)
 
 * **Mt. Fuji**: Shaded relief map made with SRTM3 data
 
-.. figure:: ./images/examples/mt_fuji.png
+.. figure:: https://minorua.github.io/Qgis2threejs/examples/screenshots/mt_fuji.png
    :target: /Qgis2threejs/examples/24/mt_fuji.html
 
    Data source: U.S. NASA and NGA. `SRTM elevation data <SRTM_DATA_URL_>`_
@@ -18,7 +18,7 @@ Examples
 
 * **Forest Basins**: Slope map
 
-.. figure:: ./images/examples/forest_basins.png
+.. figure:: https://minorua.github.io/Qgis2threejs/examples/screenshots/forest_basins.png
    :target: /Qgis2threejs/examples/24/forest_basins.html
 
    Data sources: Geospatial Information Authority of Japan.

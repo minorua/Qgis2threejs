@@ -51,10 +51,13 @@ File Menu
    .. _save-image-dialog:
 
    * Image (.png)...
-      Saves the rendered scene as a PNG image file. You can also copy the image to the clipboard.
+      Saves the rendered scene as a PNG image. You can also copy the image to the clipboard.
 
    * glTF (.gltf,.glb)...
-      Saves the 3D model of the current scene in glTF format.
+      Saves the current scene as a 3D model in glTF format.
+
+   * three.js JSON (.json)...
+      Saves the current scene as a 3D model in three.js JSON format.
 
 * Export Settings
    * Load / Save / Clear export settings
@@ -76,13 +79,6 @@ Scene Menu
    * Add Flat Plane
       Adds a flat horizontal plane to the scene. The altitude of the added plane can be changed in the Properties dialog.
 
-   .. _add-point-cloud-layer:
-
-   * Add Point Cloud Layer...
-      Adds a point cloud layer to the scene that can be loaded with Potree version 1.6. This feature has not been updated
-      in recent years and does not support the Potree 2.0 file format or Cloud Optimized Point Cloud (COPC).
-      See also `Point Cloud Layer <#point-cloud-layer>`__.
-
 * Reload (F5)
    Reloads the web page and rebuilds the current scene.
 
@@ -92,6 +88,10 @@ View Menu
 
 * Camera
    Changes the camera. See `Camera Settings <#camera-settings>`__.
+
+* Controls
+   Selects the controls used to navigate the 3D view. See
+   :ref:`3D Viewer Controls <3d-viewer-controls>` for details. MapControls is selected by default.
 
 * Widgets
    Configures widgets to be placed on the web page, such as the Navigation widget, the North arrow and the footer label.
@@ -251,13 +251,36 @@ Controls the fog effect applied to the scene.
 Material & Effects
 ^^^^^^^^^^^^^^^^^^
 
-* Basic material type
-   Specifies the material type applied to most 3D objects, except for Point, Billboard, Model File and Line-type objects.
-   Select a material type from
-   `Lambert material <https://threejs.org/docs/#api/en/materials/MeshLambertMaterial>`__,
-   `Phong material <https://threejs.org/docs/#api/en/materials/MeshPhongMaterial>`__ or
-   `Toon material <https://threejs.org/docs/#api/en/materials/MeshToonMaterial>`__.
-   The default is Lambert material.
+* Material type
+   Sets the material type used to render most 3D mesh objects. This setting does not apply to Point, Billboard, Model File
+   or Line-type objects, which use their own material types.
+   Matte is selected by default.
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 18 35 27
+
+      * - Option
+        - Appearance
+        - Three.js material
+      * - Simple
+        - Displays colors without lighting.
+        - `MeshBasicMaterial <https://threejs.org/docs/#api/en/materials/MeshBasicMaterial>`__
+      * - Matte
+        - A matte material with soft lighting.
+        - `MeshLambertMaterial <https://threejs.org/docs/#api/en/materials/MeshLambertMaterial>`__
+      * - Glossy
+        - A shiny material with bright highlights.
+        - `MeshPhongMaterial <https://threejs.org/docs/#api/en/materials/MeshPhongMaterial>`__
+      * - Toon
+        - Uses cartoon-style stepped shading.
+        - `MeshToonMaterial <https://threejs.org/docs/#api/en/materials/MeshToonMaterial>`__
+      * - Metal
+        - A reflective, metal-like material.
+        - `MeshStandardMaterial <https://threejs.org/docs/#api/en/materials/MeshStandardMaterial>`__ (metalness 0.65, roughness 0.3)
+      * - Clay
+        - A rough, clay-like material.
+        - `MeshStandardMaterial <https://threejs.org/docs/#api/en/materials/MeshStandardMaterial>`__ (metalness 0, roughness 0.9)
 
 * Enable outline effect
    Enables an outline effect around 3D objects, making object shapes more visually distinguishable.
@@ -327,30 +350,34 @@ Geometry
    DEM Layer Properties Dialog - Geometry Tab
 
 
-Resampling Method
-^^^^^^^^^^^^^^^^^
+DEM Structure
+^^^^^^^^^^^^^
 
-Specifies how DEM elevation values are resampled when generating the 3D terrain mesh. Bilinear resampling is used by default.
+Simple mode is used by default.
 
-* Bilinear resampling
-   Resamples DEM elevation values using bilinear interpolation. This method calculates elevation values by interpolating
-   between neighboring pixel values. When this option is selected, a terrain mesh covering the scene base extent is generated
-   at a resolution determined by the resampling level.
+* Simple (bilinear resampling)
+   Resamples DEM elevation values using bilinear interpolation, which calculates each value from neighboring pixel values.
+   When selected, a terrain mesh covering the scene base extent is generated at a resolution set by the resampling level.
 
    * Resampling level
-      Selects the resolution level used when resampling the DEM. Lower resolution levels reduce the number of elevation samples
-      and improve performance, while higher resolution levels preserve more terrain detail but may increase processing time
-      and data size.
+      Sets the resolution used when resampling the DEM. Lower levels use fewer elevation samples and can improve performance,
+      while higher levels preserve more terrain detail but may increase processing time and data size.
       This setting affects only the terrain geometry and does not affect texture resolution.
 
-* Use original DEM values
+* Tiles (single resolution)
    Uses the original DEM elevation values without interpolation. The DEM is divided into tiles.
 
    This option cannot be used if the CRS of the DEM layer differs from the project CRS, or if the DEM grid spacing differs
-   between the x and y directions. In addition, terrain objects will not be displayed if the map in the map canvas is rotated.
+   between the x and y directions.
 
    * Tile side segments
       Specifies the number of segments along each side of a terrain tile.
+
+* Pyramid tiles (multi-resolution)
+   Generates a pyramid of DEM tiles at multiple resolutions. Higher-resolution tiles are loaded as you zoom in.
+
+   This option cannot be used if the CRS of the DEM layer differs from the project CRS, or if the DEM grid spacing differs
+   between the x and y directions.
 
 
 Clipping
