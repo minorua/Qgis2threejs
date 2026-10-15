@@ -1,0 +1,112 @@
+{
+  "KEYFRAMES": {
+    "camera": {
+      "tracks": []
+    },
+    "layers": {
+      "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147": {
+        "enabled": true,
+        "tracks": []
+      },
+      "fp:cb9b6195": {
+        "enabled": true,
+        "tracks": []
+      },
+      "mountains_0fa9a1bf_6167_4571_b385_e9a31c6375e1": {
+        "enabled": true,
+        "tracks": []
+      },
+      "plugin:gsielevtile": {
+        "enabled": true,
+        "tracks": []
+      },
+      "srtm_62ffafc6_c8b2_4e32_8882_137d6e1bbe4c": {
+        "enabled": true,
+        "tracks": []
+      }
+    },
+    "repeat": false
+  },
+  "LAYERS": [
+    {
+      "geomType": 1,
+      "layerId": "mountains_0fa9a1bf_6167_4571_b385_e9a31c6375e1",
+      "name": "mountains",
+      "properties": {},
+      "visible": false
+    },
+    {
+      "geomType": 0,
+      "layerId": "srtm_62ffafc6_c8b2_4e32_8882_137d6e1bbe4c",
+      "name": "srtm",
+      "properties": {
+        "checkBox_Clickable": true,
+        "checkBox_Sides": false,
+        "checkBox_Tiles": false,
+        "checkBox_Visible": true,
+        "colorButton_Side": [
+          204,
+          187,
+          170,
+          255
+        ],
+        "comboBox_ClipLayer": null,
+        "horizontalSlider_DEMSize": 2,
+        "lineEdit_Bottom": "0",
+        "lineEdit_Name": "",
+        "materials": [
+          {
+            "id": "956780b5",
+            "name": "map (canvas)",
+            "properties": {
+              "checkBox_FlatShading": false,
+              "checkBox_Shading": true,
+              "checkBox_TransparentBackground": false,
+              "colorButton_Color": [
+                0,
+                0,
+                0,
+                255
+              ],
+              "comboBox_TextureSize": "1024",
+              "layerIds": [],
+              "lineEdit_ImageFile": "",
+              "radioButton_WebP": true,
+              "spinBox_Opacity": 100
+            },
+            "type": 0
+          }
+        ],
+        "mtlId": "956780b5",
+        "radioButton_NoClip": true,
+        "radioButton_Tiles": true,
+        "spinBox_Roughening": 1,
+        "spinBox_Size": 3,
+        "spinBox_TileSideSegments": 512
+      },
+      "visible": true
+    },
+    {
+      "geomType": 0,
+      "layerId": "ascii_dem_b674e738_2b4a_46fc_8b3a_a4b3a7a4e147",
+      "name": "ascii_dem",
+      "properties": {},
+      "visible": false
+    },
+    {
+      "geomType": 0,
+      "layerId": "plugin:gsielevtile",
+      "name": "GSI Elevation Tile",
+      "properties": {},
+      "visible": false
+    },
+    {
+      "geomType": 0,
+      "layerId": "fp:cb9b6195",
+      "name": "Flat Plane",
+      "properties": {},
+      "visible": false
+    }
+  ],
+  "Version": 30300
+}
