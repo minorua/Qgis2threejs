@@ -118,7 +118,7 @@ class DEMBuilderBase:
     def buildJSONBinary(self, data):
         jhb = JSONBinaryWriter(data)
         if self.settings.isPreview:
-            return jhb.toJSONCompatible()
+            return jhb.toJSONCompatible(force_uncompressed=True)
 
         tail = f"{self.blockIndex}.bin"
         jhb.write(self.assetDestination.path(tail))

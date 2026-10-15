@@ -11,25 +11,21 @@ import zlib
 class BinaryContainer:
 
     def __init__(self, data: bytes, type: str, compress=True):
-        self._data = data
+        self.data = data
         self.type = type
         self.compress = compress
 
-    def data(self):
-        return zlib.compress(self._data) if self.compress else self._data
-
-    def toBase64(self):
-        return base64.b64encode(self.data()).decode("ascii")
-
-    def toJSONCompatible(self):
+    def toJSONCompatible(self, force_uncompressed=False):
+        compress = self.compress and not force_uncompressed
+        data = zlib.compress(self.data) if compress else self.data
         return {
             "__type__": self.type,
-            "compressed": self.compress,
-            "data": self.toBase64()
+            "compressed": compress,
+            "data": base64.b64encode(data).decode("ascii")
         }
 
     def __repr__(self):
-        return f"BinaryContainer(type={self.type}, compress={self.compress}, size={len(self.data())})"
+        return f"BinaryContainer(type={self.type}, size={len(self.data)}, compress={self.compress})"
 
     @classmethod
     def fromFloat(cls, value, compress=False):
@@ -42,10 +38,10 @@ class JSONBinaryWriter:
     def __init__(self, data=None):
         self.data: dict = data or {}
 
-    def toJSONCompatible(self):
+    def toJSONCompatible(self, force_uncompressed=False):
         def convert(value):
             if isinstance(value, BinaryContainer):
-                return value.toJSONCompatible()
+                return value.toJSONCompatible(force_uncompressed)
 
             return traverse_nested(value, convert)
 
@@ -59,7 +55,7 @@ class JSONBinaryWriter:
             nonlocal offset
 
             if isinstance(value, BinaryContainer):
-                data = value.data()
+                data = value.data
                 metadata = {
                     "__type__": value.type,
                     "offset": offset,
