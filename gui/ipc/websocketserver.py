@@ -81,6 +81,12 @@ class WebSocketServer(SocketInterface):
 
         self.sock.disconnectFromHost()
 
+    def createMessageBytes(self, msg_dict):
+        if msg_dict.get("__jsonbinary__"):
+            # TODO:
+            pass
+        return super().createMessageBytes(msg_dict)
+
     def writeToSocket(self, data):
         if self.sock:
             self._sendFrame(self.sock, data, OPCODE_TEXT)

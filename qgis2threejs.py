@@ -122,8 +122,6 @@ class Qgis2threejs:
                 needsToUpdateLayers = False
 
         self.exportSettings = self.exportSettings or ExportSettings()
-        self.exportSettings.isPreview = True
-        self.exportSettings.requiresJsonSerializable = True
         self.exportSettings.setMapSettings(self.iface.mapCanvas().mapSettings())
         if needsToUpdateLayers:
             self.exportSettings.updateLayers()

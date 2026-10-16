@@ -50,6 +50,9 @@ class Q3DWindow(QMainWindow):
             else:
                 webViewMode = WebViewMode.INPROCESS
 
+        settings.isPreview = True
+        settings.requiresJsonSerializable = bool(webViewType != WebViewType.BROWSER)
+
         super().__init__(parent=None if webViewMode in (WebViewMode.SEPARATE, WebViewMode.BROWSER) else qgisIface.mainWindow())
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
