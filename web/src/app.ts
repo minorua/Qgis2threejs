@@ -331,6 +331,8 @@ app.loadJSONBinaryFile = async (url: string): Promise<Record<string, ArrayBuffer
                 }
 
                 switch (value.__type__) {
+                    case "I8":
+                        return new Uint8Array(chunk);
                     case "f32":
                         return new Float32Array(chunk);
                     case "I32":

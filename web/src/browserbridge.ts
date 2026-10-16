@@ -1,6 +1,8 @@
 // (C) 2026 Minoru Akagi
 // SPDX-License-Identifier: MIT
 
+import { decompress, transformObjectValues } from "./utils.js";
+
 import type { PyObj, PreviewData } from "./types.ts";
 
 // must match Qgis2threejs.gui.ipc.socketinterface
@@ -96,12 +98,28 @@ function runScript(script: string) {
 	}
 }
 
-function handleMessage(raw: string) {
+async function handleMessage(raw: ArrayBuffer | string) {
 	let msg: { type: string; id?: number; method?: string; params?: Record<string, any> };
 	try {
-		msg = JSON.parse(raw);
-	} catch {
-		console.error("Received an invalid message:", raw);
+		if (typeof raw === "string") {
+			msg = JSON.parse(raw);
+		}
+		else {
+			const bytes = new Uint8Array(raw);
+			switch (bytes[0]) {
+				case 74:	// J
+					msg = JSON.parse(new TextDecoder().decode(bytes.subarray(1)));
+					break;
+				case 66:	// B
+					msg = await decodeBinaryMessage(bytes.subarray(1));
+					break;
+				default:
+					throw new Error("Unknown message format.");
+			}
+		}
+	}
+	catch (error) {
+		console.error("Received an invalid message:", error);
 		return;
 	}
 
@@ -138,6 +156,34 @@ function handleMessage(raw: string) {
 	}
 }
 
+async function decodeBinaryMessage(payload: Uint8Array) {
+	const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+	const jsonSize = view.getUint32(0, true);
+	const jsonStr = new TextDecoder().decode(payload.subarray(4, 4 + jsonSize));
+	const binaryOffset = 4 + jsonSize;
+	return transformObjectValues(JSON.parse(jsonStr), async (value) => {
+		if (value.__type__ !== undefined) {
+			let chunk = payload.slice(
+				binaryOffset + value.offset,
+				binaryOffset + value.offset + value.size
+			).buffer;
+
+			if (value.compressed) {
+				chunk = await decompress(chunk);
+			}
+
+			switch (value.__type__) {
+				case "I8":
+					return new Uint8Array(chunk);
+				case "f32":
+					return new Float32Array(chunk);
+				case "I32":
+					return new Uint32Array(chunk);
+			}
+		}
+	});
+}
+
 window.addEventListener("load", () => {
 	sendMessage(TYPE_EVENT, EVT_PAGE_LOADED, { ok: true });
 });
@@ -153,6 +199,7 @@ window.addEventListener("error", (e) => {
 
 function connect() {
 	ws = new WebSocket(`ws://${location.host}/ws`);
+	ws.binaryType = "arraybuffer";
 
 	ws.addEventListener("open", () => {
 		sendMessage(TYPE_EVENT, EVT_PAGE_LOAD_STARTED);

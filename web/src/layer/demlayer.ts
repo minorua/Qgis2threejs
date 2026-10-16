@@ -366,6 +366,9 @@ class DEMGridBlock extends DEMBlockBase {
 		if ("url" in grid_geom.grid) {
 			dataPromise = app.loadJSONBinaryFile(grid_geom.grid.url);
 		}
+		else if (data["_jsonbinary"]) {
+			dataPromise = Promise.resolve(grid_geom.grid as ParsedGridGeomData);
+		}
 		else {
 			dataPromise = decodeBase64TypedArrayObject(grid_geom.grid);
 		}

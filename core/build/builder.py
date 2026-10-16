@@ -122,6 +122,8 @@ class ThreeJSBuilder(QObject):
 
                     data = buildTask.build()
                     if data:
+                        if not settings.requiresJsonSerializable:
+                            data["_jsonbinary"] = True
                         data["progress"] = self.currentProgress
                         self.dataReady.emit(data)
 
@@ -141,6 +143,8 @@ class ThreeJSBuilder(QObject):
 
             data = builder.buildTile(url, level, x, y, onlyMaterial)
             if data:
+                if not settings.requiresJsonSerializable:
+                    data["_jsonbinary"] = True
                 self.dataReady.emit(data)
 
         except BuilderError as e:

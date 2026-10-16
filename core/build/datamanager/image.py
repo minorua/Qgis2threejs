@@ -32,7 +32,7 @@ class ImageSource(NamedTuple):
     extent: MapExtent | None = None
     dataExtent: MapExtent | None = None
     transparent_bg: bool = False
-    format: str = "PNG"
+    format: str = "PNG"     # "WebP" | "PNG" | "JPEG"
     debugText: str = ""
 
 
@@ -121,12 +121,25 @@ class ImageManager(DataManager):
 
             if s.format == "JPEG":
                 return jpegCompressedImage(image)
-
             return image
 
         image = QImage(1, 1, QImage.Format.Format_RGB32)
         image.fill(Qt.GlobalColor.lightGray)
         return image
+
+    def imageFormat(self, index):
+        return self._list[index].format
+
+    def imageBytes(self, index, fmt=None) -> bytes:
+        image = self.image(index)
+        if not image:
+            return b""
+
+        ba = QByteArray()
+        buffer = QBuffer(ba)
+        buffer.open(QIODevice.OpenModeFlag.WriteOnly)
+        image.save(buffer, fmt or self.imageFormat(index))
+        return bytes(ba)
 
     def dataUri(self, index):
         s = self._list[index]
@@ -136,7 +149,6 @@ class ImageManager(DataManager):
         image = self.image(index)
         if image:
             return image2dataUri(image, fmt=s.format)
-
         return ""
 
     def write(self, index, path):

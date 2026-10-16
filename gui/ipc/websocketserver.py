@@ -13,6 +13,7 @@ import urllib.parse
 from PyQt6.QtNetwork import QHostAddress, QTcpServer
 
 from .socketinterface import SocketInterface
+from ...core.build.jsonbinarywriter import JSONBinaryWriter
 from ...conf import DEBUG_MODE
 from ...utils.logging import logger
 
@@ -81,9 +82,16 @@ class WebSocketServer(SocketInterface):
 
         self.sock.disconnectFromHost()
 
+    def createMessageBytes(self, msg_dict):
+        if not msg_dict.get("params", {}).get("data", {}).get("_jsonbinary"):
+            return b"J" + super().createMessageBytes(msg_dict)
+
+        writer = JSONBinaryWriter(msg_dict)
+        return b"B" + writer.toBytes(force_uncompressed=True)
+
     def writeToSocket(self, data):
         if self.sock:
-            self._sendFrame(self.sock, data, OPCODE_TEXT)
+            self._sendFrame(self.sock, data, OPCODE_BINARY)
 
     def _onNewConnection(self):
         while self.server.hasPendingConnections():

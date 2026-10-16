@@ -50,6 +50,9 @@ class Q3DWindow(QMainWindow):
             else:
                 webViewMode = WebViewMode.INPROCESS
 
+        settings.isPreview = True
+        settings.requiresJsonSerializable = bool(webViewType != WebViewType.BROWSER)
+
         super().__init__(parent=None if webViewMode in (WebViewMode.SEPARATE, WebViewMode.BROWSER) else qgisIface.mainWindow())
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
@@ -623,9 +626,11 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.uncheckAll()       # hide all 3D objects from the scene
         self.ui.treeView.clearLayers()
 
-        self.settings.initialize(mapSettings=self.qgisIface.mapCanvas().mapSettings(),
-                                 isPreview=True,
-                                 requiresJsonSerializable=True)
+        self.settings.initialize(
+            mapSettings=self.qgisIface.mapCanvas().mapSettings(),
+            isPreview=True,
+            requiresJsonSerializable=bool(self.webViewType != WebViewType.BROWSER)
+        )
         self.settings.loadSettingsFromFile(filename)
 
         self.ui.treeView.addLayers(self.settings.layers())
@@ -659,9 +664,11 @@ class Q3DWindow(QMainWindow):
         self.ui.actionPerspective.setChecked(True)
         self.ui.actionOrbitControls.setChecked(True)
 
-        self.settings.initialize(mapSettings=self.qgisIface.mapCanvas().mapSettings(),
-                                 isPreview=True,
-                                 requiresJsonSerializable=True)
+        self.settings.initialize(
+            mapSettings=self.qgisIface.mapCanvas().mapSettings(),
+            isPreview=True,
+            requiresJsonSerializable=bool(self.webViewType != WebViewType.BROWSER)
+        )
         self.settings.updateLayers()
 
         self.ui.treeView.addLayers(self.settings.layers())

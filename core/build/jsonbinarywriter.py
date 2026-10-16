@@ -11,6 +11,9 @@ import zlib
 class BinaryContainer:
 
     def __init__(self, data: bytes, type: str, compress=True):
+        """
+        type: "I8", "f32", "I32"
+        """
         self.data = data
         self.type = type
         self.compress = compress
@@ -47,7 +50,7 @@ class JSONBinaryWriter:
 
         return convert(self.data)
 
-    def write(self, filepath):
+    def toBytes(self, force_uncompressed=False):
         offset = 0
         chunks = []
 
@@ -55,12 +58,13 @@ class JSONBinaryWriter:
             nonlocal offset
 
             if isinstance(value, BinaryContainer):
+                compress = value.compress and not force_uncompressed
                 data = value.data
                 metadata = {
                     "__type__": value.type,
                     "offset": offset,
                     "size": len(data),
-                    "compressed": value.compress
+                    "compressed": compress
                 }
                 offset += len(data)
                 chunks.append(data)
@@ -70,13 +74,11 @@ class JSONBinaryWriter:
 
         metadata = convert(self.data)
         json_bytes = json.dumps(metadata, separators=(",", ":")).encode("ascii")
+        return struct.pack("<I", len(json_bytes)) + json_bytes + b"".join(chunks)
 
+    def write(self, filepath):
         with open(filepath, "wb") as f:
-            f.write(struct.pack("<I", len(json_bytes)))
-            f.write(json_bytes)
-
-            for chunk in chunks:
-                f.write(chunk)
+            f.write(self.toBytes())
 
 
 def traverse_nested(value, recurse):

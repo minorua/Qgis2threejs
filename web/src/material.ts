@@ -37,9 +37,20 @@ export class Material {
 		let defer = false;
 
 		if (m.image !== undefined) {
-			const source = m.image.url || m.image.base64;
-			const loader = new THREE.TextureLoader(app.loadingManager);
-			opt.map = loader.load(source, () => this._loadCompleted(callback));
+			let source = m.image.url || m.image.base64;
+			if (source) {
+				const loader = new THREE.TextureLoader(app.loadingManager);
+				opt.map = loader.load(source, () => this._loadCompleted(callback));
+			}
+			else {
+				const blob = new Blob([m.image.binary], { type: "image/" + m.image.format.toLowerCase() });
+				const objectURL = URL.createObjectURL(blob);
+				const loader = new THREE.TextureLoader(app.loadingManager);
+				opt.map = loader.load(objectURL, (texture) => {
+					URL.revokeObjectURL(objectURL);
+					this._loadCompleted(callback);
+				});
+			}
 			opt.map.anisotropy = conf.texture.anisotropy;
 			opt.map.colorSpace = THREE.SRGBColorSpace;
 			defer = true;

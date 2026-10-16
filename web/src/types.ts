@@ -119,6 +119,8 @@ export interface SceneData extends BaseData {
 export interface MaterialImageData {
     url?: string;
     base64?: string;
+    binary?: Uint8Array;
+    format?: "WebP" | "PNG" | "JPEG";
 }
 
 interface MaterialDataBase<T extends MaterialType> {
@@ -165,6 +167,7 @@ export interface BlockData extends BaseData {
     type: "block";
     layer: number;
     block: number;
+    _jsonbinary?: true;
     progress?: number;
 }
 
@@ -207,11 +210,11 @@ export interface DEMBlockMeshMaterialData extends DEMBlockMeshData, DEMBlockMate
 export type DEMBlockData = DEMBlockGridData | DEMBlockMeshData | DEMBlockMaterialData | DEMBlockGridMaterialData | DEMBlockMeshMaterialData;
 
 export interface GridGeomDataB64 {
-    array: Base64F32;
+    array: Base64f32;
     columns: number;
     rows: number;
     extent: MapExtent;
-    nodata?: Base64F32;
+    nodata?: Base64f32;
     segments?: number;
 }
 
@@ -220,11 +223,11 @@ export interface GridGeomDataRef {
 }
 
 export interface GridGeomDataBinaryJSON {
-    array: DataRefF32;
+    array: DataReff32;
     columns: number;
     rows: number;
     extent: MapExtent;
-    nodata?: DataRefF32;
+    nodata?: DataReff32;
     segments?: number;
 }
 
@@ -238,9 +241,9 @@ export interface ParsedGridGeomData {
 }
 
 export interface MeshGeomDataB64 {
-    vertices: Base64F32;
+    vertices: Base64f32;
     indices: Base64I32;
-    uvs?: Base64F32;
+    uvs?: Base64f32;
     extent?: MapExtent;     // necessary for uv calculation
 }
 
@@ -249,9 +252,9 @@ export interface MeshGeomDataRef {
 }
 
 export interface MeshGeomDataBinaryJSON {
-    vertices: DataRefF32;
+    vertices: DataReff32;
     indices: DataRefI32;
-    uvs?: DataRefF32;
+    uvs?: DataReff32;
     extent?: MapExtent;
 }
 
@@ -387,6 +390,7 @@ export interface TileDataResponse extends BaseData {
     layer: number;
     url: string;
     data: DEMTileData;
+    _jsonbinary?: true;
 }
 
 /* Animation */
@@ -503,7 +507,7 @@ export type PreviewData =
 
 
 //// binary data
-type BinaryDataType = "f32" | "I32";
+type BinaryDataType = "I8" | "f32" | "I32";
 
 interface Base64DataBase {
     __type__: BinaryDataType;
@@ -511,7 +515,11 @@ interface Base64DataBase {
     data: string;
 }
 
-interface Base64F32 extends Base64DataBase {
+interface Base64I8 extends Base64DataBase {
+    __type__: "I8";
+}
+
+interface Base64f32 extends Base64DataBase {
     __type__: "f32";
 }
 
@@ -519,7 +527,7 @@ interface Base64I32 extends Base64DataBase {
     __type__: "I32";
 }
 
-export type Base64Data = Base64F32 | Base64I32;
+export type Base64Data = Base64I8 | Base64f32 | Base64I32;
 
 interface DataRefBase {
     __type__: BinaryDataType;
@@ -528,7 +536,11 @@ interface DataRefBase {
     size: number;
 }
 
-interface DataRefF32 extends DataRefBase {
+interface DataRefI8 extends DataRefBase {
+    __type__: "I8";
+}
+
+interface DataReff32 extends DataRefBase {
     __type__: "f32";
 }
 
@@ -536,7 +548,7 @@ interface DataRefI32 extends DataRefBase {
     __type__: "I32";
 }
 
-type DataRef = DataRefF32 | DataRefI32;
+type DataRef = DataRefI8 | DataReff32 | DataRefI32;
 
 /** Float32Array & { length: 1 } */
 type Float32Array1 = Float32Array;

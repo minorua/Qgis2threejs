@@ -119,7 +119,7 @@ def image2dataUri(image, fmt="PNG"):
     ba = QByteArray()
     buffer = QBuffer(ba)
     buffer.open(QIODevice.OpenModeFlag.WriteOnly)
-    image.save(buffer, fmt.upper())
+    image.save(buffer, fmt)
     return f"data:image/{fmt.lower()};base64," + ba.toBase64().data().decode("ascii")
 
 

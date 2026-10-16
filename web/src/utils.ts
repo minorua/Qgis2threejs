@@ -162,6 +162,8 @@ export const decodeBase64TypedArrayObject = async (obj) => {
 			}
 
 			switch (bin.__type__) {
+				case "I8":
+					return new Uint8Array(chunk);
 				case "f32":
 					return new Float32Array(chunk);
 				case "I32":

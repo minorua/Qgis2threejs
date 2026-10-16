@@ -8,6 +8,7 @@ from typing import NamedTuple
 
 from .base import DataManager
 from .image import ImageManager, ImageSource, ImageSourceType
+from ..jsonbinarywriter import BinaryContainer
 from ....utils.logging import logger
 
 
@@ -110,17 +111,19 @@ class MaterialManager(DataManager):
             else:
                 imgIndex = self.imageManager.getIndex(tex)
 
+            img = {}
             if url is None:
-                m["image"] = {
-                    "base64": self.imageManager.dataUri(imgIndex)
-                }
+                if base64:
+                    img["base64"] = self.imageManager.dataUri(imgIndex)
+                else:
+                    img["binary"] = BinaryContainer(self.imageManager.imageBytes(imgIndex), "I8")
+                    img["format"] = self.imageManager.imageFormat(imgIndex)
             else:
-                m["image"] = {
-                    "url": url
-                }
-
+                img["url"] = url
                 if filepath:
                     self.imageManager.write(imgIndex, filepath)
+
+            m["image"] = img        # as {MaterialImageData}
 
             if tex.transparent_bg:
                 m["t"] = 1
