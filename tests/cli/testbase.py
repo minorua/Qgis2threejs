@@ -5,6 +5,8 @@
 from ... import conf
 conf.IS_TESTING = True
 
+import json
+import struct
 from osgeo import gdal
 gdal.UseExceptions()
 
@@ -46,6 +48,20 @@ class CLITestBase(unittest.TestCase):
     @classmethod
     def outputPath(cls, *subdirs):
         return outputPath(cls.__name__[4:], *subdirs)
+
+    @classmethod
+    def readJSONBinaryData(cls, data):
+        header_size = struct.unpack_from("<I", data)[0]
+        header_end = 4 + header_size
+        jsondata = json.loads(data[4:header_end])
+        binarydata = data[header_end:]
+        return jsondata, binarydata
+
+    @classmethod
+    def loadJSONBinaryFile(cls, filename):
+        with open(filename, "rb") as f:
+            data = f.read()
+        return cls.readJSONBinaryData(data)
 
     def loadProject(self, filepath=None):
         if filepath is None:

@@ -2,21 +2,47 @@
 # (C) 2026 Minoru Akagi
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import json
 import os
-import struct
 
 from qgis.core import QgsCoordinateTransform, QgsPointXY, QgsProject
 from qgis.testing import unittest
 
 from .testbase import CLITestBase   # Enable test mode before importing plugin's other modules
-from .utils import logger
 from ...core.build.builder import ThreeJSBuilder
 from ...core.build.datamanager.image import ImageManager
 from ...core.build.dem.builder import DEMLayerBuilder
+from ...core.build.jsonbinarywriter import BinaryContainer, JSONBinaryWriter
 from ...core.build.vector.builder import VectorLayerBuilder
 from ...core.mapextent import MapExtent
 from ...core.storagelocation import StorageLocation
+
+
+class TestJSONBinaryWriter(CLITestBase):
+
+    def test01_bytes(self):
+        writer = JSONBinaryWriter({
+            "first": BinaryContainer(b"\x01\x02", "I8"),
+            "second": BinaryContainer(b"\x03", "I8"),
+            "third": 3
+        })
+        data = writer.toBytes()
+        jsondata, binarydata = self.readJSONBinaryData(data)
+
+        self.assertEqual(jsondata["first"]["offset"], 0)
+        self.assertEqual(jsondata["second"]["offset"], 2)
+        self.assertEqual(binarydata, b"\x01\x02\x03")
+
+    def test02_json(self):
+        source = {
+            "first": 1,
+            "second": "2"
+        }
+        writer = JSONBinaryWriter(source)
+        data = writer.toBytes()
+        jsondata, binarydata = self.readJSONBinaryData(data)
+
+        self.assertEqual(jsondata, source)
+        self.assertIs(binarydata, b"")
 
 
 class TestSceneBuilder(CLITestBase):
@@ -104,7 +130,7 @@ class TestDEMLayerBuilder(CLITestBase):
         geometry = block["geometry"]
         self.assertEqual(geometry["zScale"], settings.mapTo3d().zScale)
 
-        grid = self.loadJSONBinaryHeader(self.outputPath(geometry["grid"]["url"]))
+        grid, _ = self.loadJSONBinaryFile(self.outputPath(geometry["grid"]["url"]))
         self.assertValidData(grid, "GridGeomDataBinaryJSON")
 
         self.assertEqual(grid["segments"], 10)
@@ -156,14 +182,6 @@ class TestDEMLayerBuilder(CLITestBase):
             "maxLevel": 4,
             "tileSegments": 128
         })
-
-    def loadJSONBinaryHeader(self, filename):
-            with open(filename, "rb") as f:
-                data = f.read()
-
-            header_size = struct.unpack_from("<I", data)[0]
-            header_end = 4 + header_size
-            return json.loads(data[4:header_end])
 
 
 class TestVectorLayerBuilder(CLITestBase):
