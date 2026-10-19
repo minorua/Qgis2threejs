@@ -83,7 +83,25 @@ CLI tests use `qgis.testing.unittest` and run in a Python environment where QGIS
 
       Builds point-layer data from `testproject2`.
 
-- **File:** `test_11_export.py`
+- **File:** `test_20_controller.py`
+  - **Class:** `TestController`
+    - **Test:** `test01_build_scene_base64`
+
+      Builds scene and DEM data through `Q3DController` and verifies that the scene, layer, and block data are sent.
+
+    - **Test:** `test02_build_scene_bin`
+
+      Builds scene and DEM data through `Q3DController` and verifies that the scene, layer, and block data are sent, with block data in binary format.
+
+    - **Test:** `test03_build_dem_tile_base64`
+
+      Builds DEM tile data through `Q3DController` and verifies that the tile data is sent in Base64-encoded format.
+
+    - **Test:** `test04_build_dem_tile_bin`
+
+      Builds DEM tile data through `Q3DController` and verifies that the tile data is sent in binary format.
+
+- **File:** `test_30_exporter.py`
   - **Class:** `TestExportWeb`
     - **Test:** `test01_export_scene1_webpage`
 
@@ -96,31 +114,36 @@ CLI tests use `qgis.testing.unittest` and run in a Python environment where QGIS
     - **Test:** `test03_check_scene1_webpage_capture`
 
       Captures the exported page at 1024×768 and checks the image dimensions.
+
   - **Class:** `TestExportWebLM_datgui` (inherits the three `TestExportWeb` tests above)
     - **Test:** `test01_export_scene1_webpage`
 
       Runs the same export with the `3DViewer(dat-gui).html` template.
+
     - **Test:** `test02_check_scene1_webpage`
 
       Checks dat-gui top-level items, folders, layer count, and Custom Plane item count.
+
     - **Test:** `test03_check_scene1_webpage_capture`
 
       Captures the exported dat-gui page and checks the image dimensions.
 
-- **File:** `test_20_bridge.py`
+- **File:** `test_40_bridge.py`
   - **Class:** `TestExportImageWebEngine`
     - **Test:** `test01_export_scene1_image`
 
       Checks that ImageExporter logs no errors and that events occur in order from settings load through scene/layer/block loading to saving. Warnings are logged.
+
     - **Test:** `test02_check_scene1_image`
 
       Checks that the output image is 1024×768. In the default manual mode it opens the image and skips; in automatic mode it compares against `expected/scene1.png`.
+
   - **Class:** `TestExportModelWebEngine`
     - **Test:** `test01_export_scene1_glTF`
 
       Checks that ModelExporter produces a non-empty `scene1.gltf` file.
 
-- **File:** `test_30_plugins.py`
+- **File:** `test_50_plugins.py`
   - **Class:** `TestPlugins`
     - **Test:** `test01_gsielevtile`
 

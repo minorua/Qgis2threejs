@@ -103,9 +103,23 @@ def assertValidData(data, type_name=None, convert_tuples=False, schema_filename=
         logger.error(str(e))
         raise e
 
+
 def tuples_to_lists(obj):
     if isinstance(obj, dict):
         return {k: tuples_to_lists(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple)):
         return [tuples_to_lists(v) for v in obj]
     return obj
+
+
+def contains_instance(obj, cls):
+    if isinstance(obj, cls):
+        return True
+
+    if isinstance(obj, dict):
+        return any(contains_instance(v, cls) for v in obj.values())
+
+    if isinstance(obj, (list, tuple)):
+        return any(contains_instance(v, cls) for v in obj)
+
+    return False

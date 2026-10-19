@@ -119,7 +119,7 @@ export interface SceneData extends BaseData {
 export interface MaterialImageData {
     url?: string;
     base64?: string;
-    binary?: Uint8Array;
+    binary?: Uint8Array | any;
     format?: "WebP" | "PNG" | "JPEG";
 }
 
@@ -223,11 +223,11 @@ export interface GridGeomDataRef {
 }
 
 export interface GridGeomDataBinaryJSON {
-    array: DataReff32;
+    array: DataReff32 | any;
     columns: number;
     rows: number;
     extent: MapExtent;
-    nodata?: DataReff32;
+    nodata?: DataReff32 | any;
     segments?: number;
 }
 
@@ -252,9 +252,9 @@ export interface MeshGeomDataRef {
 }
 
 export interface MeshGeomDataBinaryJSON {
-    vertices: DataReff32;
-    indices: DataRefI32;
-    uvs?: DataReff32;
+    vertices: DataReff32 | any;
+    indices: DataRefI32 | any;
+    uvs?: DataReff32 | any;
     extent?: MapExtent;
 }
 
