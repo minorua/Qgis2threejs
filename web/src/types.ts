@@ -168,7 +168,7 @@ export interface BlockData extends BaseData {
     layer: number;
     block: number;
     _jsonbinary?: true;
-    progress?: number;
+    _progress?: number;
 }
 
 /* DEM layer, block, and tile */

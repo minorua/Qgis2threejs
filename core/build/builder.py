@@ -124,7 +124,7 @@ class ThreeJSBuilder(QObject):
                     if data:
                         if not settings.requiresJsonSerializable:
                             data["_jsonbinary"] = True
-                        data["progress"] = self.currentProgress
+                        data["_progress"] = self.currentProgress
                         self.dataReady.emit(data)
 
         except BuilderError as e:

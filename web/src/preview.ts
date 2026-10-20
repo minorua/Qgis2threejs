@@ -165,9 +165,9 @@ function loadData(data: PreviewData, viaQueue: boolean): boolean {
 		case "tile":
 			result = app.loadData(data);
 
-			if ("progress" in data) {
-				debugLog("Progress:", data.progress);
-				updateProgressBar(data.progress);
+			if ("_progress" in data) {
+				debugLog("Progress:", data._progress);
+				updateProgressBar(data._progress);
 			}
 			break;
 
