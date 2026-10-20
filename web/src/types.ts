@@ -510,42 +510,42 @@ export type PreviewData =
 type BinaryDataType = "I8" | "f32" | "I32";
 
 interface Base64DataBase {
-    __type__: BinaryDataType;
+    _type: BinaryDataType;
     compressed: boolean;
     data: string;
 }
 
 interface Base64I8 extends Base64DataBase {
-    __type__: "I8";
+    _type: "I8";
 }
 
 interface Base64f32 extends Base64DataBase {
-    __type__: "f32";
+    _type: "f32";
 }
 
 interface Base64I32 extends Base64DataBase {
-    __type__: "I32";
+    _type: "I32";
 }
 
 export type Base64Data = Base64I8 | Base64f32 | Base64I32;
 
 interface DataRefBase {
-    __type__: BinaryDataType;
+    _type: BinaryDataType;
     compressed: boolean;
     offset: number;
     size: number;
 }
 
 interface DataRefI8 extends DataRefBase {
-    __type__: "I8";
+    _type: "I8";
 }
 
 interface DataReff32 extends DataRefBase {
-    __type__: "f32";
+    _type: "f32";
 }
 
 interface DataRefI32 extends DataRefBase {
-    __type__: "I32";
+    _type: "I32";
 }
 
 type DataRef = DataRefI8 | DataReff32 | DataRefI32;

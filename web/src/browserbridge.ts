@@ -162,7 +162,7 @@ async function decodeBinaryMessage(payload: Uint8Array) {
 	const jsonStr = new TextDecoder().decode(payload.subarray(4, 4 + jsonSize));
 	const binaryOffset = 4 + jsonSize;
 	return transformObjectValues(JSON.parse(jsonStr), async (value) => {
-		if (value.__type__ !== undefined) {
+		if (value._type !== undefined) {
 			let chunk = payload.slice(
 				binaryOffset + value.offset,
 				binaryOffset + value.offset + value.size
@@ -172,7 +172,7 @@ async function decodeBinaryMessage(payload: Uint8Array) {
 				chunk = await decompress(chunk);
 			}
 
-			switch (value.__type__) {
+			switch (value._type) {
 				case "I8":
 					return new Uint8Array(chunk);
 				case "f32":

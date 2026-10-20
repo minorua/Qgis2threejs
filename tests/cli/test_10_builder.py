@@ -143,10 +143,10 @@ class TestDEMLayerBuilder(CLITestBase):
             "height": 100.0
         })
 
-        self.assertEqual(grid["array"]["__type__"], "f32")
+        self.assertEqual(grid["array"]["_type"], "f32")
         self.assertTrue(grid["array"]["compressed"])
 
-        self.assertEqual(grid["nodata"]["__type__"], "f32")
+        self.assertEqual(grid["nodata"]["_type"], "f32")
         self.assertEqual(grid["nodata"]["size"], 4)
         self.assertFalse(grid["nodata"]["compressed"])
 

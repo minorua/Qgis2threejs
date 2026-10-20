@@ -320,7 +320,7 @@ app.loadJSONBinaryFile = async (url: string): Promise<Record<string, ArrayBuffer
         const binaryOffset = 4 + jsonSize;
 
         const data = await transformObjectValues(JSON.parse(jsonStr), async (value) => {
-            if (value.__type__ !== undefined) {
+            if (value._type !== undefined) {
                 let chunk = buf.slice(
                     binaryOffset + value.offset,
                     binaryOffset + value.offset + value.size
@@ -330,7 +330,7 @@ app.loadJSONBinaryFile = async (url: string): Promise<Record<string, ArrayBuffer
                     chunk = await decompress(chunk);
                 }
 
-                switch (value.__type__) {
+                switch (value._type) {
                     case "I8":
                         return new Uint8Array(chunk);
                     case "f32":

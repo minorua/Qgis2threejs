@@ -153,7 +153,7 @@ export const base64ToUint8Array = (base64) => {
 
 export const decodeBase64TypedArrayObject = async (obj) => {
 	return transformObjectValues(obj, async (value) => {
-		if (value.__type__ !== undefined) {
+		if (value._type !== undefined) {
 			const bin = value as Base64Data;
 			let chunk = base64ToUint8Array(bin.data).buffer;
 
@@ -161,7 +161,7 @@ export const decodeBase64TypedArrayObject = async (obj) => {
 				chunk = await decompress(chunk);
 			}
 
-			switch (bin.__type__) {
+			switch (bin._type) {
 				case "I8":
 					return new Uint8Array(chunk);
 				case "f32":

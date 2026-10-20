@@ -22,7 +22,7 @@ class BinaryContainer:
         compress = self.compress and not force_uncompressed
         data = zlib.compress(self.data) if compress else self.data
         return {
-            "__type__": self.type,
+            "_type": self.type,
             "compressed": compress,
             "data": base64.b64encode(data).decode("ascii")
         }
@@ -61,7 +61,7 @@ class JSONBinaryWriter:
                 compress = value.compress and not force_uncompressed
                 data = value.data
                 metadata = {
-                    "__type__": value.type,
+                    "_type": value.type,
                     "offset": offset,
                     "size": len(data),
                     "compressed": compress
