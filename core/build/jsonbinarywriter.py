@@ -8,6 +8,10 @@ import struct
 import zlib
 
 
+def compressData(data):
+    return zlib.compress(data)
+
+
 class BinaryContainer:
 
     def __init__(self, data: bytes, type: str, compress=True):
@@ -20,7 +24,7 @@ class BinaryContainer:
 
     def toJSONCompatible(self, force_uncompressed=False):
         compress = self.compress and not force_uncompressed
-        data = zlib.compress(self.data) if compress else self.data
+        data = compressData(self.data) if compress else self.data
         return {
             "_type": self.type,
             "compressed": compress,
@@ -59,7 +63,7 @@ class JSONBinaryWriter:
 
             if isinstance(value, BinaryContainer):
                 compress = value.compress and not force_uncompressed
-                data = value.data
+                data = compressData(value.data) if compress else value.data
                 metadata = {
                     "_type": value.type,
                     "offset": offset,
